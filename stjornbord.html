@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gettu Betur — Stjórnborð</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="sida-haus">
+  <div class="merki"><span>Gettu</span> Betur — Stjórnborð</div>
+  <div class="notandi-svaedi">
+    <a class="tengill" href="leikur.html">Í leikinn</a>
+    <span id="notandaNafn"></span>
+    <button class="smabtn" id="utskraBtn">Skrá út</button>
+  </div>
+</header>
+
+<main>
+  <div class="hluti-titill">
+    <h2>Frammistaða notenda</h2>
+    <button class="smabtn" id="endurhladaBtn">Endurhlaða</button>
+  </div>
+  <table id="notendaTafla">
+    <thead>
+      <tr><th>Nafn</th><th>Svarað</th><th>Rétt</th><th>Nákvæmni</th><th>Síðast virk/ur</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="hluti-titill">
+    <h2>Spurningar</h2>
+  </div>
+  <table id="spurningaTafla">
+    <thead>
+      <tr><th>Texti</th><th>Staða</th><th>Aðgerð</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Bæta við spurningu handvirkt</h3>
+  <form id="nySpurningForm" class="ny-spurning-form">
+    <label for="text">Spurning</label>
+    <input type="text" id="text" name="text" required>
+
+    <div class="val-rada">
+      <div>
+        <label for="val1">Svarmöguleiki 1</label>
+        <input type="text" id="val1" name="val1" required>
+      </div>
+      <div>
+        <label for="val2">Svarmöguleiki 2</label>
+        <input type="text" id="val2" name="val2" required>
+      </div>
+      <div>
+        <label for="val3">Svarmöguleiki 3</label>
+        <input type="text" id="val3" name="val3">
+      </div>
+      <div>
+        <label for="val4">Svarmöguleiki 4</label>
+        <input type="text" id="val4" name="val4">
+      </div>
+    </div>
+
+    <label for="rettSvar">Rétt svar</label>
+    <select id="rettSvar" name="rettSvar" required>
+      <option value="0">Svarmöguleiki 1</option>
+      <option value="1">Svarmöguleiki 2</option>
+      <option value="2">Svarmöguleiki 3</option>
+      <option value="3">Svarmöguleiki 4</option>
+    </select>
+
+    <button type="submit" class="aðal-hnappur">Bæta við spurningu</button>
+  </form>
+</main>
+
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>

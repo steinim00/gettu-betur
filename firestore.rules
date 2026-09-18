@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function innskradur() {
+      return request.auth != null;
+    }
+
+    function erAdmin() {
+      return innskradur() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Notendaskjöl: hver notandi má lesa/skrifa sitt eigið, admin má lesa/skrifa allt.
+    // Notandi má ekki hækka sjálfan sig í admin.
+    match /users/{userId} {
+      allow read: if innskradur() && (request.auth.uid == userId || erAdmin());
+      allow create: if innskradur() && request.auth.uid == userId
+                    && request.resource.data.role == 'user';
+      allow update: if erAdmin()
+                    || (innskradur() && request.auth.uid == userId
+                        && request.resource.data.role == resource.data.role);
+      allow delete: if erAdmin();
+
+      // Tilraunir (svör) notandans. Óbreytanlegar eftir að þær eru skráðar.
+      // Skjal-ID = spurningarID, svo hver notandi getur aðeins svarað hverri spurningu einu sinni.
+      match /attempts/{questionId} {
+        allow read: if innskradur() && (request.auth.uid == userId || erAdmin());
+        allow create: if innskradur() && request.auth.uid == userId
+                      && request.resource.data.keys().hasOnly(['selectedIndex', 'answeredAt'])
+                      && request.resource.data.selectedIndex is int
+                      && exists(/databases/$(database)/documents/questions/$(questionId));
+        allow update, delete: if false;
+      }
+    }
+
+    // Spurningar: allir innskráðir mega lesa, aðeins admin má breyta.
+    // Rétt svar er ALDREI geymt hér.
+    match /questions/{questionId} {
+      allow read: if innskradur();
+      allow write: if erAdmin();
+    }
+
+    // Rétt svör: admin má alltaf lesa/skrifa.
+    // Venjulegur notandi má fyrst lesa svarið EFTIR að hafa sjálfur svarað spurningunni
+    // (þ.e. þegar samsvarandi attempts-skjal er þegar til) - kemur í veg fyrir svindl.
+    match /answers/{questionId} {
+      allow read: if erAdmin() ||
+        (innskradur() &&
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)/attempts/$(questionId)));
+      allow write: if erAdmin();
+    }
+  }
+}
