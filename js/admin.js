@@ -15,6 +15,11 @@ const notendaTafla = document.getElementById("notendaTafla").querySelector("tbod
 const spurningaTafla = document.getElementById("spurningaTafla").querySelector("tbody");
 const nySpurningForm = document.getElementById("nySpurningForm");
 const endurhladaBtn = document.getElementById("endurhladaBtn");
+const innflutningsSkra = document.getElementById("innflutningsSkra");
+const vinnaUrSkraBtn = document.getElementById("vinnaUrSkraBtn");
+const innflutningsStada = document.getElementById("innflutningsStada");
+const drafListi = document.getElementById("drafListi");
+const vistaValdarBtn = document.getElementById("vistaValdarBtn");
 
 vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
   notandaNafn.textContent = gogn.nafn || user.email;
@@ -139,6 +144,28 @@ function samraema(text) {
   return text.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+// entries: [{ text, correctAnswers: string[] }]. Skrifar questions+answers í Firestore,
+// hólfað niður í bútum af 480 aðgerðum (Firestore hámark er 500 í einum batch).
+async function vistaSpurningar(entries, { active }) {
+  let batch = writeBatch(db);
+  let fjoldiIBatch = 0;
+
+  for (const entry of entries) {
+    const questionRef = doc(collection(db, "questions"));
+    batch.set(questionRef, { text: entry.text, active, createdAt: serverTimestamp() });
+    batch.set(doc(db, "answers", questionRef.id), { correctAnswers: entry.correctAnswers });
+    fjoldiIBatch += 2;
+
+    if (fjoldiIBatch >= 480) {
+      await batch.commit();
+      batch = writeBatch(db);
+      fjoldiIBatch = 0;
+    }
+  }
+
+  if (fjoldiIBatch > 0) await batch.commit();
+}
+
 nySpurningForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const gogn = new FormData(nySpurningForm);
@@ -155,18 +182,184 @@ nySpurningForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  const correctAnswers = [...new Set([rettSvar, ...onnurSvor])];
-
-  const questionRef = doc(collection(db, "questions"));
-  const batch = writeBatch(db);
-  batch.set(questionRef, {
-    text,
-    active: true,
-    createdAt: serverTimestamp()
+  await vistaSpurningar([{ text, correctAnswers: [...new Set([rettSvar, ...onnurSvor])] }], {
+    active: true
   });
-  batch.set(doc(db, "answers", questionRef.id), { correctAnswers });
-  await batch.commit();
 
   nySpurningForm.reset();
   hladaSpurningayfirlit();
+});
+
+// --- Innflutningur úr .pptx/.docx beint í vafranum ---
+
+function afkodaXmlStafi(str) {
+  return str
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
+
+async function pptxIBlokkir(arrayBuffer) {
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const slideSkrar = Object.keys(zip.files)
+    .filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n))
+    .sort((a, b) => Number(a.match(/slide(\d+)\.xml/)[1]) - Number(b.match(/slide(\d+)\.xml/)[1]));
+
+  const blokkir = [];
+  for (const nafn of slideSkrar) {
+    const xml = await zip.files[nafn].async("string");
+    const malsgreinar = xml.match(/<a:p>.*?<\/a:p>/gs) || [];
+    const linur = malsgreinar
+      .map((mg) => {
+        const textar = mg.match(/<a:t>(.*?)<\/a:t>/gs) || [];
+        return textar.map((t) => afkodaXmlStafi(t.replace(/<\/?a:t>/g, ""))).join("");
+      })
+      .filter((l) => l.trim().length > 0);
+    if (linur.length > 0) blokkir.push(linur);
+  }
+  return blokkir;
+}
+
+async function docxIBlokkir(arrayBuffer) {
+  const { value: text } = await mammoth.extractRawText({ arrayBuffer });
+  const linur = text.split("\n").map((l) => l.trim()).filter(Boolean);
+
+  const blokkir = [];
+  let nuverandi = null;
+  for (const lina of linur) {
+    const erNyBlokk = /^spurning\b/i.test(lina) || /^\d+[\.\)]\s+/.test(lina);
+    if (erNyBlokk) {
+      if (nuverandi) blokkir.push(nuverandi);
+      nuverandi = [lina];
+    } else if (nuverandi) {
+      nuverandi.push(lina);
+    }
+  }
+  if (nuverandi) blokkir.push(nuverandi);
+  return blokkir;
+}
+
+// Sömu þumalputtareglur og scripts/build-questions.js - leitar að "Spurning:" og "Svar:" línum.
+function greinaBlokk(linur) {
+  const spurningLina =
+    linur.find((l) => /^spurning\b\s*[:\-]?\s*/i.test(l)) ||
+    linur.find((l) => l.trim().endsWith("?")) ||
+    linur[0] ||
+    "";
+
+  const text = spurningLina
+    .replace(/^spurning\b\s*[:\-]?\s*/i, "")
+    .replace(/^\d+[\.\)]\s*/, "")
+    .trim();
+
+  const svarLina = linur.find((l) => l !== spurningLina && /^svar\b\s*[:\-]?\s*/i.test(l));
+  const svarTexti = svarLina ? svarLina.replace(/^svar\b\s*[:\-]?\s*/i, "").trim() : "";
+  const correctAnswers = svarTexti ? svarTexti.split("/").map(samraema).filter(Boolean) : [];
+
+  return { text, correctAnswers, needsReview: !text || correctAnswers.length === 0 };
+}
+
+vinnaUrSkraBtn.addEventListener("click", async () => {
+  const file = innflutningsSkra.files[0];
+  if (!file) {
+    innflutningsStada.textContent = "Veldu skrá fyrst.";
+    return;
+  }
+
+  innflutningsStada.textContent = "Vinn úr skrá…";
+  drafListi.innerHTML = "";
+  vistaValdarBtn.hidden = true;
+
+  try {
+    const buffer = await file.arrayBuffer();
+    const endirer = file.name.toLowerCase();
+    let blokkir;
+    if (endirer.endsWith(".pptx")) {
+      blokkir = await pptxIBlokkir(buffer);
+    } else if (endirer.endsWith(".docx")) {
+      blokkir = await docxIBlokkir(buffer);
+    } else {
+      innflutningsStada.textContent = "Aðeins .pptx og .docx eru studd.";
+      return;
+    }
+
+    const draftir = blokkir.map(greinaBlokk);
+    renderDraftRows(draftir);
+
+    const faerReview = draftir.filter((d) => d.needsReview).length;
+    innflutningsStada.textContent =
+      `Fann ${draftir.length} mögulegar spurningar (${draftir.length - faerReview} greindust sjálfkrafa, ` +
+      `${faerReview} þurfa yfirferð). Farðu yfir og hakaðu við þær sem á að vista.`;
+    vistaValdarBtn.hidden = draftir.length === 0;
+  } catch (villa) {
+    console.error(villa);
+    innflutningsStada.textContent = "Tókst ekki að vinna úr skránni: " + villa.message;
+  }
+});
+
+function renderDraftRows(draftir) {
+  drafListi.innerHTML = "";
+
+  draftir.forEach((draft) => {
+    const rad = document.createElement("div");
+    rad.className = "draft-rad" + (draft.needsReview ? " tharf-yfirferd" : "");
+
+    const gatlisti = document.createElement("input");
+    gatlisti.type = "checkbox";
+    gatlisti.checked = !draft.needsReview;
+
+    const spurningInput = document.createElement("input");
+    spurningInput.type = "text";
+    spurningInput.value = draft.text;
+    spurningInput.placeholder = "Spurning";
+
+    const svarSvaedi = document.createElement("div");
+    if (draft.needsReview) {
+      const merki = document.createElement("span");
+      merki.className = "draft-yfirferd-merki";
+      merki.textContent = "Þarf yfirferð";
+      svarSvaedi.appendChild(merki);
+    }
+    const svarInput = document.createElement("input");
+    svarInput.type = "text";
+    svarInput.value = draft.correctAnswers.join(" / ");
+    svarInput.placeholder = "Rétt svar (má hafa fleiri afbrigði aðskilin með /)";
+    svarSvaedi.appendChild(svarInput);
+
+    rad.appendChild(gatlisti);
+    rad.appendChild(spurningInput);
+    rad.appendChild(svarSvaedi);
+
+    rad._faSpurningu = () => ({
+      tokinMed: gatlisti.checked,
+      text: spurningInput.value.trim(),
+      correctAnswers: [...new Set(svarInput.value.split("/").map(samraema).filter(Boolean))]
+    });
+
+    drafListi.appendChild(rad);
+  });
+}
+
+vistaValdarBtn.addEventListener("click", async () => {
+  const radir = [...drafListi.querySelectorAll(".draft-rad")].map((r) => r._faSpurningu());
+  const valdar = radir.filter((r) => r.tokinMed && r.text && r.correctAnswers.length > 0);
+
+  if (valdar.length === 0) {
+    alert("Engar gildar spurningar valdar (þarf spurningatexta og minnst eitt rétt svar).");
+    return;
+  }
+
+  vistaValdarBtn.disabled = true;
+  try {
+    await vistaSpurningar(valdar, { active: false });
+    innflutningsStada.textContent = `Vistaði ${valdar.length} spurningar (óvirkar - kveiktu á þeim hér fyrir ofan).`;
+    drafListi.innerHTML = "";
+    vistaValdarBtn.hidden = true;
+    innflutningsSkra.value = "";
+    hladaSpurningayfirlit();
+  } finally {
+    vistaValdarBtn.disabled = false;
+  }
 });

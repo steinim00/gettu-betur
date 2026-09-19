@@ -9,6 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 </head>
 <body>
 
@@ -56,6 +58,22 @@
 
     <button type="submit" class="aðal-hnappur">Bæta við spurningu</button>
   </form>
+
+  <div class="hluti-titill">
+    <h2>Flytja inn spurningar úr skrá</h2>
+  </div>
+  <p class="undirtitill-vinstri">
+    Virkar best fyrir skjöl sem hafa "Spurning: ..." og "Svar: ..." línur.
+    Annars konar skjöl (t.d. glósur/ævisögur) þarf að skrifa spurningar handvirkt
+    úr, eða senda á umsjónarmann til vinnslu.
+  </p>
+  <div class="innflutnings-form">
+    <input type="file" id="innflutningsSkra" accept=".pptx,.docx">
+    <button type="button" class="smabtn" id="vinnaUrSkraBtn">Vinna úr skrá</button>
+  </div>
+  <p id="innflutningsStada"></p>
+  <div id="drafListi"></div>
+  <button type="button" class="aðal-hnappur" id="vistaValdarBtn" hidden>Vista valdar spurningar</button>
 </main>
 
 <script type="module" src="js/admin.js"></script>

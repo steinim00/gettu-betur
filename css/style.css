@@ -292,3 +292,58 @@ th {
   color: var(--litur-had);
   text-decoration: none;
 }
+
+.undirtitill-vinstri {
+  color: var(--litur-daufur);
+  font-size: 0.9rem;
+  margin-top: -6px;
+}
+
+.innflutnings-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.innflutnings-form input[type="file"] {
+  flex: 1;
+  padding: 10px;
+}
+
+#innflutningsStada {
+  color: var(--litur-daufur);
+  font-size: 0.9rem;
+}
+
+.draft-rad {
+  display: grid;
+  grid-template-columns: auto 1.6fr 1fr;
+  gap: 10px;
+  align-items: start;
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.draft-rad.tharf-yfirferd {
+  border-color: var(--litur-rangt);
+}
+
+.draft-rad input[type="checkbox"] {
+  width: auto;
+  margin-top: 12px;
+}
+
+.draft-rad input[type="text"] {
+  margin: 0 0 8px;
+}
+
+.draft-yfirferd-merki {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--litur-rangt);
+  margin-bottom: 6px;
+}
