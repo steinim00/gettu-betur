@@ -5,12 +5,12 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-aut
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "SKIPTU-UT-FYRIR-THITT-API-KEY",
-  authDomain: "SKIPTU-UT.firebaseapp.com",
-  projectId: "SKIPTU-UT",
-  storageBucket: "SKIPTU-UT.appspot.com",
-  messagingSenderId: "SKIPTU-UT",
-  appId: "SKIPTU-UT"
+  apiKey: "AIzaSyBJVzHWeYpvM3-82A9AMusxliBcPXzgfsw",
+  authDomain: "ms-gettu-betur.firebaseapp.com",
+  projectId: "ms-gettu-betur",
+  storageBucket: "ms-gettu-betur.firebasestorage.app",
+  messagingSenderId: "724547921344",
+  appId: "1:724547921344:web:57e7a7b8da21743be4d425"
 };
 
 export const app = initializeApp(firebaseConfig);
