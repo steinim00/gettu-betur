@@ -105,6 +105,15 @@ function opnaVerkefni(verkefniId, verkefni) {
   (verkefni.slides || []).forEach((glaera) => {
     const kafli = document.createElement("article");
     kafli.className = "glaera-kort";
+
+    if (glaera.image) {
+      const mynd = document.createElement("img");
+      mynd.src = glaera.image;
+      mynd.alt = glaera.title;
+      mynd.loading = "lazy";
+      kafli.appendChild(mynd);
+    }
+
     const h = document.createElement("h3");
     h.textContent = glaera.title;
     const p = document.createElement("p");

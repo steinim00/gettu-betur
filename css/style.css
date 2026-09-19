@@ -209,6 +209,15 @@ button.aðal-hnappur:hover {
   margin-bottom: 14px;
 }
 
+.glaera-kort img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  display: block;
+}
+
 .glaera-kort h3 {
   margin-top: 0;
   color: var(--litur-had);
