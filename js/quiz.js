@@ -28,8 +28,20 @@ const spurningaListi = document.getElementById("spurningaListi");
 const stodurNiðurstada = document.getElementById("stodurNiðurstada");
 const tilbakaFraSpurningum = document.getElementById("tilbakaFraSpurningum");
 
+const heilskjaBtn = document.getElementById("heilskjaBtn");
+const heilskjaSvaedi = document.getElementById("heilskjaSvaedi");
+const heilskjaMynd = document.getElementById("heilskjaMynd");
+const heilskjaTitill = document.getElementById("heilskjaTitill");
+const heilskjaTexti = document.getElementById("heilskjaTexti");
+const heilskjaTalning = document.getElementById("heilskjaTalning");
+const heilskjaAfturBtn = document.getElementById("heilskjaAfturBtn");
+const heilskjaAframBtn = document.getElementById("heilskjaAframBtn");
+const lokaHeilskjaBtn = document.getElementById("lokaHeilskjaBtn");
+
 let notandi = null;
 let valdVerkefniId = null;
+let heilskjaGlaerur = [];
+let heilskjaIndex = 0;
 
 function samraema(text) {
   return text.trim().toLowerCase().replace(/\s+/g, " ");
@@ -111,6 +123,7 @@ async function hladaVerkefnaListi() {
 
 function opnaVerkefni(verkefniId, verkefni) {
   valdVerkefniId = verkefniId;
+  heilskjaGlaerur = verkefni.slides || [];
   verkefnaTitill.textContent = verkefni.title;
   glaerurInnihald.innerHTML = "";
 
@@ -137,6 +150,68 @@ function opnaVerkefni(verkefniId, verkefni) {
 
   synaSvaedi("glaerur");
 }
+
+function synaHeilskjaGlaeru() {
+  const glaera = heilskjaGlaerur[heilskjaIndex];
+  if (!glaera) return;
+
+  if (glaera.image) {
+    heilskjaMynd.src = glaera.image;
+    heilskjaMynd.alt = glaera.title;
+    heilskjaMynd.hidden = false;
+  } else {
+    heilskjaMynd.hidden = true;
+  }
+
+  heilskjaTitill.textContent = glaera.title;
+  heilskjaTexti.textContent = glaera.body;
+  heilskjaTalning.textContent = `${heilskjaIndex + 1} / ${heilskjaGlaerur.length}`;
+  heilskjaAfturBtn.disabled = heilskjaIndex === 0;
+  heilskjaAframBtn.disabled = heilskjaIndex === heilskjaGlaerur.length - 1;
+}
+
+heilskjaBtn.addEventListener("click", async () => {
+  if (heilskjaGlaerur.length === 0) return;
+  heilskjaIndex = 0;
+  synaHeilskjaGlaeru();
+  heilskjaSvaedi.hidden = false;
+  try {
+    await heilskjaSvaedi.requestFullscreen?.();
+  } catch {
+    // Heilskjá ekki studd/leyfð - skjárinn er samt sýnilegur sem yfirlag.
+  }
+});
+
+function lokaHeilskja() {
+  heilskjaSvaedi.hidden = true;
+  if (document.fullscreenElement) document.exitFullscreen();
+}
+
+lokaHeilskjaBtn.addEventListener("click", lokaHeilskja);
+document.addEventListener("fullscreenchange", () => {
+  if (!document.fullscreenElement) heilskjaSvaedi.hidden = true;
+});
+
+heilskjaAfturBtn.addEventListener("click", () => {
+  if (heilskjaIndex > 0) {
+    heilskjaIndex--;
+    synaHeilskjaGlaeru();
+  }
+});
+
+heilskjaAframBtn.addEventListener("click", () => {
+  if (heilskjaIndex < heilskjaGlaerur.length - 1) {
+    heilskjaIndex++;
+    synaHeilskjaGlaeru();
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (heilskjaSvaedi.hidden) return;
+  if (e.key === "ArrowRight") heilskjaAframBtn.click();
+  if (e.key === "ArrowLeft") heilskjaAfturBtn.click();
+  if (e.key === "Escape") lokaHeilskja();
+});
 
 afromISpurningar.addEventListener("click", () => {
   synaSvaedi("spurningar");

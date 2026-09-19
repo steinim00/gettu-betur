@@ -27,7 +27,10 @@
   </div>
 
   <div id="glaeruSvaedi" hidden>
-    <button type="button" class="smabtn" id="tilbakaFraGlaerum">← Öll verkefni</button>
+    <div class="glaeru-tolusvaedi">
+      <button type="button" class="smabtn" id="tilbakaFraGlaerum">← Öll verkefni</button>
+      <button type="button" class="smabtn" id="heilskjaBtn">Skoða í heilskjá ⛶</button>
+    </div>
     <h2 id="verkefnaTitill"></h2>
     <div id="glaerurInnihald"></div>
     <button type="button" class="aðal-hnappur" id="afromISpurningar">Áfram í spurningar</button>
@@ -39,6 +42,20 @@
     <div id="spurningaListi"></div>
   </div>
 </main>
+
+<div id="heilskjaSvaedi" class="heilskja" hidden>
+  <button type="button" class="smabtn heilskja-loka" id="lokaHeilskjaBtn">Loka ✕</button>
+  <div class="heilskja-innihald">
+    <img id="heilskjaMynd" hidden>
+    <h2 id="heilskjaTitill"></h2>
+    <p id="heilskjaTexti"></p>
+  </div>
+  <div class="heilskja-stjorn">
+    <button type="button" class="smabtn" id="heilskjaAfturBtn">← Fyrri</button>
+    <span id="heilskjaTalning"></span>
+    <button type="button" class="smabtn" id="heilskjaAframBtn">Næsta →</button>
+  </div>
+</div>
 
 <script type="module" src="js/quiz.js"></script>
 </body>
