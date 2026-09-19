@@ -23,6 +23,9 @@ const vinnaUrSkraBtn = document.getElementById("vinnaUrSkraBtn");
 const innflutningsStada = document.getElementById("innflutningsStada");
 const drafListi = document.getElementById("drafListi");
 const vistaValdarBtn = document.getElementById("vistaValdarBtn");
+const drafGatlistaHnappar = document.getElementById("drafGatlistaHnappar");
+const veljaAllarBtn = document.getElementById("veljaAllarBtn");
+const afveljaAllarBtn = document.getElementById("afveljaAllarBtn");
 const githubTeiknInnsl = document.getElementById("githubTeiknInnsl");
 const vistaTeiknBtn = document.getElementById("vistaTeiknBtn");
 const teiknStada = document.getElementById("teiknStada");
@@ -474,6 +477,7 @@ vinnaUrSkraBtn.addEventListener("click", async () => {
       `spurningar greindust sjálfkrafa (${faerReview} þurfa yfirferð eða á að sleppa). ` +
       `Efni allra glæra verður vistað sem verkefni óháð vali hér fyrir neðan.`;
     vistaValdarBtn.hidden = draftir.length === 0;
+    drafGatlistaHnappar.hidden = draftir.length === 0;
   } catch (villa) {
     console.error(villa);
     innflutningsStada.textContent = "Tókst ekki að vinna úr skránni: " + villa.message;
@@ -572,6 +576,14 @@ async function hladaSkraAGithub(file) {
   return slod;
 }
 
+veljaAllarBtn.addEventListener("click", () => {
+  drafListi.querySelectorAll('.draft-rad input[type="checkbox"]').forEach((c) => (c.checked = true));
+});
+
+afveljaAllarBtn.addEventListener("click", () => {
+  drafListi.querySelectorAll('.draft-rad input[type="checkbox"]').forEach((c) => (c.checked = false));
+});
+
 vistaValdarBtn.addEventListener("click", async () => {
   const radir = [...drafListi.querySelectorAll(".draft-rad")].map((r) => r._faSpurningu());
   const valdar = radir.filter((r) => r.tokinMed && r.text && r.correctAnswers.length > 0);
@@ -629,6 +641,7 @@ vistaValdarBtn.addEventListener("click", async () => {
       : `Vistaði ${valdar.length} spurningar (óvirkar - kveiktu á þeim hér fyrir ofan).`;
     drafListi.innerHTML = "";
     vistaValdarBtn.hidden = true;
+    drafGatlistaHnappar.hidden = true;
     innflutningsSkra.value = "";
     verkefnaTitillInnsl.value = "";
     sidustuBlokkir = [];
