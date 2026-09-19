@@ -11,15 +11,25 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Netföng sem fá sjálfkrafa admin-aðgang (haldist í takt við ADMIN_NETFONG í js/auth.js).
+    function erAdminNetfang(email) {
+      return email in ['steinim00@gmail.com'];
+    }
+
     // Notendaskjöl: hver notandi má lesa/skrifa sitt eigið, admin má lesa/skrifa allt.
-    // Notandi má ekki hækka sjálfan sig í admin.
+    // Notandi má almennt ekki hækka sjálfan sig í admin - nema netfangið hans sé á
+    // ofangreindum lista, sem gerir sjálfheilun í js/auth.js kleifa.
     match /users/{userId} {
       allow read: if innskradur() && (request.auth.uid == userId || erAdmin());
       allow create: if innskradur() && request.auth.uid == userId
-                    && request.resource.data.role == 'user';
+                    && (request.resource.data.role == 'user'
+                        || (request.resource.data.role == 'admin'
+                            && erAdminNetfang(request.resource.data.email)));
       allow update: if erAdmin()
                     || (innskradur() && request.auth.uid == userId
-                        && request.resource.data.role == resource.data.role);
+                        && (request.resource.data.role == resource.data.role
+                            || (request.resource.data.role == 'admin'
+                                && erAdminNetfang(resource.data.email))));
       allow delete: if erAdmin();
 
       // Tilraunir (svör) notandans. Óbreytanlegar eftir að þær eru skráðar.

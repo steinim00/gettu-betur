@@ -10,16 +10,25 @@ import {
 import {
   doc,
   setDoc,
+  updateDoc,
   getDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+// Netföng í þessum lista fá sjálfkrafa admin-aðgang við skráningu/innskráningu.
+// Sömu netföng eru skráð í firestore.rules svo þetta sé ekki bara "treyst" frá biðlaranum.
+const ADMIN_NETFONG = ["steinim00@gmail.com"];
+
+function erAdminNetfang(email) {
+  return ADMIN_NETFONG.includes((email || "").toLowerCase());
+}
 
 export async function skra(email, password, nafn) {
   const cred = await createUserWithEmailAndPassword(auth, email, password);
   await setDoc(doc(db, "users", cred.user.uid), {
     nafn,
     email,
-    role: "user",
+    role: erAdminNetfang(email) ? "admin" : "user",
     createdAt: serverTimestamp()
   });
   return cred.user;
@@ -39,7 +48,7 @@ export async function skraInnMedGoogle() {
     await setDoc(notandaRef, {
       nafn: cred.user.displayName || cred.user.email,
       email: cred.user.email,
-      role: "user",
+      role: erAdminNetfang(cred.user.email) ? "admin" : "user",
       createdAt: serverTimestamp()
     });
   }
@@ -65,8 +74,16 @@ export function vaktaInnskraningu({ requireAuth = true, requireAdmin = false } =
       return;
     }
 
-    const snap = await getDoc(doc(db, "users", user.uid));
+    const notandaRef = doc(db, "users", user.uid);
+    const snap = await getDoc(notandaRef);
     const notandagogn = snap.exists() ? snap.data() : { nafn: user.email, role: "user" };
+
+    // Sjálfheilun: ef þetta netfang er á admin-listanum en skjalið segir ekki admin
+    // ennþá (t.d. skráð sig inn áður en netfangið var bætt á listann), uppfærum við það.
+    if (erAdminNetfang(user.email) && notandagogn.role !== "admin") {
+      await updateDoc(notandaRef, { role: "admin" });
+      notandagogn.role = "admin";
+    }
 
     if (requireAdmin && notandagogn.role !== "admin") {
       window.location.href = "leikur.html";
