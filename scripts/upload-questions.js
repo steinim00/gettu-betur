@@ -7,12 +7,15 @@
 //   1. Firebase Console -> Project settings -> Service accounts -> Generate new private key
 //   2. Vista skrána sem scripts/serviceAccountKey.json (hún er í .gitignore, lekur ekki upp)
 //
-// Notkun: node upload-questions.js [questions-draft.json]
+// Notkun: node upload-questions.js [questions-draft.json] ["Titill verkefnis"]
+// Ef titill er gefinn er búið til eitt verkefni (með lýsingarglæru) og allar
+// spurningarnar tengdar við það - annars fara þær inn ótengdar neinu verkefni.
 const fs = require("fs");
 const path = require("path");
 const admin = require("firebase-admin");
 
 const draftSkra = process.argv[2] || path.join(__dirname, "questions-draft.json");
+const verkefnaTitill = process.argv[3] || null;
 const serviceAccountSlodi = path.join(__dirname, "serviceAccountKey.json");
 
 if (!fs.existsSync(serviceAccountSlodi)) {
@@ -43,6 +46,24 @@ async function main() {
     return;
   }
 
+  let verkefniId = "";
+  if (verkefnaTitill) {
+    const verkefniRef = db.collection("verkefni").doc();
+    await verkefniRef.set({
+      title: verkefnaTitill,
+      slides: [
+        {
+          title: verkefnaTitill,
+          body: `${tilbunar.length} spurningar. Smelltu á "Áfram í spurningar" til að byrja.`
+        }
+      ],
+      active: false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    verkefniId = verkefniRef.id;
+    console.log(`Bjó til verkefni "${verkefnaTitill}" (${verkefniId}).`);
+  }
+
   let batch = db.batch();
   let fjoldiIBatch = 0;
   let heildarfjoldi = 0;
@@ -51,6 +72,7 @@ async function main() {
     const questionRef = db.collection("questions").doc();
     batch.set(questionRef, {
       text: s.text,
+      verkefniId,
       active: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });

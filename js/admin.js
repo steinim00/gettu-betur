@@ -246,7 +246,11 @@ async function hladaSpurningayfirlit() {
 }
 
 function samraema(text) {
-  return text.trim().toLowerCase().replace(/\s+/g, " ");
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/^[\s.,!?;:"'`´()]+|[\s.,!?;:"'`´()]+$/g, "")
+    .replace(/\s+/g, " ");
 }
 
 // entries: [{ text, correctAnswers: string[], verkefniId? }]. Skrifar questions+answers
@@ -391,8 +395,31 @@ async function docxIBlokkir(arrayBuffer) {
   return blokkir.length > 0 ? blokkir : [linur];
 }
 
-// Sömu þumalputtareglur og scripts/build-questions.js - leitar að "Spurning:" og "Svar:" línum.
+// Sviga-innihald ("Kísill (Sílikon)") er annað samþykkt svar, ekki hluti af aðalsvarinu.
+// Má líka skrifa fleiri afbrigði aðskilin með skástriki ("Svar: Reykjavík / Rvk").
+function svorurUrTexta(hraSvar) {
+  const svor = [];
+  for (const biti of hraSvar.split("/")) {
+    const svigaMatch = biti.trim().match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+    if (svigaMatch) {
+      svor.push(svigaMatch[1], svigaMatch[2]);
+    } else {
+      svor.push(biti);
+    }
+  }
+  return [...new Set(svor.map(samraema).filter(Boolean))];
+}
+
+// Sömu þumalputtareglur og scripts/build-questions.js - leitar að "Spurning:"/"Svar:"
+// línum, eða "N. Spurning [TAB] SVAR: svar" á einni línu (Gettu Betur spurningabankar
+// eru oft á því sniði). Þolir "SVRA:" innsláttarvillu og vantandi tvípunkt.
 function greinaBlokk(linur) {
+  const samaLinaSvar = (linur[0] || "").match(/^\s*\d+[.)]\s*(.+?)\t+SV(?:AR|RA)\s*:?\s*(.+)$/i);
+  if (samaLinaSvar) {
+    const correctAnswers = svorurUrTexta(samaLinaSvar[2]);
+    return { text: samaLinaSvar[1].trim(), correctAnswers, needsReview: correctAnswers.length === 0 };
+  }
+
   const spurningLina =
     linur.find((l) => /^spurning\b\s*[:\-]?\s*/i.test(l)) ||
     linur.find((l) => l.trim().endsWith("?")) ||
@@ -404,9 +431,9 @@ function greinaBlokk(linur) {
     .replace(/^\d+[\.\)]\s*/, "")
     .trim();
 
-  const svarLina = linur.find((l) => l !== spurningLina && /^svar\b\s*[:\-]?\s*/i.test(l));
-  const svarTexti = svarLina ? svarLina.replace(/^svar\b\s*[:\-]?\s*/i, "").trim() : "";
-  const correctAnswers = svarTexti ? svarTexti.split("/").map(samraema).filter(Boolean) : [];
+  const svarLina = linur.find((l) => l !== spurningLina && /^\s*SV(?:AR|RA)\s*:?\s*/i.test(l));
+  const svarTexti = svarLina ? svarLina.replace(/^\s*SV(?:AR|RA)\s*:?\s*/i, "").trim() : "";
+  const correctAnswers = svarTexti ? svorurUrTexta(svarTexti) : [];
 
   return { text, correctAnswers, needsReview: !text || correctAnswers.length === 0 };
 }

@@ -6,7 +6,11 @@ const path = require("path");
 const heimild = "hrifamiklir-einstaklingar.pptx";
 
 function samraema(text) {
-  return text.trim().toLowerCase().replace(/\s+/g, " ");
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/^[\s.,!?;:"'`´()]+|[\s.,!?;:"'`´()]+$/g, "")
+    .replace(/\s+/g, " ");
 }
 
 const spurningar = [

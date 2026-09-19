@@ -44,7 +44,11 @@ let heilskjaGlaerur = [];
 let heilskjaIndex = 0;
 
 function samraema(text) {
-  return text.trim().toLowerCase().replace(/\s+/g, " ");
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/^[\s.,!?;:"'`´()]+|[\s.,!?;:"'`´()]+$/g, "")
+    .replace(/\s+/g, " ");
 }
 
 // TÍMABUNDIÐ meðan á þróun/grunnvinnu stendur: requireAuth er false svo hægt sé
