@@ -51,11 +51,10 @@ async function main() {
     const questionRef = db.collection("questions").doc();
     batch.set(questionRef, {
       text: s.text,
-      choices: s.choices,
       active: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
-    batch.set(db.collection("answers").doc(questionRef.id), { correctIndex: s.correctIndex });
+    batch.set(db.collection("answers").doc(questionRef.id), { correctAnswers: s.correctAnswers });
 
     fjoldiIBatch += 2;
     heildarfjoldi++;

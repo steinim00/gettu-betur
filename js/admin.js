@@ -37,7 +37,7 @@ async function hladaNotendayfirlit() {
     getDocs(collection(db, "answers"))
   ]);
 
-  const rettSvor = new Map(svorSnap.docs.map((d) => [d.id, d.data().correctIndex]));
+  const rettSvor = new Map(svorSnap.docs.map((d) => [d.id, d.data().correctAnswers || []]));
 
   const rows = [];
   for (const notandiDoc of notendurSnap.docs) {
@@ -50,7 +50,7 @@ async function hladaNotendayfirlit() {
 
     attemptsSnap.forEach((a) => {
       const gogn = a.data();
-      if (rettSvor.get(a.id) === gogn.selectedIndex) fjoldiRett++;
+      if ((rettSvor.get(a.id) || []).includes(gogn.svar)) fjoldiRett++;
       const timi = gogn.answeredAt?.toMillis?.() ?? 0;
       if (!sidastSvarad || timi > sidastSvarad) sidastSvarad = timi;
     });
@@ -90,11 +90,15 @@ async function hladaNotendayfirlit() {
 }
 
 async function hladaSpurningayfirlit() {
-  const spurningarSnap = await getDocs(collection(db, "questions"));
+  const [spurningarSnap, svorSnap] = await Promise.all([
+    getDocs(collection(db, "questions")),
+    getDocs(collection(db, "answers"))
+  ]);
+  const rettSvor = new Map(svorSnap.docs.map((d) => [d.id, d.data().correctAnswers || []]));
 
   spurningaTafla.innerHTML = "";
   if (spurningarSnap.empty) {
-    spurningaTafla.innerHTML = `<tr><td colspan="3">Engar spurningar ennþá.</td></tr>`;
+    spurningaTafla.innerHTML = `<tr><td colspan="4">Engar spurningar ennþá.</td></tr>`;
     return;
   }
 
@@ -114,6 +118,9 @@ async function hladaSpurningayfirlit() {
     const textTd = document.createElement("td");
     textTd.textContent = spurning.text;
 
+    const svarTd = document.createElement("td");
+    svarTd.textContent = (rettSvor.get(qDoc.id) || [])[0] ?? "—";
+
     const stodaTd = document.createElement("td");
     stodaTd.textContent = spurning.active ? "Virk" : "Óvirk";
 
@@ -121,10 +128,15 @@ async function hladaSpurningayfirlit() {
     adgerdTd.appendChild(kveikjaKnappur);
 
     tr.appendChild(textTd);
+    tr.appendChild(svarTd);
     tr.appendChild(stodaTd);
     tr.appendChild(adgerdTd);
     spurningaTafla.appendChild(tr);
   });
+}
+
+function samraema(text) {
+  return text.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 nySpurningForm.addEventListener("submit", async (e) => {
@@ -132,28 +144,27 @@ nySpurningForm.addEventListener("submit", async (e) => {
   const gogn = new FormData(nySpurningForm);
 
   const text = gogn.get("text").trim();
-  const choices = [
-    gogn.get("val1").trim(),
-    gogn.get("val2").trim(),
-    gogn.get("val3").trim(),
-    gogn.get("val4").trim()
-  ].filter(Boolean);
-  const correctIndex = Number(gogn.get("rettSvar"));
+  const rettSvar = samraema(gogn.get("rettSvar") || "");
+  const onnurSvor = (gogn.get("onnurSvor") || "")
+    .split(",")
+    .map(samraema)
+    .filter(Boolean);
 
-  if (!text || choices.length < 2) {
-    alert("Skráðu spurningatexta og minnst tvö svarmöguleika.");
+  if (!text || !rettSvar) {
+    alert("Skráðu spurningatexta og rétt svar.");
     return;
   }
+
+  const correctAnswers = [...new Set([rettSvar, ...onnurSvor])];
 
   const questionRef = doc(collection(db, "questions"));
   const batch = writeBatch(db);
   batch.set(questionRef, {
     text,
-    choices,
     active: true,
     createdAt: serverTimestamp()
   });
-  batch.set(doc(db, "answers", questionRef.id), { correctIndex });
+  batch.set(doc(db, "answers", questionRef.id), { correctAnswers });
   await batch.commit();
 
   nySpurningForm.reset();

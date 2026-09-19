@@ -5,14 +5,11 @@
 // leiðréttu/fjarlægðu spurningar merktar "needsReview": true áður en þú
 // keyrir upload-questions.js.
 //
-// Reglur sem eru studdar í frumtextanum þínum:
+// Gettu Betur er með OPNUM svörum (ekki fjölvalskostum), svo þessi skrifta
+// leitar að spurningatexta og réttu svari í línunum:
 //   - Lína sem byrjar á "Spurning" er spurningatextinn.
-//   - Valmöguleikar eru línur sem byrja á "a)", "b)", "1.", "2." o.s.frv.
-//   - Rétt svar er merkt annaðhvort með:
-//       * "*" fremst á línunni ("*b) Reykjavík")
-//       * "(rétt)" eða "(svar)" aftast á línunni
-//       * feitletrun í .docx skjölum (verður **svona** eftir extract-docx.js)
-//       * eða línu sem byrjar á "Svar:" og passar við einn valmöguleikann
+//   - Lína sem byrjar á "Svar" er rétta svarið (má hafa fleiri en eitt
+//     samþykkt afbrigði aðskilið með skástriki, t.d. "Svar: Reykjavík / Rvk").
 const fs = require("fs");
 const path = require("path");
 
@@ -20,13 +17,8 @@ const slidesSkra = path.join(__dirname, "slides.json");
 const paragraphsSkra = path.join(__dirname, "paragraphs.json");
 const utskrift = process.argv[2] || path.join(__dirname, "questions-draft.json");
 
-function hreinsaValLinu(lina) {
-  return lina
-    .replace(/^\*+\s*/, "")
-    .replace(/^[a-dA-D1-9][\.\)]\s+/, "")
-    .replace(/\*\*/g, "")
-    .replace(/\s*\((rétt|svar)\)\s*$/i, "")
-    .trim();
+function samraema(text) {
+  return text.trim().toLowerCase().replace(/\*\*/g, "").replace(/\s+/g, " ");
 }
 
 function greinaBlokk(linur, uppspretta) {
@@ -41,38 +33,16 @@ function greinaBlokk(linur, uppspretta) {
     .replace(/^\d+[\.\)]\s*/, "")
     .trim();
 
-  const afgangur = linur.filter((l) => l !== spurningLina);
-  const svarLina = afgangur.find((l) => /^svar\b\s*[:\-]?\s*/i.test(l));
-  const svarTexti = svarLina ? svarLina.replace(/^svar\b\s*[:\-]?\s*/i, "").trim() : null;
-
-  const valLinur = afgangur.filter(
-    (l) => /^\*?[a-dA-D1-9][\.\)]\s+/.test(l.trim()) && l !== svarLina
-  );
-
-  const choices = valLinur.map(hreinsaValLinu);
-
-  let correctIndex = null;
-  valLinur.forEach((lina, i) => {
-    const uhreinsad = lina.trim();
-    const erMerkt =
-      /^\*/.test(uhreinsad) ||
-      /\((rétt|svar)\)\s*$/i.test(uhreinsad) ||
-      /^\*\*.*\*\*\s*$/.test(uhreinsad.replace(/^[a-dA-D1-9][\.\)]\s*/, ""));
-    if (erMerkt) correctIndex = i;
-  });
-
-  if (correctIndex === null && svarTexti) {
-    const staðaIndex = choices.findIndex(
-      (c) => c.toLowerCase().trim() === svarTexti.toLowerCase().trim()
-    );
-    if (staðaIndex !== -1) correctIndex = staðaIndex;
-  }
+  const svarLina = linur.find((l) => l !== spurningLina && /^svar\b\s*[:\-]?\s*/i.test(l));
+  const svarTexti = svarLina ? svarLina.replace(/^svar\b\s*[:\-]?\s*/i, "").trim() : "";
+  const correctAnswers = svarTexti
+    ? svarTexti.split("/").map(samraema).filter(Boolean)
+    : [];
 
   return {
     text: spurningTexti,
-    choices,
-    correctIndex,
-    needsReview: !spurningTexti || choices.length < 2 || correctIndex === null,
+    correctAnswers,
+    needsReview: !spurningTexti || correctAnswers.length === 0,
     source: uppspretta
   };
 }

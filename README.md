@@ -8,7 +8,8 @@ Static frontend (HTML/CSS/JS, engin byggingarskref) + Firebase (Auth + Firestore
 ## 1. Stofna Firebase verkefni
 
 1. Farðu á https://console.firebase.google.com og stofnaðu nýtt verkefni.
-2. **Authentication** -> Sign-in method -> kveiktu á **Email/Password**.
+2. **Authentication** -> Sign-in method -> kveiktu á **Email/Password** og (valfrjálst)
+   **Google** ef þú vilt "Skrá inn með Google" hnappinn sem er þegar í `index.html`.
 3. **Firestore Database** -> Create database -> veldu staðsetningu (t.d. `eur3`) -> byrjaðu í production mode.
 4. **Project settings** (gírtáknið) -> "Your apps" -> smelltu á vef-táknið (`</>`) til að skrá vefapp -> afritaðu `firebaseConfig` gildin.
 5. Settu þau gildi inn í [`js/firebase-config.js`](js/firebase-config.js) í stað `SKIPTU-UT-...` gildanna.
@@ -19,6 +20,10 @@ Farðu í **Firestore Database -> Rules** í Firebase Console og límdu inn inni
 [`firestore.rules`](firestore.rules) (eða keyrðu `firebase deploy --only firestore:rules`
 ef þú notar Firebase CLI, sjá kafla 5).
 
+Gettu Betur er með **opnum svörum** (þú skrifar svarið sjálf/ur, ekki fjölvalskostir),
+og einkunnagjöf er sjálfvirk: svarið þitt er borið saman við rétt svar (lágstafað,
+auka bil fjarlægt) auk hvers kyns viðurkenndra afbrigða sem admin skráir.
+
 Reglurnar eru hannaðar þannig að:
 
 - Notandi má aðeins lesa/breyta eigin gögnum, admin má sjá allt.
@@ -27,6 +32,10 @@ Reglurnar eru hannaðar þannig að:
   að skoða netumferð í vafranum.
 - Svör (`attempts`) eru óbreytanleg eftir að þau eru skráð — einn notandi getur
   aðeins svarað hverri spurningu einu sinni.
+
+Ef notandi fær rangt metið (t.d. skrifaði rétt svar en með óvæntri stafsetningu)
+er einfaldast að fara í Firestore Console -> `answers/{spurningarID}` og bæta
+afbrigðinu við `correctAnswers` listann (lágstöfum).
 
 Þetta virkar allt innan **Spark (frí) planinu** hjá Firebase — engin þörf á
 Cloud Functions eða greiðslukorti.
@@ -75,10 +84,16 @@ npm run build             # býr til questions-draft.json úr ofangreindu
 ```
 
 **Farðu svo yfir `questions-draft.json` í höndunum.** Skrifturnar reyna að
-greina spurningu/valmöguleika/rétt svar sjálfkrafa út frá einföldum reglum
-(sjá athugasemdir efst í [`build-questions.js`](scripts/build-questions.js)),
+greina spurningu og rétt svar sjálfkrafa út frá einföldum reglum (sjá
+athugasemdir efst í [`build-questions.js`](scripts/build-questions.js)),
 en allt sem er merkt `"needsReview": true` þarf handvirka yfirferð eða
 leiðréttingu — annars sleppir næsta skref því sjálfkrafa.
+
+Mörg skjöl (t.d. alfræði-/glósusnið þar sem hver glæra er ævisaga eða
+efnisgrein, ekki tilbúin spurning) passa illa við þessar reglur — þá er
+einfaldast að senda mér skjalið svo ég skrifi spurningarnar handvirkt út
+frá efninu, eins og gert var fyrir fyrsta skjalið þitt
+([`build-hrifamiklir.js`](scripts/build-hrifamiklir.js) er dæmi um þá aðferð).
 
 Þegar skráin lítur vel út:
 
@@ -94,10 +109,6 @@ leiðréttingu — annars sleppir næsta skref því sjálfkrafa.
 Nýjar spurningar fara inn sem **óvirkar** — farðu í stjórnborðið (`stjornbord.html`)
 og kveiktu á þeim spurningum sem þú vilt hafa í leiknum.
 
-Ef sniðið á þínum skjölum passar ekki vel við þumalputtareglurnar er einfaldast
-að senda mér nokkur dæmi þegar skjölin eru tilbúin — þá stilli ég heuristíkina
-í `build-questions.js` að raunverulega sniðinu þínu.
-
 ## 6. Handvirk spurningaskráning
 
 Í stjórnborðinu (`stjornbord.html`) er líka einfalt eyðublað til að bæta við
@@ -107,7 +118,7 @@ stökum spurningum handvirkt, án þess að fara í gegnum innflutningsskrifturn
 
 ```
 users/{uid}                  { nafn, email, role: "user" | "admin", createdAt }
-users/{uid}/attempts/{qId}   { selectedIndex, answeredAt }   — skjal-ID = spurningarID
-questions/{qId}              { text, choices: [...], active, createdAt }
-answers/{qId}                { correctIndex }                — sama ID og questions/{qId}
+users/{uid}/attempts/{qId}   { svar, answeredAt }             — skjal-ID = spurningarID
+questions/{qId}              { text, active, createdAt }
+answers/{qId}                { correctAnswers: [...] }        — sama ID og questions/{qId}, lágstafað
 ```

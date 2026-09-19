@@ -18,6 +18,10 @@ const stodurNiðurstada = document.getElementById("stodurNiðurstada");
 
 let notandi = null;
 
+function samraema(text) {
+  return text.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
 vaktaInnskraningu({ requireAuth: true }, (user, gogn) => {
   notandi = user;
   notandaNafn.textContent = gogn.nafn || user.email;
@@ -65,72 +69,83 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
   titill.textContent = spurning.text;
   korti.appendChild(titill);
 
-  const valListi = document.createElement("div");
-  valListi.className = "val-listi";
+  const form = document.createElement("form");
+  form.className = "svar-form";
 
-  spurning.choices.forEach((val, index) => {
-    const hnappur = document.createElement("button");
-    hnappur.type = "button";
-    hnappur.className = "val-hnappur";
-    hnappur.textContent = val;
-    hnappur.disabled = buidSvarad;
-    hnappur.addEventListener("click", () => svaraSpurningu(questionId, index, korti, valListi));
-    valListi.appendChild(hnappur);
-  });
+  const innslattur = document.createElement("input");
+  innslattur.type = "text";
+  innslattur.placeholder = "Svarið þitt…";
+  innslattur.autocomplete = "off";
+  innslattur.disabled = buidSvarad;
+  innslattur.required = true;
 
-  korti.appendChild(valListi);
+  const sendaBtn = document.createElement("button");
+  sendaBtn.type = "submit";
+  sendaBtn.textContent = "Svara";
+  sendaBtn.disabled = buidSvarad;
+
+  form.appendChild(innslattur);
+  form.appendChild(sendaBtn);
+  korti.appendChild(form);
 
   const nidurstada = document.createElement("p");
   nidurstada.className = "spurning-nidurstada";
   korti.appendChild(nidurstada);
 
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    svaraSpurningu(questionId, innslattur.value, korti, form, nidurstada);
+  });
+
   if (buidSvarad) {
-    synaNidurstodu(questionId, korti, valListi, nidurstada);
+    synaNidurstodu(questionId, korti, nidurstada);
   }
 
   return korti;
 }
 
-async function svaraSpurningu(questionId, valIndex, korti, valListi) {
-  [...valListi.children].forEach((b) => (b.disabled = true));
+async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada) {
+  const svar = samraema(hraSvar);
+  if (!svar) return;
+
+  form.querySelector("input").disabled = true;
+  form.querySelector("button").disabled = true;
 
   try {
     await setDoc(doc(db, "users", notandi.uid, "attempts", questionId), {
-      selectedIndex: valIndex,
+      svar,
       answeredAt: serverTimestamp()
     });
   } catch (villa) {
     console.error(villa);
     alert("Tókst ekki að skrá svarið. Reyndu aftur.");
-    [...valListi.children].forEach((b) => (b.disabled = false));
+    form.querySelector("input").disabled = false;
+    form.querySelector("button").disabled = false;
     return;
   }
 
   korti.classList.add("svarad");
-  const nidurstada = korti.querySelector(".spurning-nidurstada");
-  await synaNidurstodu(questionId, korti, valListi, nidurstada, valIndex);
+  await synaNidurstodu(questionId, korti, nidurstada, svar);
   hladaMinumStodum();
 }
 
-async function synaNidurstodu(questionId, korti, valListi, nidurstada, valdIndex) {
+async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar) {
   const svarSnap = await getDoc(doc(db, "answers", questionId));
   if (!svarSnap.exists()) return;
 
-  const rettIndex = svarSnap.data().correctIndex;
-  const hnappar = [...valListi.children];
-  hnappar[rettIndex]?.classList.add("rett-svar");
+  const rettSvor = svarSnap.data().correctAnswers || [];
 
-  if (valdIndex === undefined) {
+  let mittSvar = gefidSvar;
+  if (mittSvar === undefined) {
     const attemptSnap = await getDoc(doc(db, "users", notandi.uid, "attempts", questionId));
-    valdIndex = attemptSnap.data()?.selectedIndex;
+    mittSvar = attemptSnap.data()?.svar;
   }
 
-  if (valdIndex === rettIndex) {
+  if (rettSvor.includes(mittSvar)) {
     nidurstada.textContent = "Rétt svar! 🎉";
     nidurstada.classList.add("rett");
   } else {
-    hnappar[valdIndex]?.classList.add("rangt-svar");
-    nidurstada.textContent = "Rangt svar.";
+    nidurstada.textContent = `Rangt svar. Rétt svar: ${rettSvor[0] ?? "—"}`;
     nidurstada.classList.add("rangt");
   }
 }
@@ -142,9 +157,8 @@ async function hladaMinumStodum() {
 
   for (const attemptDoc of attemptsSnap.docs) {
     const svarSnap = await getDoc(doc(db, "answers", attemptDoc.id));
-    if (svarSnap.exists() && svarSnap.data().correctIndex === attemptDoc.data().selectedIndex) {
-      fjoldiRett++;
-    }
+    const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
+    if (rettSvor.includes(attemptDoc.data().svar)) fjoldiRett++;
   }
 
   const nakvaemni = fjoldiSvarad ? Math.round((fjoldiRett / fjoldiSvarad) * 100) : 0;

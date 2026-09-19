@@ -2,6 +2,8 @@ import { auth, db } from "./firebase-config.js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
@@ -25,6 +27,23 @@ export async function skra(email, password, nafn) {
 
 export async function skraInn(email, password) {
   const cred = await signInWithEmailAndPassword(auth, email, password);
+  return cred.user;
+}
+
+export async function skraInnMedGoogle() {
+  const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+  const notandaRef = doc(db, "users", cred.user.uid);
+  const snap = await getDoc(notandaRef);
+
+  if (!snap.exists()) {
+    await setDoc(notandaRef, {
+      nafn: cred.user.displayName || cred.user.email,
+      email: cred.user.email,
+      role: "user",
+      createdAt: serverTimestamp()
+    });
+  }
+
   return cred.user;
 }
 

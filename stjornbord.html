@@ -37,7 +37,7 @@
   </div>
   <table id="spurningaTafla">
     <thead>
-      <tr><th>Texti</th><th>Staða</th><th>Aðgerð</th></tr>
+      <tr><th>Texti</th><th>Rétt svar</th><th>Staða</th><th>Aðgerð</th></tr>
     </thead>
     <tbody></tbody>
   </table>
@@ -47,32 +47,11 @@
     <label for="text">Spurning</label>
     <input type="text" id="text" name="text" required>
 
-    <div class="val-rada">
-      <div>
-        <label for="val1">Svarmöguleiki 1</label>
-        <input type="text" id="val1" name="val1" required>
-      </div>
-      <div>
-        <label for="val2">Svarmöguleiki 2</label>
-        <input type="text" id="val2" name="val2" required>
-      </div>
-      <div>
-        <label for="val3">Svarmöguleiki 3</label>
-        <input type="text" id="val3" name="val3">
-      </div>
-      <div>
-        <label for="val4">Svarmöguleiki 4</label>
-        <input type="text" id="val4" name="val4">
-      </div>
-    </div>
-
     <label for="rettSvar">Rétt svar</label>
-    <select id="rettSvar" name="rettSvar" required>
-      <option value="0">Svarmöguleiki 1</option>
-      <option value="1">Svarmöguleiki 2</option>
-      <option value="2">Svarmöguleiki 3</option>
-      <option value="3">Svarmöguleiki 4</option>
-    </select>
+    <input type="text" id="rettSvar" name="rettSvar" required>
+
+    <label for="onnurSvor">Önnur samþykkt svör (valfrjálst, aðskilin með kommu)</label>
+    <input type="text" id="onnurSvor" name="onnurSvor" placeholder="t.d. afbrigði í stafsetningu">
 
     <button type="submit" class="aðal-hnappur">Bæta við spurningu</button>
   </form>

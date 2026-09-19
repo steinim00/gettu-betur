@@ -24,11 +24,16 @@ service cloud.firestore {
 
       // Tilraunir (svör) notandans. Óbreytanlegar eftir að þær eru skráðar.
       // Skjal-ID = spurningarID, svo hver notandi getur aðeins svarað hverri spurningu einu sinni.
+      // "svar" er hráa textasvarið sem notandinn skrifaði (lágstafað/trimmað í js/quiz.js).
+      // Réttmæti er ALDREI treyst frá biðlaranum - það er reiknað eftir á með því að
+      // bera "svar" saman við answers/{questionId}.correctAnswers.
       match /attempts/{questionId} {
         allow read: if innskradur() && (request.auth.uid == userId || erAdmin());
         allow create: if innskradur() && request.auth.uid == userId
-                      && request.resource.data.keys().hasOnly(['selectedIndex', 'answeredAt'])
-                      && request.resource.data.selectedIndex is int
+                      && request.resource.data.keys().hasOnly(['svar', 'answeredAt'])
+                      && request.resource.data.svar is string
+                      && request.resource.data.svar.size() > 0
+                      && request.resource.data.svar.size() < 200
                       && exists(/databases/$(database)/documents/questions/$(questionId));
         allow update, delete: if false;
       }
@@ -41,9 +46,10 @@ service cloud.firestore {
       allow write: if erAdmin();
     }
 
-    // Rétt svör: admin má alltaf lesa/skrifa.
-    // Venjulegur notandi má fyrst lesa svarið EFTIR að hafa sjálfur svarað spurningunni
-    // (þ.e. þegar samsvarandi attempts-skjal er þegar til) - kemur í veg fyrir svindl.
+    // Rétt svör ({ correctAnswers: [lágstafað svar, samþykkt afbrigði, ...] }).
+    // Admin má alltaf lesa/skrifa. Venjulegur notandi má fyrst lesa svarið EFTIR að
+    // hafa sjálfur svarað spurningunni (þ.e. þegar samsvarandi attempts-skjal er
+    // þegar til) - kemur í veg fyrir svindl.
     match /answers/{questionId} {
       allow read: if erAdmin() ||
         (innskradur() &&

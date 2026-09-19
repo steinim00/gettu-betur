@@ -138,6 +138,41 @@ button.aðal-hnappur:hover {
   border-color: var(--litur-had);
 }
 
+.eda-skil {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 14px;
+  color: var(--litur-daufur);
+  font-size: 0.85rem;
+}
+
+.eda-skil::before, .eda-skil::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--litur-jadar);
+}
+
+.google-hnappur {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--litur-jadar);
+  background: #14101f;
+  color: var(--litur-texti);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.google-hnappur:hover {
+  border-color: var(--litur-had);
+}
+
 .villuskilabod {
   color: var(--litur-rangt);
   font-size: 0.9rem;
@@ -157,38 +192,31 @@ button.aðal-hnappur:hover {
   margin-top: 0;
 }
 
-.val-listi {
-  display: grid;
+.svar-form {
+  display: flex;
   gap: 10px;
 }
 
-.val-hnappur {
-  text-align: left;
-  padding: 12px 16px;
-  border-radius: 10px;
-  border: 1px solid var(--litur-jadar);
-  background: #14101f;
-  color: var(--litur-texti);
-  font-size: 0.98rem;
+.svar-form input {
+  flex: 1;
+  margin: 0;
 }
 
-.val-hnappur:not(:disabled):hover {
-  border-color: var(--litur-had);
-}
-
-.val-hnappur:disabled {
+.svar-form input:disabled {
   opacity: 0.75;
-  cursor: default;
 }
 
-.val-hnappur.rett-svar {
-  border-color: var(--litur-rett);
-  background: rgba(53, 201, 143, 0.15);
+.svar-form button {
+  padding: 0 22px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--litur-had), var(--litur-had-daufur));
+  color: white;
+  font-weight: 700;
 }
 
-.val-hnappur.rangt-svar {
-  border-color: var(--litur-rangt);
-  background: rgba(255, 92, 122, 0.15);
+.svar-form button:disabled {
+  opacity: 0.5;
 }
 
 .spurning-nidurstada {
@@ -258,12 +286,6 @@ th {
   border: 1px solid var(--litur-jadar);
   border-radius: 14px;
   padding: 22px;
-}
-
-.val-rada {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
 }
 
 .tengill {
