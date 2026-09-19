@@ -121,32 +121,46 @@ async function hladaVerkefnaListi() {
   });
 }
 
+let pptxIframe = null;
+
 function opnaVerkefni(verkefniId, verkefni) {
   valdVerkefniId = verkefniId;
   heilskjaGlaerur = verkefni.slides || [];
   verkefnaTitill.textContent = verkefni.title;
   glaerurInnihald.innerHTML = "";
+  pptxIframe = null;
 
-  (verkefni.slides || []).forEach((glaera) => {
-    const kafli = document.createElement("article");
-    kafli.className = "glaera-kort";
+  if (verkefni.pptxUrl) {
+    // Upprunalega .pptx skjalið sjálft, birt með Office skjalaskoðaranum -
+    // nákvæmlega eins og PowerPoint sýnir það, með þess eigin glæruflettingu.
+    const fullSlod = new URL(verkefni.pptxUrl, window.location.href).href;
+    pptxIframe = document.createElement("iframe");
+    pptxIframe.className = "pptx-skodari";
+    pptxIframe.src = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fullSlod)}`;
+    pptxIframe.allowFullscreen = true;
+    glaerurInnihald.appendChild(pptxIframe);
+  } else {
+    (verkefni.slides || []).forEach((glaera) => {
+      const kafli = document.createElement("article");
+      kafli.className = "glaera-kort";
 
-    if (glaera.image) {
-      const mynd = document.createElement("img");
-      mynd.src = glaera.image;
-      mynd.alt = glaera.title;
-      mynd.loading = "lazy";
-      kafli.appendChild(mynd);
-    }
+      if (glaera.image) {
+        const mynd = document.createElement("img");
+        mynd.src = glaera.image;
+        mynd.alt = glaera.title;
+        mynd.loading = "lazy";
+        kafli.appendChild(mynd);
+      }
 
-    const h = document.createElement("h3");
-    h.textContent = glaera.title;
-    const p = document.createElement("p");
-    p.textContent = glaera.body;
-    kafli.appendChild(h);
-    kafli.appendChild(p);
-    glaerurInnihald.appendChild(kafli);
-  });
+      const h = document.createElement("h3");
+      h.textContent = glaera.title;
+      const p = document.createElement("p");
+      p.textContent = glaera.body;
+      kafli.appendChild(h);
+      kafli.appendChild(p);
+      glaerurInnihald.appendChild(kafli);
+    });
+  }
 
   synaSvaedi("glaerur");
 }
@@ -171,6 +185,17 @@ function synaHeilskjaGlaeru() {
 }
 
 heilskjaBtn.addEventListener("click", async () => {
+  // Ef upprunalega .pptx skjalið er birt (sjá opnaVerkefni), heilskjáum við
+  // sjálft iframe-ið í staðinn fyrir eigin skyggnuyfirlag.
+  if (pptxIframe) {
+    try {
+      await pptxIframe.requestFullscreen?.();
+    } catch {
+      // Heilskjá ekki studd/leyfð.
+    }
+    return;
+  }
+
   if (heilskjaGlaerur.length === 0) return;
   heilskjaIndex = 0;
   synaHeilskjaGlaeru();
