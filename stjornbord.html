@@ -45,6 +45,19 @@
   </div>
   <p id="teiknStada"></p>
 
+  <p class="undirtitill-vinstri">
+    Til að láta gervigreind (Claude) semja spurningar sjálfkrafa út frá efni
+    verkefnis (t.d. glósum/ævisögum sem passa ekki við "Spurning:/Svar:" sniðið),
+    settu inn þinn eigin Anthropic API-lykil. <strong>Kostar eftir notkun</strong>
+    hjá Anthropic (ekki hjá okkur) - lykillinn er líka eingöngu geymt í þessum vafra.
+    <a class="tengill" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Sækja lykil hjá Anthropic →</a>
+  </p>
+  <div class="innflutnings-form">
+    <input type="password" id="anthropicTeiknInnsl" placeholder="Anthropic API lykill (sk-ant-...)">
+    <button type="button" class="smabtn" id="vistaAnthropicTeiknBtn">Vista</button>
+  </div>
+  <p id="anthropicTeiknStada"></p>
+
   <div class="hluti-titill">
     <h2>Frammistaða notenda</h2>
     <button class="smabtn" id="endurhladaBtn">Endurhlaða</button>
@@ -68,6 +81,27 @@
     </thead>
     <tbody></tbody>
   </table>
+
+  <h3>Búa til spurningar með gervigreind</h3>
+  <p class="undirtitill-vinstri">
+    Veldu verkefni sem þegar hefur glærur/efni — Claude les efnið og semur
+    spurningar-svör pör í sama uppkasts-viðmóti og skjalainnflutningurinn, til
+    yfirferðar áður en neitt er vistað. Krefst Anthropic API-lykils hér fyrir ofan.
+  </p>
+  <div class="innflutnings-form">
+    <select id="aiVerkefniValiö">
+      <option value="">Veldu verkefni…</option>
+    </select>
+    <input type="number" id="aiFjoldiInnsl" value="50" min="1" max="100" style="max-width:100px">
+    <button type="button" class="smabtn" id="generaSpurningarBtn">Generera spurningar</button>
+  </div>
+  <p id="generaStada"></p>
+  <div class="innflutnings-form" id="aiGatlistaHnappar" hidden>
+    <button type="button" class="smabtn" id="aiVeljaAllarBtn">Velja allar</button>
+    <button type="button" class="smabtn" id="aiAfveljaAllarBtn">Afvelja allar</button>
+  </div>
+  <div id="aiDrafListi"></div>
+  <button type="button" class="aðal-hnappur" id="aiVistaValdarBtn" hidden>Vista valdar spurningar</button>
 
   <h3>Búa til verkefni handvirkt</h3>
   <p class="undirtitill-vinstri">

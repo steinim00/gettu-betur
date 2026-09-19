@@ -3,6 +3,7 @@ import { vaktaInnskraningu, skraUt } from "./auth.js";
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   updateDoc,
   serverTimestamp,
@@ -30,15 +31,30 @@ const githubTeiknInnsl = document.getElementById("githubTeiknInnsl");
 const vistaTeiknBtn = document.getElementById("vistaTeiknBtn");
 const teiknStada = document.getElementById("teiknStada");
 const nyttVerkefniForm = document.getElementById("nyttVerkefniForm");
+const anthropicTeiknInnsl = document.getElementById("anthropicTeiknInnsl");
+const vistaAnthropicTeiknBtn = document.getElementById("vistaAnthropicTeiknBtn");
+const anthropicTeiknStada = document.getElementById("anthropicTeiknStada");
+const aiVerkefniValiö = document.getElementById("aiVerkefniValiö");
+const aiFjoldiInnsl = document.getElementById("aiFjoldiInnsl");
+const generaSpurningarBtn = document.getElementById("generaSpurningarBtn");
+const generaStada = document.getElementById("generaStada");
+const aiDrafListi = document.getElementById("aiDrafListi");
+const aiGatlistaHnappar = document.getElementById("aiGatlistaHnappar");
+const aiVeljaAllarBtn = document.getElementById("aiVeljaAllarBtn");
+const aiAfveljaAllarBtn = document.getElementById("aiAfveljaAllarBtn");
+const aiVistaValdarBtn = document.getElementById("aiVistaValdarBtn");
 
 // Breyttu þessu ef repoið er einhvern tímann flutt/endurnefnt.
 const GITHUB_REPO = "steinim00/gettu-betur";
 const GITHUB_TEIKN_LYKILL = "gettubetur_github_token";
+const ANTHROPIC_TEIKN_LYKILL = "gettubetur_anthropic_key";
+const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 
 let sidustuBlokkir = [];
 let sidastaSkra = null;
 
 githubTeiknInnsl.value = localStorage.getItem(GITHUB_TEIKN_LYKILL) || "";
+anthropicTeiknInnsl.value = localStorage.getItem(ANTHROPIC_TEIKN_LYKILL) || "";
 
 vistaTeiknBtn.addEventListener("click", () => {
   const teikn = githubTeiknInnsl.value.trim();
@@ -48,6 +64,17 @@ vistaTeiknBtn.addEventListener("click", () => {
   } else {
     localStorage.removeItem(GITHUB_TEIKN_LYKILL);
     teiknStada.textContent = "Teikn fjarlægt.";
+  }
+});
+
+vistaAnthropicTeiknBtn.addEventListener("click", () => {
+  const teikn = anthropicTeiknInnsl.value.trim();
+  if (teikn) {
+    localStorage.setItem(ANTHROPIC_TEIKN_LYKILL, teikn);
+    anthropicTeiknStada.textContent = "Lykill vistaður í þessum vafra.";
+  } else {
+    localStorage.removeItem(ANTHROPIC_TEIKN_LYKILL);
+    anthropicTeiknStada.textContent = "Lykill fjarlægður.";
   }
 });
 
@@ -183,16 +210,21 @@ async function hladaVerkefnayfirlit() {
 }
 
 function hladaVerkefniSelect(verkefnaSnap) {
-  const valid = verkefniValiö.value;
-  verkefniValiö.innerHTML = '<option value="">Ekkert verkefni (almenn spurning)</option>';
+  fyllaVerkefniSelect(verkefniValiö, verkefnaSnap, "Ekkert verkefni (almenn spurning)");
+  fyllaVerkefniSelect(aiVerkefniValiö, verkefnaSnap, "Veldu verkefni…");
+}
+
+function fyllaVerkefniSelect(selectEl, verkefnaSnap, tomurValkostur) {
+  const valid = selectEl.value;
+  selectEl.innerHTML = `<option value="">${tomurValkostur}</option>`;
   verkefnaSnap.forEach((vDoc) => {
     const opt = document.createElement("option");
     opt.value = vDoc.id;
     opt.textContent = vDoc.data().title;
-    verkefniValiö.appendChild(opt);
+    selectEl.appendChild(opt);
   });
-  if ([...verkefniValiö.options].some((o) => o.value === valid)) {
-    verkefniValiö.value = valid;
+  if ([...selectEl.options].some((o) => o.value === valid)) {
+    selectEl.value = valid;
   }
 }
 
@@ -484,8 +516,8 @@ vinnaUrSkraBtn.addEventListener("click", async () => {
   }
 });
 
-function renderDraftRows(draftir) {
-  drafListi.innerHTML = "";
+function renderDraftRows(draftir, targetListi = drafListi) {
+  targetListi.innerHTML = "";
 
   draftir.forEach((draft) => {
     const rad = document.createElement("div");
@@ -523,7 +555,7 @@ function renderDraftRows(draftir) {
       correctAnswers: [...new Set(svarInput.value.split("/").map(samraema).filter(Boolean))]
     });
 
-    drafListi.appendChild(rad);
+    targetListi.appendChild(rad);
   });
 }
 
@@ -649,5 +681,146 @@ vistaValdarBtn.addEventListener("click", async () => {
     hladaAllt();
   } finally {
     vistaValdarBtn.disabled = false;
+  }
+});
+
+// --- Spurningagerð með gervigreind (Claude API) ---
+
+function skerdaTexta(texti, hamark) {
+  return texti.length > hamark ? texti.slice(0, hamark) + "…" : texti;
+}
+
+async function kallaAClaude(prompt) {
+  const teikn = localStorage.getItem(ANTHROPIC_TEIKN_LYKILL);
+  const svar = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": teikn,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: ANTHROPIC_MODEL,
+      max_tokens: 8192,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+
+  if (!svar.ok) {
+    const villuGogn = await svar.json().catch(() => ({}));
+    throw new Error(villuGogn.error?.message || `Anthropic svaraði ${svar.status}`);
+  }
+
+  const gogn = await svar.json();
+  return gogn.content?.[0]?.text || "";
+}
+
+function draguJsonUt(texti) {
+  const hreinsad = texti.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "");
+  const upphaf = hreinsad.indexOf("[");
+  const endir = hreinsad.lastIndexOf("]");
+  if (upphaf === -1 || endir === -1) throw new Error("Fann ekki JSON fylki í svarinu.");
+  return JSON.parse(hreinsad.slice(upphaf, endir + 1));
+}
+
+generaSpurningarBtn.addEventListener("click", async () => {
+  const verkefniId = aiVerkefniValiö.value;
+  const fjoldi = Math.max(1, Math.min(100, Number(aiFjoldiInnsl.value) || 50));
+
+  if (!verkefniId) {
+    generaStada.textContent = "Veldu verkefni fyrst.";
+    return;
+  }
+  if (!localStorage.getItem(ANTHROPIC_TEIKN_LYKILL)) {
+    generaStada.textContent = "Settu inn Anthropic API-lykil í Stillingum hér fyrir ofan fyrst.";
+    return;
+  }
+
+  generaSpurningarBtn.disabled = true;
+  generaStada.textContent = "Sæki efni verkefnis…";
+  aiDrafListi.innerHTML = "";
+  aiGatlistaHnappar.hidden = true;
+  aiVistaValdarBtn.hidden = true;
+
+  try {
+    const verkefniSnap = await getDoc(doc(db, "verkefni", verkefniId));
+    if (!verkefniSnap.exists()) throw new Error("Verkefnið fannst ekki.");
+
+    const slides = verkefniSnap.data().slides || [];
+    if (slides.length === 0) throw new Error("Verkefnið hefur engar glærur/efni til að vinna úr.");
+
+    const efnistexti = skerdaTexta(
+      slides.map((s) => `${s.title}\n${s.body}`).join("\n\n"),
+      60000
+    );
+
+    const prompt =
+      `Hér er efni úr glærusafni á íslensku:\n\n${efnistexti}\n\n` +
+      `Búðu til ${fjoldi} spurninga-og-svara pör á íslensku, í anda "Gettu Betur" ` +
+      `spurningakeppni: stutt, afmörkuð svör (nöfn, ártöl, staðir, tölur - ekki heilar ` +
+      `setningar), ein skýr rétt spurning per glæru/staðreynd, byggð eingöngu á efninu ` +
+      `hér að ofan. Ekki endurtaka sömu spurningu tvisvar.\n\n` +
+      `Skilaðu EINGÖNGU gildu JSON fylki, nákvæmlega á þessu formi, ekkert annað ` +
+      `(enga skýringartexta, engar markdown-girðingar):\n` +
+      `[{"text": "Spurningatexti?", "correctAnswers": ["Rétt svar"]}, ...]`;
+
+    generaStada.textContent = "Claude er að semja spurningar (getur tekið smástund)…";
+    const svarTexti = await kallaAClaude(prompt);
+    const hraSpurningar = draguJsonUt(svarTexti);
+
+    const draftir = hraSpurningar
+      .map((s) => ({
+        text: (s.text || "").trim(),
+        correctAnswers: [...new Set((s.correctAnswers || []).map(samraema).filter(Boolean))]
+      }))
+      .filter((s) => s.text)
+      .map((s) => ({ ...s, needsReview: s.correctAnswers.length === 0 }));
+
+    if (draftir.length === 0) throw new Error("Claude skilaði engum nothæfum spurningum.");
+
+    renderDraftRows(draftir, aiDrafListi);
+    aiGatlistaHnappar.hidden = false;
+    aiVistaValdarBtn.hidden = false;
+    generaStada.textContent = `Fékk ${draftir.length} spurningar frá Claude. Farðu yfir og veldu hverjar á að vista.`;
+  } catch (villa) {
+    console.error(villa);
+    generaStada.textContent = "Tókst ekki að generera spurningar: " + villa.message;
+  } finally {
+    generaSpurningarBtn.disabled = false;
+  }
+});
+
+aiVeljaAllarBtn.addEventListener("click", () => {
+  aiDrafListi.querySelectorAll('input[type="checkbox"]').forEach((c) => (c.checked = true));
+});
+
+aiAfveljaAllarBtn.addEventListener("click", () => {
+  aiDrafListi.querySelectorAll('input[type="checkbox"]').forEach((c) => (c.checked = false));
+});
+
+aiVistaValdarBtn.addEventListener("click", async () => {
+  const verkefniId = aiVerkefniValiö.value;
+  const radir = [...aiDrafListi.querySelectorAll(".draft-rad")].map((r) => r._faSpurningu());
+  const valdar = radir.filter((r) => r.tokinMed && r.text && r.correctAnswers.length > 0);
+
+  if (valdar.length === 0) {
+    alert("Engar gildar spurningar valdar (þarf spurningatexta og minnst eitt rétt svar).");
+    return;
+  }
+
+  aiVistaValdarBtn.disabled = true;
+  try {
+    await vistaSpurningar(
+      valdar.map((v) => ({ ...v, verkefniId })),
+      { active: false }
+    );
+    generaStada.textContent = `Vistaði ${valdar.length} spurningar (óvirkar - kveiktu á þeim í spurningatöflunni).`;
+    aiDrafListi.innerHTML = "";
+    aiGatlistaHnappar.hidden = true;
+    aiVistaValdarBtn.hidden = true;
+    hladaAllt();
+  } finally {
+    aiVistaValdarBtn.disabled = false;
   }
 });

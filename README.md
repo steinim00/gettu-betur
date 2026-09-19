@@ -152,6 +152,20 @@ myndum og öllu) í staðinn:
 Þetta er valfrjálst — án teikns virkar allt eins og áður, bara með endursömdum
 texta/myndum í stað upprunalega skjalsins.
 
+### Spurningagerð með gervigreind
+
+Fyrir verkefni þar sem efnið er ekki þegar á "Spurning:/Svar:" formi (t.d.
+glósur/ævisögur eins og "50 áhrifamiklir einstaklingar"), getur Claude samið
+spurningar sjálfkrafa út frá efninu:
+
+1. Sæktu Anthropic API-lykil: https://console.anthropic.com/settings/keys
+   (**kostar eftir notkun hjá Anthropic** — ekki hluti af Firebase-kostnaðinum)
+2. Í stjórnborðinu, undir **Stillingar**, líma lykilinn inn og ýta á Vista
+   (vistast bara í þínum vafra)
+3. Undir **"Búa til spurningar með gervigreind"**, veldu verkefni sem þegar
+   hefur glærur/efni, stilltu fjölda spurninga, og ýttu á Generera —
+   sama uppkasts-yfirferð og skjalainnflutningurinn notar
+
 ## Gagnalíkan (Firestore)
 
 ```
