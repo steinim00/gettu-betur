@@ -49,8 +49,15 @@ service cloud.firestore {
       }
     }
 
+    // Verkefni: glærur/efni sem nemandi skoðar áður en hann svarar spurningum.
+    // { title, slides: [{title, body}], active, createdAt }
+    match /verkefni/{verkefniId} {
+      allow read: if innskradur();
+      allow write: if erAdmin();
+    }
+
     // Spurningar: allir innskráðir mega lesa, aðeins admin má breyta.
-    // Rétt svar er ALDREI geymt hér.
+    // Rétt svar er ALDREI geymt hér. "verkefniId" (má vera tómt) tengir spurningu við verkefni.
     match /questions/{questionId} {
       allow read: if innskradur();
       allow write: if erAdmin();

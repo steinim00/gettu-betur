@@ -11,12 +11,25 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-const spurningaListi = document.getElementById("spurningaListi");
 const notandaNafn = document.getElementById("notandaNafn");
 const utskraBtn = document.getElementById("utskraBtn");
+
+const verkefnaSvaedi = document.getElementById("verkefnaSvaedi");
+const verkefnaListi = document.getElementById("verkefnaListi");
+
+const glaeruSvaedi = document.getElementById("glaeruSvaedi");
+const verkefnaTitill = document.getElementById("verkefnaTitill");
+const glaerurInnihald = document.getElementById("glaerurInnihald");
+const afromISpurningar = document.getElementById("afromISpurningar");
+const tilbakaFraGlaerum = document.getElementById("tilbakaFraGlaerum");
+
+const spurningaSvaedi = document.getElementById("spurningaSvaedi");
+const spurningaListi = document.getElementById("spurningaListi");
 const stodurNiðurstada = document.getElementById("stodurNiðurstada");
+const tilbakaFraSpurningum = document.getElementById("tilbakaFraSpurningum");
 
 let notandi = null;
+let valdVerkefniId = null;
 
 function samraema(text) {
   return text.trim().toLowerCase().replace(/\s+/g, " ");
@@ -34,17 +47,91 @@ vaktaInnskraningu({ requireAuth: true }, (user, gogn) => {
     });
   }
 
-  hladaSpurningum();
-  hladaMinumStodum();
+  hladaVerkefnaListi();
 });
 
 utskraBtn.addEventListener("click", () => skraUt());
+
+function synaSvaedi(svaedi) {
+  verkefnaSvaedi.hidden = svaedi !== "verkefni";
+  glaeruSvaedi.hidden = svaedi !== "glaerur";
+  spurningaSvaedi.hidden = svaedi !== "spurningar";
+}
+
+tilbakaFraGlaerum.addEventListener("click", () => synaSvaedi("verkefni"));
+tilbakaFraSpurningum.addEventListener("click", () => synaSvaedi("verkefni"));
+
+async function hladaVerkefnaListi() {
+  verkefnaListi.innerHTML = "<p>Sæki verkefni…</p>";
+
+  const snap = await getDocs(query(collection(db, "verkefni"), where("active", "==", true)));
+
+  if (snap.empty) {
+    verkefnaListi.innerHTML = "<p>Engin verkefni eru virk eins og er.</p>";
+    return;
+  }
+
+  verkefnaListi.innerHTML = "";
+  snap.forEach((vDoc) => {
+    const verkefni = vDoc.data();
+    const kort = document.createElement("article");
+    kort.className = "spurning-kort verkefni-kort";
+
+    const titill = document.createElement("h3");
+    titill.textContent = verkefni.title;
+    kort.appendChild(titill);
+
+    const lysing = document.createElement("p");
+    lysing.className = "verkefni-lysing";
+    lysing.textContent = `${(verkefni.slides || []).length} glærur`;
+    kort.appendChild(lysing);
+
+    const hnappur = document.createElement("button");
+    hnappur.type = "button";
+    hnappur.className = "aðal-hnappur";
+    hnappur.textContent = "Skoða glærur";
+    hnappur.addEventListener("click", () => opnaVerkefni(vDoc.id, verkefni));
+    kort.appendChild(hnappur);
+
+    verkefnaListi.appendChild(kort);
+  });
+}
+
+function opnaVerkefni(verkefniId, verkefni) {
+  valdVerkefniId = verkefniId;
+  verkefnaTitill.textContent = verkefni.title;
+  glaerurInnihald.innerHTML = "";
+
+  (verkefni.slides || []).forEach((glaera) => {
+    const kafli = document.createElement("article");
+    kafli.className = "glaera-kort";
+    const h = document.createElement("h3");
+    h.textContent = glaera.title;
+    const p = document.createElement("p");
+    p.textContent = glaera.body;
+    kafli.appendChild(h);
+    kafli.appendChild(p);
+    glaerurInnihald.appendChild(kafli);
+  });
+
+  synaSvaedi("glaerur");
+}
+
+afromISpurningar.addEventListener("click", () => {
+  synaSvaedi("spurningar");
+  hladaSpurningum();
+  hladaMinumStodum();
+});
 
 async function hladaSpurningum() {
   spurningaListi.innerHTML = "<p>Sæki spurningar…</p>";
 
   const spurningarSnap = await getDocs(
-    query(collection(db, "questions"), where("active", "==", true))
+    query(
+      collection(db, "questions"),
+      where("verkefniId", "==", valdVerkefniId),
+      where("active", "==", true)
+    )
   );
 
   const svaradSnap = await getDocs(collection(db, "users", notandi.uid, "attempts"));
@@ -53,7 +140,7 @@ async function hladaSpurningum() {
   spurningaListi.innerHTML = "";
 
   if (spurningarSnap.empty) {
-    spurningaListi.innerHTML = "<p>Engar virkar spurningar eins og er.</p>";
+    spurningaListi.innerHTML = "<p>Engar virkar spurningar í þessu verkefni eins og er.</p>";
     return;
   }
 
@@ -160,16 +247,22 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar) {
 }
 
 async function hladaMinumStodum() {
-  const attemptsSnap = await getDocs(collection(db, "users", notandi.uid, "attempts"));
-  let fjoldiSvarad = attemptsSnap.size;
-  let fjoldiRett = 0;
+  const spurningarSnap = await getDocs(
+    query(collection(db, "questions"), where("verkefniId", "==", valdVerkefniId))
+  );
+  const spurningaIds = new Set(spurningarSnap.docs.map((d) => d.id));
 
-  for (const attemptDoc of attemptsSnap.docs) {
+  const attemptsSnap = await getDocs(collection(db, "users", notandi.uid, "attempts"));
+  const minarTilraunir = attemptsSnap.docs.filter((a) => spurningaIds.has(a.id));
+
+  let fjoldiRett = 0;
+  for (const attemptDoc of minarTilraunir) {
     const svarSnap = await getDoc(doc(db, "answers", attemptDoc.id));
     const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
     if (rettSvor.includes(attemptDoc.data().svar)) fjoldiRett++;
   }
 
+  const fjoldiSvarad = minarTilraunir.length;
   const nakvaemni = fjoldiSvarad ? Math.round((fjoldiRett / fjoldiSvarad) * 100) : 0;
-  stodurNiðurstada.textContent = `Þú hefur svarað ${fjoldiSvarad} spurningum, ${fjoldiRett} réttum (${nakvaemni}% nákvæmni).`;
+  stodurNiðurstada.textContent = `Þú hefur svarað ${fjoldiSvarad} spurningum í þessu verkefni, ${fjoldiRett} réttum (${nakvaemni}% nákvæmni).`;
 }

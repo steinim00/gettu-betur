@@ -12,14 +12,19 @@ import {
 const notandaNafn = document.getElementById("notandaNafn");
 const utskraBtn = document.getElementById("utskraBtn");
 const notendaTafla = document.getElementById("notendaTafla").querySelector("tbody");
+const verkefnaTafla = document.getElementById("verkefnaTafla").querySelector("tbody");
 const spurningaTafla = document.getElementById("spurningaTafla").querySelector("tbody");
 const nySpurningForm = document.getElementById("nySpurningForm");
+const verkefniValiö = document.getElementById("verkefniValiö");
 const endurhladaBtn = document.getElementById("endurhladaBtn");
 const innflutningsSkra = document.getElementById("innflutningsSkra");
+const verkefnaTitillInnsl = document.getElementById("verkefnaTitillInnsl");
 const vinnaUrSkraBtn = document.getElementById("vinnaUrSkraBtn");
 const innflutningsStada = document.getElementById("innflutningsStada");
 const drafListi = document.getElementById("drafListi");
 const vistaValdarBtn = document.getElementById("vistaValdarBtn");
+
+let sidustuBlokkir = [];
 
 vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
   notandaNafn.textContent = gogn.nafn || user.email;
@@ -31,7 +36,7 @@ utskraBtn.addEventListener("click", () => skraUt());
 endurhladaBtn.addEventListener("click", hladaAllt);
 
 async function hladaAllt() {
-  await Promise.all([hladaNotendayfirlit(), hladaSpurningayfirlit()]);
+  await Promise.all([hladaNotendayfirlit(), hladaVerkefnayfirlit(), hladaSpurningayfirlit()]);
 }
 
 async function hladaNotendayfirlit() {
@@ -94,16 +99,90 @@ async function hladaNotendayfirlit() {
   }
 }
 
+async function hladaVerkefnayfirlit() {
+  const [verkefnaSnap, spurningarSnap] = await Promise.all([
+    getDocs(collection(db, "verkefni")),
+    getDocs(collection(db, "questions"))
+  ]);
+
+  const fjoldiSpurningaPerVerkefni = new Map();
+  spurningarSnap.forEach((qDoc) => {
+    const id = qDoc.data().verkefniId;
+    if (!id) return;
+    fjoldiSpurningaPerVerkefni.set(id, (fjoldiSpurningaPerVerkefni.get(id) || 0) + 1);
+  });
+
+  hladaVerkefniSelect(verkefnaSnap);
+
+  verkefnaTafla.innerHTML = "";
+  if (verkefnaSnap.empty) {
+    verkefnaTafla.innerHTML = `<tr><td colspan="5">Engin verkefni ennþá.</td></tr>`;
+    return;
+  }
+
+  verkefnaSnap.forEach((vDoc) => {
+    const verkefni = vDoc.data();
+    const tr = document.createElement("tr");
+
+    const kveikjaKnappur = document.createElement("button");
+    kveikjaKnappur.type = "button";
+    kveikjaKnappur.className = "smabtn";
+    kveikjaKnappur.textContent = verkefni.active ? "Slökkva" : "Kveikja";
+    kveikjaKnappur.addEventListener("click", async () => {
+      await updateDoc(doc(db, "verkefni", vDoc.id), { active: !verkefni.active });
+      hladaVerkefnayfirlit();
+    });
+
+    const titillTd = document.createElement("td");
+    titillTd.textContent = verkefni.title;
+
+    const glaeruTd = document.createElement("td");
+    glaeruTd.textContent = (verkefni.slides || []).length;
+
+    const spurningaTd = document.createElement("td");
+    spurningaTd.textContent = fjoldiSpurningaPerVerkefni.get(vDoc.id) || 0;
+
+    const stodaTd = document.createElement("td");
+    stodaTd.textContent = verkefni.active ? "Virkt" : "Óvirkt";
+
+    const adgerdTd = document.createElement("td");
+    adgerdTd.appendChild(kveikjaKnappur);
+
+    tr.appendChild(titillTd);
+    tr.appendChild(glaeruTd);
+    tr.appendChild(spurningaTd);
+    tr.appendChild(stodaTd);
+    tr.appendChild(adgerdTd);
+    verkefnaTafla.appendChild(tr);
+  });
+}
+
+function hladaVerkefniSelect(verkefnaSnap) {
+  const valid = verkefniValiö.value;
+  verkefniValiö.innerHTML = '<option value="">Ekkert verkefni (almenn spurning)</option>';
+  verkefnaSnap.forEach((vDoc) => {
+    const opt = document.createElement("option");
+    opt.value = vDoc.id;
+    opt.textContent = vDoc.data().title;
+    verkefniValiö.appendChild(opt);
+  });
+  if ([...verkefniValiö.options].some((o) => o.value === valid)) {
+    verkefniValiö.value = valid;
+  }
+}
+
 async function hladaSpurningayfirlit() {
-  const [spurningarSnap, svorSnap] = await Promise.all([
+  const [spurningarSnap, svorSnap, verkefnaSnap] = await Promise.all([
     getDocs(collection(db, "questions")),
-    getDocs(collection(db, "answers"))
+    getDocs(collection(db, "answers")),
+    getDocs(collection(db, "verkefni"))
   ]);
   const rettSvor = new Map(svorSnap.docs.map((d) => [d.id, d.data().correctAnswers || []]));
+  const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
 
   spurningaTafla.innerHTML = "";
   if (spurningarSnap.empty) {
-    spurningaTafla.innerHTML = `<tr><td colspan="4">Engar spurningar ennþá.</td></tr>`;
+    spurningaTafla.innerHTML = `<tr><td colspan="5">Engar spurningar ennþá.</td></tr>`;
     return;
   }
 
@@ -126,6 +205,9 @@ async function hladaSpurningayfirlit() {
     const svarTd = document.createElement("td");
     svarTd.textContent = (rettSvor.get(qDoc.id) || [])[0] ?? "—";
 
+    const verkefniTd = document.createElement("td");
+    verkefniTd.textContent = verkefnaTitlar.get(spurning.verkefniId) || "—";
+
     const stodaTd = document.createElement("td");
     stodaTd.textContent = spurning.active ? "Virk" : "Óvirk";
 
@@ -134,6 +216,7 @@ async function hladaSpurningayfirlit() {
 
     tr.appendChild(textTd);
     tr.appendChild(svarTd);
+    tr.appendChild(verkefniTd);
     tr.appendChild(stodaTd);
     tr.appendChild(adgerdTd);
     spurningaTafla.appendChild(tr);
@@ -144,15 +227,20 @@ function samraema(text) {
   return text.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-// entries: [{ text, correctAnswers: string[] }]. Skrifar questions+answers í Firestore,
-// hólfað niður í bútum af 480 aðgerðum (Firestore hámark er 500 í einum batch).
+// entries: [{ text, correctAnswers: string[], verkefniId? }]. Skrifar questions+answers
+// í Firestore, hólfað niður í bútum af 480 aðgerðum (Firestore hámark er 500 í einum batch).
 async function vistaSpurningar(entries, { active }) {
   let batch = writeBatch(db);
   let fjoldiIBatch = 0;
 
   for (const entry of entries) {
     const questionRef = doc(collection(db, "questions"));
-    batch.set(questionRef, { text: entry.text, active, createdAt: serverTimestamp() });
+    batch.set(questionRef, {
+      text: entry.text,
+      verkefniId: entry.verkefniId || "",
+      active,
+      createdAt: serverTimestamp()
+    });
     batch.set(doc(db, "answers", questionRef.id), { correctAnswers: entry.correctAnswers });
     fjoldiIBatch += 2;
 
@@ -176,18 +264,20 @@ nySpurningForm.addEventListener("submit", async (e) => {
     .split(",")
     .map(samraema)
     .filter(Boolean);
+  const verkefniId = gogn.get("verkefniValiö") || "";
 
   if (!text || !rettSvar) {
     alert("Skráðu spurningatexta og rétt svar.");
     return;
   }
 
-  await vistaSpurningar([{ text, correctAnswers: [...new Set([rettSvar, ...onnurSvor])] }], {
-    active: true
-  });
+  await vistaSpurningar(
+    [{ text, correctAnswers: [...new Set([rettSvar, ...onnurSvor])], verkefniId }],
+    { active: true }
+  );
 
   nySpurningForm.reset();
-  hladaSpurningayfirlit();
+  hladaAllt();
 });
 
 // --- Innflutningur úr .pptx/.docx beint í vafranum ---
@@ -238,7 +328,7 @@ async function docxIBlokkir(arrayBuffer) {
     }
   }
   if (nuverandi) blokkir.push(nuverandi);
-  return blokkir;
+  return blokkir.length > 0 ? blokkir : [linur];
 }
 
 // Sömu þumalputtareglur og scripts/build-questions.js - leitar að "Spurning:" og "Svar:" línum.
@@ -271,6 +361,7 @@ vinnaUrSkraBtn.addEventListener("click", async () => {
   innflutningsStada.textContent = "Vinn úr skrá…";
   drafListi.innerHTML = "";
   vistaValdarBtn.hidden = true;
+  sidustuBlokkir = [];
 
   try {
     const buffer = await file.arrayBuffer();
@@ -285,13 +376,15 @@ vinnaUrSkraBtn.addEventListener("click", async () => {
       return;
     }
 
+    sidustuBlokkir = blokkir;
     const draftir = blokkir.map(greinaBlokk);
     renderDraftRows(draftir);
 
     const faerReview = draftir.filter((d) => d.needsReview).length;
     innflutningsStada.textContent =
-      `Fann ${draftir.length} mögulegar spurningar (${draftir.length - faerReview} greindust sjálfkrafa, ` +
-      `${faerReview} þurfa yfirferð). Farðu yfir og hakaðu við þær sem á að vista.`;
+      `Fann ${draftir.length} glæru(r)/blokkir, ${draftir.length - faerReview} mögulegar ` +
+      `spurningar greindust sjálfkrafa (${faerReview} þurfa yfirferð eða á að sleppa). ` +
+      `Efni allra glæra verður vistað sem verkefni óháð vali hér fyrir neðan.`;
     vistaValdarBtn.hidden = draftir.length === 0;
   } catch (villa) {
     console.error(villa);
@@ -353,12 +446,40 @@ vistaValdarBtn.addEventListener("click", async () => {
 
   vistaValdarBtn.disabled = true;
   try {
-    await vistaSpurningar(valdar, { active: false });
-    innflutningsStada.textContent = `Vistaði ${valdar.length} spurningar (óvirkar - kveiktu á þeim hér fyrir ofan).`;
+    const verkefnaTitill = verkefnaTitillInnsl.value.trim();
+    let verkefniId = "";
+
+    if (verkefnaTitill) {
+      const verkefniRef = doc(collection(db, "verkefni"));
+      const slides = sidustuBlokkir.map((linur) => ({
+        title: linur[0],
+        body: linur.slice(1).join(" ")
+      }));
+      await writeBatch(db)
+        .set(verkefniRef, {
+          title: verkefnaTitill,
+          slides,
+          active: false,
+          createdAt: serverTimestamp()
+        })
+        .commit();
+      verkefniId = verkefniRef.id;
+    }
+
+    await vistaSpurningar(
+      valdar.map((v) => ({ ...v, verkefniId })),
+      { active: false }
+    );
+
+    innflutningsStada.textContent = verkefniId
+      ? `Vistaði verkefnið "${verkefnaTitill}" með ${valdar.length} spurningum (óvirkt - kveiktu á því hér fyrir ofan).`
+      : `Vistaði ${valdar.length} spurningar (óvirkar - kveiktu á þeim hér fyrir ofan).`;
     drafListi.innerHTML = "";
     vistaValdarBtn.hidden = true;
     innflutningsSkra.value = "";
-    hladaSpurningayfirlit();
+    verkefnaTitillInnsl.value = "";
+    sidustuBlokkir = [];
+    hladaAllt();
   } finally {
     vistaValdarBtn.disabled = false;
   }

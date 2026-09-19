@@ -192,6 +192,43 @@ button.aðal-hnappur:hover {
   margin-top: 0;
 }
 
+.verkefni-kort {
+  text-align: center;
+}
+
+.verkefni-lysing {
+  color: var(--litur-daufur);
+  margin-bottom: 18px;
+}
+
+.glaera-kort {
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 14px;
+}
+
+.glaera-kort h3 {
+  margin-top: 0;
+  color: var(--litur-had);
+}
+
+.glaera-kort p {
+  color: var(--litur-texti);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+#afromISpurningar {
+  margin-top: 8px;
+  margin-bottom: 40px;
+}
+
+#tilbakaFraGlaerum, #tilbakaFraSpurningum {
+  margin-bottom: 20px;
+}
+
 .svar-form {
   display: flex;
   gap: 10px;

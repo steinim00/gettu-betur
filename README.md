@@ -1,7 +1,9 @@
 # Gettu Betur
 
 Keppnisvefur með innskráningu, þar sem admin sér yfirlit yfir hvernig hverjum
-notanda/liði vegnar. Spurningar eru fluttar inn úr `.pptx`/`.docx` skjölum.
+notanda/liði vegnar. Nemendur velja **verkefni** (glærur/efni), skoða þær, og
+svara svo tengdum spurningum. Spurningar/verkefni eru fluttar inn úr
+`.pptx`/`.docx` skjölum, beint í vafranum í stjórnborðinu eða með skriftum.
 
 Static frontend (HTML/CSS/JS, engin byggingarskref) + Firebase (Auth + Firestore).
 
@@ -117,16 +119,25 @@ frá efninu, eins og gert var fyrir fyrsta skjalið þitt
 Nýjar spurningar fara inn sem **óvirkar** — farðu í stjórnborðið (`stjornbord.html`)
 og kveiktu á þeim spurningum sem þú vilt hafa í leiknum.
 
-## 6. Handvirk spurningaskráning
+## 6. Verkefni og innflutningur beint í stjórnborðinu
 
-Í stjórnborðinu (`stjornbord.html`) er líka einfalt eyðublað til að bæta við
-stökum spurningum handvirkt, án þess að fara í gegnum innflutningsskrifturnar.
+Í stjórnborðinu (`stjornbord.html`) er hægt að:
+
+- Bæta við stökum spurningum handvirkt (má velja hvaða verkefni hún tengist, eða ekkert)
+- Velja `.pptx`/`.docx` skjal og gefa verkefninu titil — glærurnar verða sjálfkrafa
+  vistaðar sem **verkefni** sem nemandi skoðar, og spurningagreiningin (sömu reglur
+  og skrifturnar í kafla 5) sýnir uppkast af spurningum til yfirferðar áður en þær
+  eru vistaðar og tengdar við verkefnið
+
+Bæði spurningar og verkefni fara inn sem **óvirk** — kveiktu á þeim í töflunum
+þegar þú hefur farið yfir þau.
 
 ## Gagnalíkan (Firestore)
 
 ```
 users/{uid}                  { nafn, email, role: "user" | "admin", createdAt }
 users/{uid}/attempts/{qId}   { svar, answeredAt }             — skjal-ID = spurningarID
-questions/{qId}              { text, active, createdAt }
+verkefni/{vId}                { title, slides: [{title, body}], active, createdAt }
+questions/{qId}              { text, verkefniId, active, createdAt }
 answers/{qId}                { correctAnswers: [...] }        — sama ID og questions/{qId}, lágstafað
 ```

@@ -36,11 +36,24 @@
   </table>
 
   <div class="hluti-titill">
+    <h2>Verkefni</h2>
+  </div>
+  <p class="undirtitill-vinstri">
+    Verkefni eru glærur/efni sem nemandi skoðar áður en hann svarar tengdum spurningum.
+  </p>
+  <table id="verkefnaTafla">
+    <thead>
+      <tr><th>Titill</th><th>Glærur</th><th>Spurningar</th><th>Staða</th><th>Aðgerð</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="hluti-titill">
     <h2>Spurningar</h2>
   </div>
   <table id="spurningaTafla">
     <thead>
-      <tr><th>Texti</th><th>Rétt svar</th><th>Staða</th><th>Aðgerð</th></tr>
+      <tr><th>Texti</th><th>Rétt svar</th><th>Verkefni</th><th>Staða</th><th>Aðgerð</th></tr>
     </thead>
     <tbody></tbody>
   </table>
@@ -56,17 +69,26 @@
     <label for="onnurSvor">Önnur samþykkt svör (valfrjálst, aðskilin með kommu)</label>
     <input type="text" id="onnurSvor" name="onnurSvor" placeholder="t.d. afbrigði í stafsetningu">
 
+    <label for="verkefniValiö">Verkefni</label>
+    <select id="verkefniValiö" name="verkefniValiö">
+      <option value="">Ekkert verkefni (almenn spurning)</option>
+    </select>
+
     <button type="submit" class="aðal-hnappur">Bæta við spurningu</button>
   </form>
 
   <div class="hluti-titill">
-    <h2>Flytja inn spurningar úr skrá</h2>
+    <h2>Flytja inn verkefni úr skrá</h2>
   </div>
   <p class="undirtitill-vinstri">
-    Virkar best fyrir skjöl sem hafa "Spurning: ..." og "Svar: ..." línur.
-    Annars konar skjöl (t.d. glósur/ævisögur) þarf að skrifa spurningar handvirkt
-    úr, eða senda á umsjónarmann til vinnslu.
+    Glærur/efni skjalsins verða sjálfkrafa vistuð sem verkefni sem nemandi skoðar.
+    Sjálfvirka spurningagreiningin virkar best fyrir skjöl sem hafa "Spurning: ..." og
+    "Svar: ..." línur — annars konar skjöl (t.d. glósur/ævisögur) þarf að skrifa
+    spurningar handvirkt úr fyrir neðan, eða senda á umsjónarmann til vinnslu.
   </p>
+  <div class="innflutnings-form">
+    <input type="text" id="verkefnaTitillInnsl" placeholder="Titill verkefnis (t.d. nafn glæruskjals)">
+  </div>
   <div class="innflutnings-form">
     <input type="file" id="innflutningsSkra" accept=".pptx,.docx">
     <button type="button" class="smabtn" id="vinnaUrSkraBtn">Vinna úr skrá</button>

@@ -21,8 +21,23 @@
 </header>
 
 <main>
-  <p id="stodurNiðurstada"></p>
-  <div id="spurningaListi"></div>
+  <div id="verkefnaSvaedi">
+    <h2>Verkefni</h2>
+    <div id="verkefnaListi"></div>
+  </div>
+
+  <div id="glaeruSvaedi" hidden>
+    <button type="button" class="smabtn" id="tilbakaFraGlaerum">← Öll verkefni</button>
+    <h2 id="verkefnaTitill"></h2>
+    <div id="glaerurInnihald"></div>
+    <button type="button" class="aðal-hnappur" id="afromISpurningar">Áfram í spurningar</button>
+  </div>
+
+  <div id="spurningaSvaedi" hidden>
+    <button type="button" class="smabtn" id="tilbakaFraSpurningum">← Öll verkefni</button>
+    <p id="stodurNiðurstada"></p>
+    <div id="spurningaListi"></div>
+  </div>
 </main>
 
 <script type="module" src="js/quiz.js"></script>
