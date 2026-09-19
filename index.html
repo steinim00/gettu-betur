@@ -126,7 +126,7 @@
       "auth/user-not-found": "Enginn notandi með þetta netfang.",
       "auth/wrong-password": "Rangt lykilorð."
     };
-    return skilabod[code] || "Eitthvað fór úrskeiðis. Reyndu aftur.";
+    return skilabod[code] || `Eitthvað fór úrskeiðis (${code || "óþekkt villa"}). Reyndu aftur.`;
   }
 </script>
 </body>
