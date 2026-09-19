@@ -17,8 +17,16 @@ Static frontend (HTML/CSS/JS, engin byggingarskref) + Firebase (Auth + Firestore
 ## 2. Setja upp öryggisreglur (Firestore rules)
 
 Farðu í **Firestore Database -> Rules** í Firebase Console og límdu inn innihald
-[`firestore.rules`](firestore.rules) (eða keyrðu `firebase deploy --only firestore:rules`
-ef þú notar Firebase CLI, sjá kafla 5).
+[`firestore.rules`](firestore.rules).
+
+Eða, ef þú ert með `scripts/serviceAccountKey.json` nú þegar (sjá kafla 5),
+keyrðu í staðinn:
+
+```bash
+cd scripts && node deploy-rules.js
+```
+
+sem hleður `firestore.rules` beint inn án þess að þú þurfir að afrita/líma neitt.
 
 Gettu Betur er með **opnum svörum** (þú skrifar svarið sjálf/ur, ekki fjölvalskostir),
 og einkunnagjöf er sjálfvirk: svarið þitt er borið saman við rétt svar (lágstafað,
