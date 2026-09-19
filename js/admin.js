@@ -26,6 +26,7 @@ const vistaValdarBtn = document.getElementById("vistaValdarBtn");
 const githubTeiknInnsl = document.getElementById("githubTeiknInnsl");
 const vistaTeiknBtn = document.getElementById("vistaTeiknBtn");
 const teiknStada = document.getElementById("teiknStada");
+const nyttVerkefniForm = document.getElementById("nyttVerkefniForm");
 
 // Breyttu þessu ef repoið er einhvern tímann flutt/endurnefnt.
 const GITHUB_REPO = "steinim00/gettu-betur";
@@ -298,6 +299,44 @@ nySpurningForm.addEventListener("submit", async (e) => {
   );
 
   nySpurningForm.reset();
+  hladaAllt();
+});
+
+nyttVerkefniForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const gogn = new FormData(nyttVerkefniForm);
+  const titill = gogn.get("titill").trim();
+  const efni = (gogn.get("efni") || "").trim();
+
+  if (!titill || !efni) {
+    alert("Skráðu titil og efni.");
+    return;
+  }
+
+  const slides = efni
+    .split(/\n\s*\n/)
+    .map((blokk) => blokk.trim())
+    .filter(Boolean)
+    .map((blokk) => {
+      const linur = blokk.split("\n").map((l) => l.trim()).filter(Boolean);
+      return { title: linur[0], body: linur.slice(1).join(" ") };
+    });
+
+  if (slides.length === 0) {
+    alert("Fann engar efnisgreinar í efninu.");
+    return;
+  }
+
+  await writeBatch(db)
+    .set(doc(collection(db, "verkefni")), {
+      title: titill,
+      slides,
+      active: true,
+      createdAt: serverTimestamp()
+    })
+    .commit();
+
+  nyttVerkefniForm.reset();
   hladaAllt();
 });
 

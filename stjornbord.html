@@ -69,6 +69,23 @@
     <tbody></tbody>
   </table>
 
+  <h3>Búa til verkefni handvirkt</h3>
+  <p class="undirtitill-vinstri">
+    Fyrir efni sem tengist ekki endilega neinum spurningum - t.d. listi yfir
+    embættismenn, bókalisti eða annað lesefni sem nemandi á bara að skoða.
+    Hver efnisgrein (aðskilin með auðri línu) verður sín glæra; fyrsta línan í
+    hverri efnisgrein er fyrirsögn hennar.
+  </p>
+  <form id="nyttVerkefniForm" class="ny-spurning-form">
+    <label for="handVerkefniTitill">Titill</label>
+    <input type="text" id="handVerkefniTitill" name="titill" required>
+
+    <label for="handVerkefniEfni">Efni</label>
+    <textarea id="handVerkefniEfni" name="efni" rows="8" required placeholder="Embættismaður 1&#10;Lýsing hans/hennar...&#10;&#10;Embættismaður 2&#10;Lýsing hans/hennar..."></textarea>
+
+    <button type="submit" class="aðal-hnappur">Búa til verkefni</button>
+  </form>
+
   <div class="hluti-titill">
     <h2>Spurningar</h2>
   </div>

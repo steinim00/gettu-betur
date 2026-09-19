@@ -85,7 +85,7 @@ form label {
   margin-top: 16px;
 }
 
-input, select {
+input, select, textarea {
   width: 100%;
   padding: 12px 14px;
   border-radius: 10px;
@@ -94,6 +94,10 @@ input, select {
   color: var(--litur-texti);
   font-family: inherit;
   font-size: 1rem;
+}
+
+textarea {
+  resize: vertical;
 }
 
 button {
