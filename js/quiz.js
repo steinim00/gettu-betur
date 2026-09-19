@@ -35,16 +35,28 @@ function samraema(text) {
   return text.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-vaktaInnskraningu({ requireAuth: true }, (user, gogn) => {
+// TÍMABUNDIÐ meðan á þróun/grunnvinnu stendur: requireAuth er false svo hægt sé
+// að skoða verkefni/glærur án innskráningar. Innskráning er samt áskilin til að
+// svara spurningum (sjá byggjaSpurningaKort). Fyrir alvöru notkun: settu
+// requireAuth aftur í true hér, og "if true" aftur í "if innskradur()" fyrir
+// verkefni/questions í firestore.rules.
+vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
   notandi = user;
-  notandaNafn.textContent = gogn.nafn || user.email;
 
-  if (gogn.role === "admin") {
-    notandaNafn.classList.add("nafn-stjornbord");
-    notandaNafn.title = "Fara í stjórnborðið";
-    notandaNafn.addEventListener("click", () => {
-      window.location.href = "stjornbord.html";
-    });
+  if (user) {
+    notandaNafn.textContent = gogn.nafn || user.email;
+    utskraBtn.hidden = false;
+
+    if (gogn.role === "admin") {
+      notandaNafn.classList.add("nafn-stjornbord");
+      notandaNafn.title = "Fara í stjórnborðið";
+      notandaNafn.addEventListener("click", () => {
+        window.location.href = "stjornbord.html";
+      });
+    }
+  } else {
+    notandaNafn.textContent = "Gestur (ekki skráð/ur inn)";
+    utskraBtn.hidden = true;
   }
 
   hladaVerkefnaListi();
@@ -143,8 +155,9 @@ async function hladaSpurningum() {
     )
   );
 
-  const svaradSnap = await getDocs(collection(db, "users", notandi.uid, "attempts"));
-  const svaradIds = new Set(svaradSnap.docs.map((d) => d.id));
+  const svaradIds = notandi
+    ? new Set((await getDocs(collection(db, "users", notandi.uid, "attempts"))).docs.map((d) => d.id))
+    : new Set();
 
   spurningaListi.innerHTML = "";
 
@@ -173,6 +186,14 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
   const titill = document.createElement("h3");
   titill.textContent = spurning.text;
   korti.appendChild(titill);
+
+  if (!notandi) {
+    const abending = document.createElement("p");
+    abending.className = "spurning-nidurstada";
+    abending.innerHTML = 'Þú þarft að <a class="tengill" href="index.html">skrá þig inn</a> til að svara.';
+    korti.appendChild(abending);
+    return korti;
+  }
 
   const form = document.createElement("form");
   form.className = "svar-form";
@@ -256,6 +277,11 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar) {
 }
 
 async function hladaMinumStodum() {
+  if (!notandi) {
+    stodurNiðurstada.textContent = "";
+    return;
+  }
+
   const spurningarSnap = await getDocs(
     query(collection(db, "questions"), where("verkefniId", "==", valdVerkefniId))
   );
