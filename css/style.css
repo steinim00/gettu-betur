@@ -266,6 +266,13 @@ button.aðal-hnappur:hover {
   padding: 40px 24px;
 }
 
+/* Sama sérhæfni og ".heilskja" ein og sér (0,0,1,0), en kemur á eftir í
+   stílblaðinu - vinnur því cascade-slaginn og tryggir að [hidden] slökkvi
+   raunverulega á laginu í stað þess að "display: flex" hér að ofan yfirtaki það. */
+.heilskja[hidden] {
+  display: none;
+}
+
 .heilskja-loka {
   position: absolute;
   top: 20px;
