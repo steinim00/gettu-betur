@@ -27,6 +27,25 @@
 
 <main>
   <div class="hluti-titill">
+    <h2>Stillingar</h2>
+  </div>
+  <p class="undirtitill-vinstri">
+    Til að innflutningur hér fyrir neðan geti líka birt upprunalega skjalið sjálft
+    (nákvæmlega eins og PowerPoint sýnir það, með öllum myndum), sett þarf GitHub
+    aðgangsteikn (<em>Personal Access Token</em>) með skrifheimild á
+    <code>steinim00/gettu-betur</code> repoið. Teiknið er <strong>eingöngu geymt í
+    þessum vafra</strong> (localStorage) - fer aldrei í gagnagrunninn eða annað.
+    Án teikns er samt allt í lagi að flytja inn - spurningar virka eins, en glærurnar
+    birtast þá sem endursaminn texti í stað upprunalega skjalsins.
+    <a class="tengill" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Búa til teikn hjá GitHub →</a>
+  </p>
+  <div class="innflutnings-form">
+    <input type="password" id="githubTeiknInnsl" placeholder="GitHub Personal Access Token (github_pat_... eða ghp_...)">
+    <button type="button" class="smabtn" id="vistaTeiknBtn">Vista</button>
+  </div>
+  <p id="teiknStada"></p>
+
+  <div class="hluti-titill">
     <h2>Frammistaða notenda</h2>
     <button class="smabtn" id="endurhladaBtn">Endurhlaða</button>
   </div>
@@ -84,6 +103,8 @@
   </div>
   <p class="undirtitill-vinstri">
     Glærur/efni skjalsins verða sjálfkrafa vistuð sem verkefni sem nemandi skoðar.
+    Ef GitHub-teikn er vistað hér fyrir ofan birtist upprunalega skjalið sjálft
+    (raunveruleg PowerPoint-sýn) - annars endursaminn texti/myndir.
     Sjálfvirka spurningagreiningin virkar best fyrir skjöl sem hafa "Spurning: ..." og
     "Svar: ..." línur — annars konar skjöl (t.d. glósur/ævisögur) þarf að skrifa
     spurningar handvirkt úr fyrir neðan, eða senda á umsjónarmann til vinnslu.

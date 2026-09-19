@@ -132,12 +132,32 @@ og kveiktu á þeim spurningum sem þú vilt hafa í leiknum.
 Bæði spurningar og verkefni fara inn sem **óvirk** — kveiktu á þeim í töflunum
 þegar þú hefur farið yfir þau.
 
+### Birta upprunalega skjalið (nákvæm PowerPoint-sýn)
+
+Sjálfvirka spurningagreiningin les bara textann úr skjalinu — fyrir skjöl sem eru
+ekki þegar á "Spurning:/Svar:" formi (t.d. glósur/ævisögur) er textinn ekki gagnlegur
+sem glærusýning. Til að nemandi sjái upprunalega skjalið sjálft (með réttu útliti,
+myndum og öllu) í staðinn:
+
+1. Búðu til GitHub aðgangsteikn: https://github.com/settings/personal-access-tokens/new
+   - **Repository access**: veldu bara `steinim00/gettu-betur`
+   - **Permissions**: `Contents` → **Read and write**
+2. Í stjórnborðinu, undir **Stillingar** efst, líma inn teiknið og ýta á Vista
+   (vistast bara í þínum vafra, hvergi annars staðar)
+3. Þegar þú flytur svo inn skjal og gefur verkefninu titil, hleðst skjalið sjálft
+   upp í `pptx/` möppuna á GitHub, og nemandinn sér það birt með
+   [Microsoft Office skjalaskoðaranum](https://products.office.com/office-online-server)
+   í staðinn fyrir endursaminn texta
+
+Þetta er valfrjálst — án teikns virkar allt eins og áður, bara með endursömdum
+texta/myndum í stað upprunalega skjalsins.
+
 ## Gagnalíkan (Firestore)
 
 ```
 users/{uid}                  { nafn, email, role: "user" | "admin", createdAt }
 users/{uid}/attempts/{qId}   { svar, answeredAt }             — skjal-ID = spurningarID
-verkefni/{vId}                { title, slides: [{title, body}], active, createdAt }
+verkefni/{vId}                { title, slides: [{title, body, image?}], pptxUrl?, active, createdAt }
 questions/{qId}              { text, verkefniId, active, createdAt }
 answers/{qId}                { correctAnswers: [...] }        — sama ID og questions/{qId}, lágstafað
 ```

@@ -23,8 +23,29 @@ const vinnaUrSkraBtn = document.getElementById("vinnaUrSkraBtn");
 const innflutningsStada = document.getElementById("innflutningsStada");
 const drafListi = document.getElementById("drafListi");
 const vistaValdarBtn = document.getElementById("vistaValdarBtn");
+const githubTeiknInnsl = document.getElementById("githubTeiknInnsl");
+const vistaTeiknBtn = document.getElementById("vistaTeiknBtn");
+const teiknStada = document.getElementById("teiknStada");
+
+// Breyttu þessu ef repoið er einhvern tímann flutt/endurnefnt.
+const GITHUB_REPO = "steinim00/gettu-betur";
+const GITHUB_TEIKN_LYKILL = "gettubetur_github_token";
 
 let sidustuBlokkir = [];
+let sidastaSkra = null;
+
+githubTeiknInnsl.value = localStorage.getItem(GITHUB_TEIKN_LYKILL) || "";
+
+vistaTeiknBtn.addEventListener("click", () => {
+  const teikn = githubTeiknInnsl.value.trim();
+  if (teikn) {
+    localStorage.setItem(GITHUB_TEIKN_LYKILL, teikn);
+    teiknStada.textContent = "Teikn vistað í þessum vafra.";
+  } else {
+    localStorage.removeItem(GITHUB_TEIKN_LYKILL);
+    teiknStada.textContent = "Teikn fjarlægt.";
+  }
+});
 
 vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
   notandaNafn.textContent = gogn.nafn || user.email;
@@ -362,6 +383,7 @@ vinnaUrSkraBtn.addEventListener("click", async () => {
   drafListi.innerHTML = "";
   vistaValdarBtn.hidden = true;
   sidustuBlokkir = [];
+  sidastaSkra = file;
 
   try {
     const buffer = await file.arrayBuffer();
@@ -435,6 +457,55 @@ function renderDraftRows(draftir) {
   });
 }
 
+function slugja(nafn) {
+  return nafn
+    .toLowerCase()
+    .replace(/\.[^.]+$/, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function skraIBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+// Hleður hráu skjalinu upp á GitHub (Contents API) svo hægt sé að birta það
+// óbreytt með Office-skjalaskoðaranum. Skilar slóðinni innan repósins (pptxUrl).
+async function hladaSkraAGithub(file) {
+  const teikn = localStorage.getItem(GITHUB_TEIKN_LYKILL);
+  if (!teikn) return null;
+
+  const endingRegex = /\.(pptx|docx)$/i;
+  const ending = (file.name.match(endingRegex) || [".pptx"])[0];
+  const slod = `pptx/${Date.now()}-${slugja(file.name)}${ending}`;
+  const innihald = await skraIBase64(file);
+
+  const svar = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${slod}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${teikn}`,
+      Accept: "application/vnd.github+json"
+    },
+    body: JSON.stringify({
+      message: `Bæta við ${file.name} fyrir verkefni`,
+      content: innihald,
+      branch: "main"
+    })
+  });
+
+  if (!svar.ok) {
+    const villuGogn = await svar.json().catch(() => ({}));
+    throw new Error(villuGogn.message || `GitHub svaraði ${svar.status}`);
+  }
+
+  return slod;
+}
+
 vistaValdarBtn.addEventListener("click", async () => {
   const radir = [...drafListi.querySelectorAll(".draft-rad")].map((r) => r._faSpurningu());
   const valdar = radir.filter((r) => r.tokinMed && r.text && r.correctAnswers.length > 0);
@@ -450,6 +521,21 @@ vistaValdarBtn.addEventListener("click", async () => {
     let verkefniId = "";
 
     if (verkefnaTitill) {
+      let pptxUrl = null;
+      if (sidastaSkra && localStorage.getItem(GITHUB_TEIKN_LYKILL)) {
+        innflutningsStada.textContent = "Hleð upprunalega skjalinu upp á GitHub…";
+        try {
+          pptxUrl = await hladaSkraAGithub(sidastaSkra);
+        } catch (villa) {
+          console.error(villa);
+          alert(
+            "Tókst ekki að hlaða skjalinu upp á GitHub (athugaðu að teiknið hafi skrifheimild): " +
+              villa.message +
+              "\n\nHeld áfram og vista verkefnið með endursömdum texta í staðinn."
+          );
+        }
+      }
+
       const verkefniRef = doc(collection(db, "verkefni"));
       const slides = sidustuBlokkir.map((linur) => ({
         title: linur[0],
@@ -459,6 +545,7 @@ vistaValdarBtn.addEventListener("click", async () => {
         .set(verkefniRef, {
           title: verkefnaTitill,
           slides,
+          ...(pptxUrl ? { pptxUrl } : {}),
           active: false,
           createdAt: serverTimestamp()
         })
@@ -479,6 +566,7 @@ vistaValdarBtn.addEventListener("click", async () => {
     innflutningsSkra.value = "";
     verkefnaTitillInnsl.value = "";
     sidustuBlokkir = [];
+    sidastaSkra = null;
     hladaAllt();
   } finally {
     vistaValdarBtn.disabled = false;
