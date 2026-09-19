@@ -293,6 +293,12 @@ th {
   text-decoration: none;
 }
 
+.nafn-stjornbord {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--litur-had);
+}
+
 .undirtitill-vinstri {
   color: var(--litur-daufur);
   font-size: 0.9rem;

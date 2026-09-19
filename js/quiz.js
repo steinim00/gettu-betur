@@ -15,7 +15,6 @@ const spurningaListi = document.getElementById("spurningaListi");
 const notandaNafn = document.getElementById("notandaNafn");
 const utskraBtn = document.getElementById("utskraBtn");
 const stodurNiðurstada = document.getElementById("stodurNiðurstada");
-const stjornbordTengill = document.getElementById("stjornbordTengill");
 
 let notandi = null;
 
@@ -26,7 +25,15 @@ function samraema(text) {
 vaktaInnskraningu({ requireAuth: true }, (user, gogn) => {
   notandi = user;
   notandaNafn.textContent = gogn.nafn || user.email;
-  stjornbordTengill.hidden = gogn.role !== "admin";
+
+  if (gogn.role === "admin") {
+    notandaNafn.classList.add("nafn-stjornbord");
+    notandaNafn.title = "Fara í stjórnborðið";
+    notandaNafn.addEventListener("click", () => {
+      window.location.href = "stjornbord.html";
+    });
+  }
+
   hladaSpurningum();
   hladaMinumStodum();
 });
