@@ -15,6 +15,7 @@ const spurningaListi = document.getElementById("spurningaListi");
 const notandaNafn = document.getElementById("notandaNafn");
 const utskraBtn = document.getElementById("utskraBtn");
 const stodurNiðurstada = document.getElementById("stodurNiðurstada");
+const stjornbordTengill = document.getElementById("stjornbordTengill");
 
 let notandi = null;
 
@@ -25,6 +26,7 @@ function samraema(text) {
 vaktaInnskraningu({ requireAuth: true }, (user, gogn) => {
   notandi = user;
   notandaNafn.textContent = gogn.nafn || user.email;
+  stjornbordTengill.hidden = gogn.role !== "admin";
   hladaSpurningum();
   hladaMinumStodum();
 });
