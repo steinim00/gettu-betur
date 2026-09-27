@@ -104,8 +104,18 @@ function synaSvaedi(svaedi) {
 tilbakaFraGlaerum.addEventListener("click", () => synaSvaedi("verkefni"));
 tilbakaFraSpurningum.addEventListener("click", () => synaSvaedi("verkefni"));
 
+function skeletonKort(fjoldi, linurPerKort = 2) {
+  let html = "";
+  for (let i = 0; i < fjoldi; i++) {
+    html += '<div class="skeleton-kort"><div class="skeleton-lina" style="width:55%"></div>';
+    for (let j = 0; j < linurPerKort; j++) html += '<div class="skeleton-lina stutt"></div>';
+    html += "</div>";
+  }
+  return html;
+}
+
 async function hladaVerkefnaListi() {
-  verkefnaListi.innerHTML = "<p>Sæki verkefni…</p>";
+  verkefnaListi.innerHTML = skeletonKort(3);
 
   const snap = await getDocs(query(collection(db, "verkefni"), where("active", "==", true)));
 
@@ -114,9 +124,24 @@ async function hladaVerkefnaListi() {
     return;
   }
 
+  // Ein fyrirspurn fyrir allar virkar spurningar, flokkuð eftir verkefni í JS -
+  // mun ódýrara en að spyrja Firestore einu sinni fyrir hvert verkefni.
+  const spurningarSnap = await getDocs(query(collection(db, "questions"), where("active", "==", true)));
+  const spurningaIdEftirVerkefni = new Map();
+  spurningarSnap.forEach((qDoc) => {
+    const vid = qDoc.data().verkefniId;
+    if (!spurningaIdEftirVerkefni.has(vid)) spurningaIdEftirVerkefni.set(vid, []);
+    spurningaIdEftirVerkefni.get(vid).push(qDoc.id);
+  });
+
+  const svaradIds = notandi
+    ? new Set((await getDocs(collection(db, "users", notandi.uid, "attempts"))).docs.map((d) => d.id))
+    : new Set();
+
   verkefnaListi.innerHTML = "";
   snap.forEach((vDoc) => {
     const verkefni = vDoc.data();
+    const spurningaIds = spurningaIdEftirVerkefni.get(vDoc.id) || [];
     const kort = document.createElement("article");
     kort.className = "spurning-kort verkefni-kort";
 
@@ -126,8 +151,26 @@ async function hladaVerkefnaListi() {
 
     const lysing = document.createElement("p");
     lysing.className = "verkefni-lysing";
-    lysing.textContent = `${(verkefni.slides || []).length} glærur`;
+    lysing.textContent = `${(verkefni.slides || []).length} glærur · ${spurningaIds.length} spurningar`;
     kort.appendChild(lysing);
+
+    if (notandi && spurningaIds.length > 0) {
+      const svaradFjoldi = spurningaIds.filter((id) => svaradIds.has(id)).length;
+      const hlutfall = Math.round((svaradFjoldi / spurningaIds.length) * 100);
+
+      const framvindaLysing = document.createElement("p");
+      framvindaLysing.className = "framvinda-lysing";
+      framvindaLysing.textContent = `Svarað ${svaradFjoldi} af ${spurningaIds.length} (${hlutfall}%)`;
+      kort.appendChild(framvindaLysing);
+
+      const bar = document.createElement("div");
+      bar.className = "framvinda-bar";
+      const fylling = document.createElement("div");
+      fylling.className = "framvinda-fylling";
+      fylling.style.width = `${hlutfall}%`;
+      bar.appendChild(fylling);
+      kort.appendChild(bar);
+    }
 
     const hnappur = document.createElement("button");
     hnappur.type = "button";
@@ -264,7 +307,7 @@ afromISpurningar.addEventListener("click", () => {
 });
 
 async function hladaSpurningum() {
-  spurningaListi.innerHTML = "<p>Sæki spurningar…</p>";
+  spurningaListi.innerHTML = skeletonKort(5, 1);
   siduflettingarEfri.hidden = true;
   siduflettingar.hidden = true;
 

@@ -508,3 +508,109 @@ th {
   color: var(--litur-rangt);
   margin-bottom: 6px;
 }
+
+.framvinda-lysing {
+  color: var(--litur-daufur);
+  font-size: 0.85rem;
+  margin: 0 0 8px;
+}
+
+.framvinda-bar {
+  height: 8px;
+  border-radius: 6px;
+  background: var(--litur-jadar);
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.framvinda-fylling {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--litur-had), var(--litur-had-daufur));
+  transition: width 0.3s ease;
+}
+
+.skeleton-kort {
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.skeleton-lina {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--litur-jadar) 25%, #443c5e 37%, var(--litur-jadar) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-hreyfing 1.4s ease infinite;
+  margin-bottom: 10px;
+}
+
+.skeleton-lina:last-child {
+  margin-bottom: 0;
+}
+
+.skeleton-lina.stutt {
+  width: 45%;
+}
+
+@keyframes skeleton-hreyfing {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@media (max-width: 600px) {
+  header.sida-haus {
+    padding: 16px 18px;
+  }
+
+  main {
+    padding: 24px 14px 60px;
+  }
+
+  .innskraning-box {
+    margin: 32px auto;
+    padding: 26px;
+  }
+
+  .svar-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .svar-form button {
+    padding: 13px;
+  }
+
+  .pptx-skodari {
+    height: 50vh;
+  }
+
+  .heilskja-innihald {
+    max-height: 60vh;
+  }
+
+  .heilskja-innihald p {
+    font-size: 1.05rem;
+  }
+
+  .draft-rad {
+    grid-template-columns: 1fr;
+  }
+
+  .innflutnings-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .siduflettingar {
+    gap: 12px;
+  }
+}
