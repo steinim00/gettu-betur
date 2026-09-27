@@ -510,7 +510,7 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
   const sleppaBtn = document.createElement("button");
   sleppaBtn.type = "button";
   sleppaBtn.className = "sleppa-btn";
-  sleppaBtn.textContent = "Sleppa";
+  sleppaBtn.textContent = "Pass";
   sleppaBtn.disabled = buidSvarad;
 
   form.appendChild(innslattur);
@@ -572,7 +572,7 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar) {
   }
 
   if (mittSvar === SLEPPT_MERKI) {
-    nidurstada.textContent = "Sleppt ⏭";
+    nidurstada.textContent = "Pass ⏭";
     nidurstada.classList.add("sleppt");
     return;
   }
@@ -621,7 +621,7 @@ async function hladaMinumStodum() {
   const fjoldiSvarad = minarTilraunir.length;
   const fjoldiMetin = fjoldiSvarad - fjoldiSleppt;
   const nakvaemni = fjoldiMetin ? Math.round((fjoldiRett / fjoldiMetin) * 100) : 0;
-  const sleppTexti = fjoldiSleppt ? `, ${fjoldiSleppt} sleppt` : "";
+  const sleppTexti = fjoldiSleppt ? `, ${fjoldiSleppt} pass` : "";
   stodurNiðurstada.textContent =
     `Þú hefur svarað ${fjoldiSvarad} spurningum í þessu verkefni${sleppTexti}, ${fjoldiRett} réttum (${nakvaemni}% nákvæmni).`;
 }
