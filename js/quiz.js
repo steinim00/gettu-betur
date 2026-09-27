@@ -24,6 +24,7 @@ const afromISpurningar = document.getElementById("afromISpurningar");
 const tilbakaFraGlaerum = document.getElementById("tilbakaFraGlaerum");
 
 const spurningaSvaedi = document.getElementById("spurningaSvaedi");
+const spurningaTitill = document.getElementById("spurningaTitill");
 const spurningaListi = document.getElementById("spurningaListi");
 const stodurNiðurstada = document.getElementById("stodurNiðurstada");
 const tilbakaFraSpurningum = document.getElementById("tilbakaFraSpurningum");
@@ -53,10 +54,19 @@ let valdVerkefniId = null;
 let heilskjaGlaerur = [];
 let heilskjaIndex = 0;
 
-const SPURNINGAR_A_SIDU = 20;
+const SPURNINGAR_A_SIDU_VENJULEGT = 20;
+const SPURNINGAR_A_SIDU_PROF = 5;
+let spurningaBunkastaerd = SPURNINGAR_A_SIDU_VENJULEGT;
 let allarSpurningaskjol = [];
 let svaradIdSett = new Set();
 let spurningaSida = 0;
+
+// Verkefni sem hafa enga alvöru glæruefni (eingöngu sjálfgerða lýsingarglæru úr
+// t.d. upload-questions.js, og ekkert upprunalegt pptx) eru hrein spurningabanka -
+// þau fara beint í spurningar í minni bútum, líkt og próf, í stað glæruflæðisins.
+function erProfVerkefni(verkefni) {
+  return !verkefni.pptxUrl && (verkefni.slides || []).length <= 1;
+}
 
 function samraema(text) {
   return text
@@ -188,9 +198,20 @@ let pptxIframe = null;
 function opnaVerkefni(verkefniId, verkefni) {
   valdVerkefniId = verkefniId;
   heilskjaGlaerur = verkefni.slides || [];
+  spurningaBunkastaerd = erProfVerkefni(verkefni) ? SPURNINGAR_A_SIDU_PROF : SPURNINGAR_A_SIDU_VENJULEGT;
+  pptxIframe = null;
+
+  if (erProfVerkefni(verkefni)) {
+    // Ekkert alvöru glæruefni til að skoða - farið beint í spurningarnar.
+    spurningaTitill.textContent = verkefni.title;
+    synaSvaedi("spurningar");
+    hladaSpurningum();
+    hladaMinumStodum();
+    return;
+  }
+
   verkefnaTitill.textContent = verkefni.title;
   glaerurInnihald.innerHTML = "";
-  pptxIframe = null;
 
   if (verkefni.pptxUrl) {
     // Upprunalega .pptx skjalið sjálft, birt með Office skjalaskoðaranum -
@@ -301,6 +322,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 afromISpurningar.addEventListener("click", () => {
+  spurningaTitill.textContent = verkefnaTitill.textContent;
   synaSvaedi("spurningar");
   hladaSpurningum();
   hladaMinumStodum();
@@ -340,15 +362,15 @@ async function hladaSpurningum() {
 }
 
 function fjoldiSidna() {
-  return Math.max(1, Math.ceil(allarSpurningaskjol.length / SPURNINGAR_A_SIDU));
+  return Math.max(1, Math.ceil(allarSpurningaskjol.length / spurningaBunkastaerd));
 }
 
 function synaSpurningaSidu() {
   const heild = fjoldiSidna();
   spurningaSida = Math.min(Math.max(spurningaSida, 0), heild - 1);
 
-  const upphaf = spurningaSida * SPURNINGAR_A_SIDU;
-  const siduskjol = allarSpurningaskjol.slice(upphaf, upphaf + SPURNINGAR_A_SIDU);
+  const upphaf = spurningaSida * spurningaBunkastaerd;
+  const siduskjol = allarSpurningaskjol.slice(upphaf, upphaf + spurningaBunkastaerd);
 
   spurningaListi.innerHTML = "";
   siduskjol.forEach((qDoc) => {
