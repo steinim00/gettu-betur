@@ -123,16 +123,18 @@ async function hladaGraenadeildarAefingar() {
   await hladaAefingasogu();
 }
 
-// Grænadeildar-verkefnið er stofnað handvirkt (sjá scripts/upload-questions.js) og
-// titillinn getur verið stafsettur örlítið ólíkt milli keyrslna - því er leitað að
-// undirstreng frekar en að treysta á fast Firestore-ID.
+// Grænadeildar-verkefnið (spurningabankinn, birtur sem "Hraðaspurningar" í
+// leiknum) er stofnað handvirkt (sjá scripts/upload-questions.js) og titillinn
+// getur verið ólíkur milli keyrslna - því er leitað að undirstreng frekar en
+// að treysta á fast Firestore-ID. Passar bæði gamla og nýja titilinn.
 async function finnaGraenadeildarVerkefni() {
   if (graenadeildarVerkefniId && graenadeildarSpurningar.length > 0) return;
 
   const verkefnaSnap = await getDocs(collection(db, "verkefni"));
-  const fundid = verkefnaSnap.docs.find((d) =>
-    (d.data().title || "").toLowerCase().includes("grænadeildin")
-  );
+  const fundid = verkefnaSnap.docs.find((d) => {
+    const titill = (d.data().title || "").toLowerCase();
+    return titill.includes("grænadeildin") || titill.includes("hraðaspurningar");
+  });
 
   if (!fundid) {
     graenadeildarVerkefniId = "";
@@ -529,6 +531,17 @@ async function hladaVerkefnayfirlit() {
       hladaVerkefnayfirlit();
     });
 
+    const breytaTitliKnappur = document.createElement("button");
+    breytaTitliKnappur.type = "button";
+    breytaTitliKnappur.className = "smabtn";
+    breytaTitliKnappur.textContent = "Breyta titli";
+    breytaTitliKnappur.addEventListener("click", async () => {
+      const nyttNafn = prompt("Nýr titill:", verkefni.title);
+      if (!nyttNafn || !nyttNafn.trim() || nyttNafn.trim() === verkefni.title) return;
+      await updateDoc(doc(db, "verkefni", vDoc.id), { title: nyttNafn.trim() });
+      hladaVerkefnayfirlit();
+    });
+
     const titillTd = document.createElement("td");
     titillTd.textContent = verkefni.title;
 
@@ -543,6 +556,7 @@ async function hladaVerkefnayfirlit() {
 
     const adgerdTd = document.createElement("td");
     adgerdTd.appendChild(kveikjaKnappur);
+    adgerdTd.appendChild(breytaTitliKnappur);
 
     tr.appendChild(titillTd);
     tr.appendChild(glaeruTd);

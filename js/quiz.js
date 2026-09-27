@@ -16,6 +16,8 @@ const utskraBtn = document.getElementById("utskraBtn");
 
 const verkefnaSvaedi = document.getElementById("verkefnaSvaedi");
 const verkefnaListi = document.getElementById("verkefnaListi");
+const hradaspurningarSvaedi = document.getElementById("hradaspurningarSvaedi");
+const hradaspurningarListi = document.getElementById("hradaspurningarListi");
 
 const glaeruSvaedi = document.getElementById("glaeruSvaedi");
 const verkefnaTitill = document.getElementById("verkefnaTitill");
@@ -124,8 +126,90 @@ function skeletonKort(fjoldi, linurPerKort = 2) {
   return html;
 }
 
+function framvinda(spurningaIds, svaradIds) {
+  const svaradFjoldi = spurningaIds.filter((id) => svaradIds.has(id)).length;
+  const hlutfall = spurningaIds.length ? Math.round((svaradFjoldi / spurningaIds.length) * 100) : 0;
+  return { svaradFjoldi, hlutfall };
+}
+
+function byggjaFramvindukort(spurningaIds, svaradIds) {
+  const { svaradFjoldi, hlutfall } = framvinda(spurningaIds, svaradIds);
+
+  const framvindaLysing = document.createElement("p");
+  framvindaLysing.className = "framvinda-lysing";
+  framvindaLysing.textContent = `Svarað ${svaradFjoldi} af ${spurningaIds.length} (${hlutfall}%)`;
+
+  const bar = document.createElement("div");
+  bar.className = "framvinda-bar";
+  const fylling = document.createElement("div");
+  fylling.className = "framvinda-fylling";
+  fylling.style.width = `${hlutfall}%`;
+  bar.appendChild(fylling);
+
+  const brot = document.createDocumentFragment();
+  brot.appendChild(framvindaLysing);
+  brot.appendChild(bar);
+  return brot;
+}
+
+function byggjaVerkefniKort(vDoc, verkefni, spurningaIds, svaradIds) {
+  const fjoldiGlaera = (verkefni.slides || []).length;
+  const kort = document.createElement("article");
+  kort.className = "spurning-kort verkefni-kort";
+
+  const titill = document.createElement("h3");
+  titill.textContent = verkefni.title;
+  kort.appendChild(titill);
+
+  const lysing = document.createElement("p");
+  lysing.className = "verkefni-lysing";
+  lysing.textContent = `${fjoldiGlaera} ${fjoldiGlaera === 1 ? "glæra" : "glærur"} · ${spurningaIds.length} spurningar`;
+  kort.appendChild(lysing);
+
+  if (notandi && spurningaIds.length > 0) {
+    kort.appendChild(byggjaFramvindukort(spurningaIds, svaradIds));
+  }
+
+  const hnappur = document.createElement("button");
+  hnappur.type = "button";
+  hnappur.className = "aðal-hnappur";
+  hnappur.textContent = "Skoða glærur";
+  hnappur.addEventListener("click", () => opnaVerkefni(vDoc.id, verkefni));
+  kort.appendChild(hnappur);
+
+  return kort;
+}
+
+function byggjaHradaspurningarKort(vDoc, verkefni, spurningaIds, svaradIds) {
+  const kort = document.createElement("article");
+  kort.className = "hradaspurning-kort";
+
+  const titill = document.createElement("h3");
+  titill.textContent = verkefni.title;
+  kort.appendChild(titill);
+
+  const lysing = document.createElement("p");
+  lysing.className = "verkefni-lysing";
+  lysing.textContent = `${spurningaIds.length} spurningar`;
+  kort.appendChild(lysing);
+
+  if (notandi && spurningaIds.length > 0) {
+    kort.appendChild(byggjaFramvindukort(spurningaIds, svaradIds));
+  }
+
+  const hnappur = document.createElement("button");
+  hnappur.type = "button";
+  hnappur.className = "aðal-hnappur";
+  hnappur.textContent = "Byrja";
+  hnappur.addEventListener("click", () => opnaVerkefni(vDoc.id, verkefni));
+  kort.appendChild(hnappur);
+
+  return kort;
+}
+
 async function hladaVerkefnaListi() {
   verkefnaListi.innerHTML = skeletonKort(3);
+  hradaspurningarSvaedi.hidden = true;
 
   const snap = await getDocs(query(collection(db, "verkefni"), where("active", "==", true)));
 
@@ -149,48 +233,28 @@ async function hladaVerkefnaListi() {
     : new Set();
 
   verkefnaListi.innerHTML = "";
+  hradaspurningarListi.innerHTML = "";
+
+  let fjoldiGlaeruverkefna = 0;
+  let fjoldiHradaspurninga = 0;
+
   snap.forEach((vDoc) => {
     const verkefni = vDoc.data();
     const spurningaIds = spurningaIdEftirVerkefni.get(vDoc.id) || [];
-    const kort = document.createElement("article");
-    kort.className = "spurning-kort verkefni-kort";
 
-    const titill = document.createElement("h3");
-    titill.textContent = verkefni.title;
-    kort.appendChild(titill);
-
-    const lysing = document.createElement("p");
-    lysing.className = "verkefni-lysing";
-    lysing.textContent = `${(verkefni.slides || []).length} glærur · ${spurningaIds.length} spurningar`;
-    kort.appendChild(lysing);
-
-    if (notandi && spurningaIds.length > 0) {
-      const svaradFjoldi = spurningaIds.filter((id) => svaradIds.has(id)).length;
-      const hlutfall = Math.round((svaradFjoldi / spurningaIds.length) * 100);
-
-      const framvindaLysing = document.createElement("p");
-      framvindaLysing.className = "framvinda-lysing";
-      framvindaLysing.textContent = `Svarað ${svaradFjoldi} af ${spurningaIds.length} (${hlutfall}%)`;
-      kort.appendChild(framvindaLysing);
-
-      const bar = document.createElement("div");
-      bar.className = "framvinda-bar";
-      const fylling = document.createElement("div");
-      fylling.className = "framvinda-fylling";
-      fylling.style.width = `${hlutfall}%`;
-      bar.appendChild(fylling);
-      kort.appendChild(bar);
+    if (erProfVerkefni(verkefni)) {
+      hradaspurningarListi.appendChild(byggjaHradaspurningarKort(vDoc, verkefni, spurningaIds, svaradIds));
+      fjoldiHradaspurninga++;
+    } else {
+      verkefnaListi.appendChild(byggjaVerkefniKort(vDoc, verkefni, spurningaIds, svaradIds));
+      fjoldiGlaeruverkefna++;
     }
-
-    const hnappur = document.createElement("button");
-    hnappur.type = "button";
-    hnappur.className = "aðal-hnappur";
-    hnappur.textContent = "Skoða glærur";
-    hnappur.addEventListener("click", () => opnaVerkefni(vDoc.id, verkefni));
-    kort.appendChild(hnappur);
-
-    verkefnaListi.appendChild(kort);
   });
+
+  if (fjoldiGlaeruverkefna === 0) {
+    verkefnaListi.innerHTML = "<p>Engin verkefni með glærum eru virk eins og er.</p>";
+  }
+  hradaspurningarSvaedi.hidden = fjoldiHradaspurninga === 0;
 }
 
 let pptxIframe = null;

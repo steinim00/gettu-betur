@@ -71,9 +71,59 @@ main {
   padding: 32px 20px 80px;
 }
 
+main:has(.verkefna-yfirlit) {
+  max-width: 980px;
+}
+
 main h2 {
   font-size: 1.7rem;
   letter-spacing: -0.01em;
+}
+
+.verkefna-yfirlit {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (min-width: 780px) {
+  .verkefna-yfirlit {
+    grid-template-columns: 1fr 280px;
+  }
+}
+
+.verkefna-hlid h2 {
+  font-size: 1.2rem;
+}
+
+.hradaspurning-kort {
+  background: var(--litur-korti);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-left: 4px solid var(--litur-had);
+  box-shadow: 0 4px 14px -8px rgba(124, 92, 255, 0.15);
+}
+
+.hradaspurning-kort h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.hradaspurning-kort .verkefni-lysing {
+  font-size: 0.82rem;
+  margin-bottom: 10px;
+}
+
+.hradaspurning-kort .framvinda-lysing {
+  font-size: 0.72rem;
+}
+
+.hradaspurning-kort .aðal-hnappur {
+  margin-top: 12px;
+  padding: 10px;
+  font-size: 0.9rem;
 }
 
 .innskraning-merki {
@@ -494,6 +544,10 @@ th {
 
 .smabtn:hover {
   border-color: var(--litur-had);
+}
+
+td .smabtn + .smabtn {
+  margin-left: 6px;
 }
 
 .hluti-titill {
