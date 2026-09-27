@@ -560,6 +560,124 @@ th {
   100% { background-position: 0 50%; }
 }
 
+.gatlisti-net {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+
+.gatlisti-net label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: var(--litur-texti);
+  cursor: pointer;
+  margin: 0;
+}
+
+.gatlisti-net input[type="checkbox"] {
+  width: auto;
+}
+
+.leitar-nidurstodur {
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.leitar-nidurstodur:empty {
+  display: none;
+  margin-bottom: 0;
+}
+
+.leitar-nidurstodur button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-top: none;
+  color: var(--litur-texti);
+  font-size: 0.9rem;
+}
+
+.leitar-nidurstodur button:first-child {
+  border-top: 1px solid var(--litur-jadar);
+  border-radius: 10px 10px 0 0;
+}
+
+.leitar-nidurstodur button:last-child {
+  border-radius: 0 0 10px 10px;
+}
+
+.leitar-nidurstodur button:hover {
+  background: var(--litur-jadar);
+}
+
+.aefing-spurning-rad {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+
+.aefing-spurning-rad .texti {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.rett-rangt-togglar {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.rett-rangt-togglar button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--litur-jadar);
+  background: transparent;
+  color: var(--litur-daufur);
+  font-size: 0.85rem;
+}
+
+.rett-rangt-togglar button.rett.virkur {
+  background: var(--litur-rett);
+  border-color: var(--litur-rett);
+  color: #0d2a20;
+}
+
+.rett-rangt-togglar button.rangt.virkur {
+  background: var(--litur-rangt);
+  border-color: var(--litur-rangt);
+  color: #3a0d16;
+}
+
+.fjarlaegja-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--litur-daufur);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.fjarlaegja-btn:hover {
+  color: var(--litur-rangt);
+}
+
 @media (max-width: 600px) {
   header.sida-haus {
     padding: 16px 18px;

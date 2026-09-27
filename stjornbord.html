@@ -174,6 +174,50 @@
   </div>
   <div id="drafListi"></div>
   <button type="button" class="aðal-hnappur" id="vistaValdarBtn" hidden>Vista valdar spurningar</button>
+
+  <div class="hluti-titill">
+    <h2>Grænadeildin — æfingar</h2>
+  </div>
+  <p class="undirtitill-vinstri">
+    Skráðu æfingar/keppnir þar sem liðið svarar saman upphátt: dagsetningu, hverjir
+    mættu, og hvort liðið náði hverri spurningu réttri eða rangri. Sagan hér fyrir
+    neðan sýnir þróunina milli æfinga.
+  </p>
+
+  <h3>Liðsmenn</h3>
+  <table id="lidsmannaTafla">
+    <thead><tr><th>Nafn</th><th>Aðgerð</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <div class="innflutnings-form">
+    <input type="text" id="nyttLidsmadurInnsl" placeholder="Nafn nýs liðsmanns">
+    <button type="button" class="smabtn" id="bataLidsmadurBtn">Bæta við</button>
+  </div>
+
+  <h3>Skrá nýja æfingu</h3>
+  <div class="ny-spurning-form">
+    <label for="aefingDagsetning">Dagsetning</label>
+    <input type="date" id="aefingDagsetning">
+
+    <label>Hverjir mættu</label>
+    <div id="maettirGatlisti" class="gatlisti-net"></div>
+
+    <label for="aefingSpurningaLeit">Leita að spurningu úr Grænadeildinni</label>
+    <input type="text" id="aefingSpurningaLeit" placeholder="Skrifaðu hluta af spurningunni…" autocomplete="off">
+    <div id="aefingLeitarNidurstodur" class="leitar-nidurstodur"></div>
+
+    <label>Spurningar í þessari æfingu</label>
+    <div id="aefingValdarSpurningar"></div>
+
+    <button type="button" class="aðal-hnappur" id="vistaAefinguBtn">Vista æfingu</button>
+  </div>
+  <p id="aefingStada"></p>
+
+  <h3>Saga æfinga</h3>
+  <table id="aefingaTafla">
+    <thead><tr><th>Dagsetning</th><th>Mættir</th><th>Spurningar</th><th>Réttar</th><th>Hlutfall</th><th>Aðgerð</th></tr></thead>
+    <tbody></tbody>
+  </table>
 </main>
 
 <script type="module" src="js/admin.js"></script>

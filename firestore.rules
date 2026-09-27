@@ -77,5 +77,16 @@ service cloud.firestore {
          exists(/databases/$(database)/documents/users/$(request.auth.uid)/attempts/$(questionId)));
       allow write: if erAdmin();
     }
+
+    // Grænadeildin - handvirk æfingaskráning fyrir liðið (dagsetning, hverjir mættu,
+    // rétt/rangt per spurningu fyrir liðið sem heild). Eingöngu admin notar þetta,
+    // enginn nemandi les eða skrifar hér.
+    match /graenadeildinLidsmenn/{lidsmadurId} {
+      allow read, write: if erAdmin();
+    }
+
+    match /graenadeildinAefingar/{aefingId} {
+      allow read, write: if erAdmin();
+    }
   }
 }
