@@ -5,7 +5,7 @@
   --litur-texti: #211c33;
   --litur-daufur: #6f6790;
   --litur-had: #7c5cff;
-  --litur-had2: #ff5cb3;
+  --litur-had2: #4b4652;
   --litur-had-daufur: #6947e0;
   --litur-gull: #f2a93b;
   --litur-rett: #1f9d6c;
@@ -154,7 +154,7 @@ button.aðal-hnappur {
   color: white;
   font-weight: 700;
   font-size: 1rem;
-  box-shadow: 0 8px 20px -8px rgba(255, 92, 179, 0.5);
+  box-shadow: 0 8px 20px -8px rgba(124, 92, 255, 0.4);
   transition: filter 0.15s ease, transform 0.15s ease;
 }
 
@@ -419,7 +419,7 @@ button.aðal-hnappur:hover {
   background: linear-gradient(135deg, var(--litur-had), var(--litur-had2));
   color: white;
   font-weight: 700;
-  box-shadow: 0 6px 16px -6px rgba(255, 92, 179, 0.45);
+  box-shadow: 0 6px 16px -6px rgba(124, 92, 255, 0.35);
   transition: filter 0.15s ease, transform 0.15s ease;
 }
 
