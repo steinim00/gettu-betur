@@ -28,6 +28,16 @@ const spurningaListi = document.getElementById("spurningaListi");
 const stodurNiðurstada = document.getElementById("stodurNiðurstada");
 const tilbakaFraSpurningum = document.getElementById("tilbakaFraSpurningum");
 
+const siduflettingarEfri = document.getElementById("siduflettingarEfri");
+const fyrriSidaBtnEfri = document.getElementById("fyrriSidaBtnEfri");
+const naestaSidaBtnEfri = document.getElementById("naestaSidaBtnEfri");
+const siduTalningEfri = document.getElementById("siduTalningEfri");
+
+const siduflettingar = document.getElementById("siduflettingar");
+const fyrriSidaBtn = document.getElementById("fyrriSidaBtn");
+const naestaSidaBtn = document.getElementById("naestaSidaBtn");
+const siduTalning = document.getElementById("siduTalning");
+
 const heilskjaBtn = document.getElementById("heilskjaBtn");
 const heilskjaSvaedi = document.getElementById("heilskjaSvaedi");
 const heilskjaMynd = document.getElementById("heilskjaMynd");
@@ -42,6 +52,11 @@ let notandi = null;
 let valdVerkefniId = null;
 let heilskjaGlaerur = [];
 let heilskjaIndex = 0;
+
+const SPURNINGAR_A_SIDU = 20;
+let allarSpurningaskjol = [];
+let svaradIdSett = new Set();
+let spurningaSida = 0;
 
 function samraema(text) {
   return text
@@ -250,6 +265,8 @@ afromISpurningar.addEventListener("click", () => {
 
 async function hladaSpurningum() {
   spurningaListi.innerHTML = "<p>Sæki spurningar…</p>";
+  siduflettingarEfri.hidden = true;
+  siduflettingar.hidden = true;
 
   const spurningarSnap = await getDocs(
     query(
@@ -259,29 +276,72 @@ async function hladaSpurningum() {
     )
   );
 
-  const svaradIds = notandi
+  svaradIdSett = notandi
     ? new Set((await getDocs(collection(db, "users", notandi.uid, "attempts"))).docs.map((d) => d.id))
     : new Set();
 
-  spurningaListi.innerHTML = "";
-
   if (spurningarSnap.empty) {
+    allarSpurningaskjol = [];
     spurningaListi.innerHTML = "<p>Engar virkar spurningar í þessu verkefni eins og er.</p>";
     return;
   }
 
-  const spurningaskjol = spurningarSnap.docs.slice().sort((a, b) => {
+  allarSpurningaskjol = spurningarSnap.docs.slice().sort((a, b) => {
     const ta = a.data().createdAt?.toMillis?.() ?? 0;
     const tb = b.data().createdAt?.toMillis?.() ?? 0;
     return ta - tb;
   });
 
-  spurningaskjol.forEach((qDoc) => {
+  spurningaSida = 0;
+  synaSpurningaSidu();
+}
+
+function fjoldiSidna() {
+  return Math.max(1, Math.ceil(allarSpurningaskjol.length / SPURNINGAR_A_SIDU));
+}
+
+function synaSpurningaSidu() {
+  const heild = fjoldiSidna();
+  spurningaSida = Math.min(Math.max(spurningaSida, 0), heild - 1);
+
+  const upphaf = spurningaSida * SPURNINGAR_A_SIDU;
+  const siduskjol = allarSpurningaskjol.slice(upphaf, upphaf + SPURNINGAR_A_SIDU);
+
+  spurningaListi.innerHTML = "";
+  siduskjol.forEach((qDoc) => {
     const spurning = qDoc.data();
-    const korti = byggjaSpurningaKort(qDoc.id, spurning, svaradIds.has(qDoc.id));
+    const korti = byggjaSpurningaKort(qDoc.id, spurning, svaradIdSett.has(qDoc.id));
     spurningaListi.appendChild(korti);
   });
+
+  const synaFlettingar = heild > 1;
+  siduflettingarEfri.hidden = !synaFlettingar;
+  siduflettingar.hidden = !synaFlettingar;
+
+  if (synaFlettingar) {
+    const texti = `Síða ${spurningaSida + 1} af ${heild}`;
+    siduTalningEfri.textContent = texti;
+    siduTalning.textContent = texti;
+
+    const aFyrstuSidu = spurningaSida === 0;
+    const aSidustuSidu = spurningaSida === heild - 1;
+    fyrriSidaBtnEfri.disabled = aFyrstuSidu;
+    fyrriSidaBtn.disabled = aFyrstuSidu;
+    naestaSidaBtnEfri.disabled = aSidustuSidu;
+    naestaSidaBtn.disabled = aSidustuSidu;
+  }
 }
+
+function faraASidu(delta) {
+  spurningaSida += delta;
+  synaSpurningaSidu();
+  spurningaListi.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+fyrriSidaBtnEfri.addEventListener("click", () => faraASidu(-1));
+naestaSidaBtnEfri.addEventListener("click", () => faraASidu(1));
+fyrriSidaBtn.addEventListener("click", () => faraASidu(-1));
+naestaSidaBtn.addEventListener("click", () => faraASidu(1));
 
 function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
   const korti = document.createElement("article");
@@ -355,6 +415,7 @@ async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada) {
   }
 
   korti.classList.add("svarad");
+  svaradIdSett.add(questionId);
   await synaNidurstodu(questionId, korti, nidurstada, svar);
   hladaMinumStodum();
 }
