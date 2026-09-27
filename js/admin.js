@@ -542,6 +542,16 @@ async function hladaVerkefnayfirlit() {
       hladaVerkefnayfirlit();
     });
 
+    const generaKnappur = document.createElement("button");
+    generaKnappur.type = "button";
+    generaKnappur.className = "smabtn";
+    generaKnappur.textContent = "Generera spurningar";
+    generaKnappur.title = "Velur þetta verkefni í AI-spurningagerðinni hér fyrir neðan";
+    generaKnappur.addEventListener("click", () => {
+      aiVerkefniValiö.value = vDoc.id;
+      generaSpurningarBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
     const titillTd = document.createElement("td");
     titillTd.textContent = verkefni.title;
 
@@ -557,6 +567,7 @@ async function hladaVerkefnayfirlit() {
     const adgerdTd = document.createElement("td");
     adgerdTd.appendChild(kveikjaKnappur);
     adgerdTd.appendChild(breytaTitliKnappur);
+    adgerdTd.appendChild(generaKnappur);
 
     tr.appendChild(titillTd);
     tr.appendChild(glaeruTd);
@@ -903,6 +914,13 @@ function renderDraftRows(draftir, targetListi = drafListi) {
     svarInput.placeholder = "Rétt svar (má hafa fleiri afbrigði aðskilin með /)";
     svarSvaedi.appendChild(svarInput);
 
+    if (draft.heimild) {
+      const heimildP = document.createElement("p");
+      heimildP.className = "heimild-tilvitnun";
+      heimildP.textContent = `„${draft.heimild}“`;
+      svarSvaedi.appendChild(heimildP);
+    }
+
     rad.appendChild(gatlisti);
     rad.appendChild(spurningInput);
     rad.appendChild(svarSvaedi);
@@ -1118,10 +1136,12 @@ generaSpurningarBtn.addEventListener("click", async () => {
       `Búðu til ${fjoldi} spurninga-og-svara pör á íslensku, í anda "Gettu Betur" ` +
       `spurningakeppni: stutt, afmörkuð svör (nöfn, ártöl, staðir, tölur - ekki heilar ` +
       `setningar), ein skýr rétt spurning per glæru/staðreynd, byggð eingöngu á efninu ` +
-      `hér að ofan. Ekki endurtaka sömu spurningu tvisvar.\n\n` +
+      `hér að ofan. Ekki endurtaka sömu spurningu tvisvar. Fyrir hverja spurningu skaltu ` +
+      `líka skila beinni tilvitnun (orðrétt, óstytt) í þann hluta frumtextans hér að ofan ` +
+      `sem svarið er byggt á, svo yfirferðaraðili geti sannreynt svarið á augabragði.\n\n` +
       `Skilaðu EINGÖNGU gildu JSON fylki, nákvæmlega á þessu formi, ekkert annað ` +
       `(enga skýringartexta, engar markdown-girðingar):\n` +
-      `[{"text": "Spurningatexti?", "correctAnswers": ["Rétt svar"]}, ...]`;
+      `[{"text": "Spurningatexti?", "correctAnswers": ["Rétt svar"], "heimild": "bein tilvitnun í frumtextann"}, ...]`;
 
     generaStada.textContent = "Claude er að semja spurningar (getur tekið smástund)…";
     const svarTexti = await kallaAClaude(prompt);
@@ -1130,7 +1150,8 @@ generaSpurningarBtn.addEventListener("click", async () => {
     const draftir = hraSpurningar
       .map((s) => ({
         text: (s.text || "").trim(),
-        correctAnswers: [...new Set((s.correctAnswers || []).map(samraema).filter(Boolean))]
+        correctAnswers: [...new Set((s.correctAnswers || []).map(samraema).filter(Boolean))],
+        heimild: (s.heimild || "").trim()
       }))
       .filter((s) => s.text)
       .map((s) => ({ ...s, needsReview: s.correctAnswers.length === 0 }));

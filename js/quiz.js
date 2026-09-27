@@ -56,6 +56,10 @@ let valdVerkefniId = null;
 let heilskjaGlaerur = [];
 let heilskjaIndex = 0;
 
+// Sérstakt merki fyrir "sleppt" svar - geymt í sama "svar" strengjareitnum svo
+// engin breyting þurfi á Firestore-reglunum. Passar aldrei við neitt rétt svar.
+const SLEPPT_MERKI = "__sleppt__";
+
 const SPURNINGAR_A_SIDU_VENJULEGT = 20;
 const SPURNINGAR_A_SIDU_PROF = 5;
 let spurningaBunkastaerd = SPURNINGAR_A_SIDU_VENJULEGT;
@@ -503,8 +507,15 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
   sendaBtn.textContent = "Svara";
   sendaBtn.disabled = buidSvarad;
 
+  const sleppaBtn = document.createElement("button");
+  sleppaBtn.type = "button";
+  sleppaBtn.className = "sleppa-btn";
+  sleppaBtn.textContent = "Sleppa";
+  sleppaBtn.disabled = buidSvarad;
+
   form.appendChild(innslattur);
   form.appendChild(sendaBtn);
+  form.appendChild(sleppaBtn);
   korti.appendChild(form);
 
   const nidurstada = document.createElement("p");
@@ -516,6 +527,10 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
     svaraSpurningu(questionId, innslattur.value, korti, form, nidurstada);
   });
 
+  sleppaBtn.addEventListener("click", () => {
+    svaraSpurningu(questionId, SLEPPT_MERKI, korti, form, nidurstada);
+  });
+
   if (buidSvarad) {
     synaNidurstodu(questionId, korti, nidurstada);
   }
@@ -524,11 +539,11 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
 }
 
 async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada) {
-  const svar = samraema(hraSvar);
+  const svar = hraSvar === SLEPPT_MERKI ? SLEPPT_MERKI : samraema(hraSvar);
   if (!svar) return;
 
   form.querySelector("input").disabled = true;
-  form.querySelector("button").disabled = true;
+  form.querySelectorAll("button").forEach((b) => (b.disabled = true));
 
   try {
     await setDoc(doc(db, "users", notandi.uid, "attempts", questionId), {
@@ -539,7 +554,7 @@ async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada) {
     console.error(villa);
     alert("Tókst ekki að skrá svarið. Reyndu aftur.");
     form.querySelector("input").disabled = false;
-    form.querySelector("button").disabled = false;
+    form.querySelectorAll("button").forEach((b) => (b.disabled = false));
     return;
   }
 
@@ -550,16 +565,22 @@ async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada) {
 }
 
 async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar) {
-  const svarSnap = await getDoc(doc(db, "answers", questionId));
-  if (!svarSnap.exists()) return;
-
-  const rettSvor = svarSnap.data().correctAnswers || [];
-
   let mittSvar = gefidSvar;
   if (mittSvar === undefined) {
     const attemptSnap = await getDoc(doc(db, "users", notandi.uid, "attempts", questionId));
     mittSvar = attemptSnap.data()?.svar;
   }
+
+  if (mittSvar === SLEPPT_MERKI) {
+    nidurstada.textContent = "Sleppt ⏭";
+    nidurstada.classList.add("sleppt");
+    return;
+  }
+
+  const svarSnap = await getDoc(doc(db, "answers", questionId));
+  if (!svarSnap.exists()) return;
+
+  const rettSvor = svarSnap.data().correctAnswers || [];
 
   if (rettSvor.includes(mittSvar)) {
     nidurstada.textContent = "Rétt svar! 🎉";
@@ -585,13 +606,22 @@ async function hladaMinumStodum() {
   const minarTilraunir = attemptsSnap.docs.filter((a) => spurningaIds.has(a.id));
 
   let fjoldiRett = 0;
+  let fjoldiSleppt = 0;
   for (const attemptDoc of minarTilraunir) {
+    const svar = attemptDoc.data().svar;
+    if (svar === SLEPPT_MERKI) {
+      fjoldiSleppt++;
+      continue;
+    }
     const svarSnap = await getDoc(doc(db, "answers", attemptDoc.id));
     const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
-    if (rettSvor.includes(attemptDoc.data().svar)) fjoldiRett++;
+    if (rettSvor.includes(svar)) fjoldiRett++;
   }
 
   const fjoldiSvarad = minarTilraunir.length;
-  const nakvaemni = fjoldiSvarad ? Math.round((fjoldiRett / fjoldiSvarad) * 100) : 0;
-  stodurNiðurstada.textContent = `Þú hefur svarað ${fjoldiSvarad} spurningum í þessu verkefni, ${fjoldiRett} réttum (${nakvaemni}% nákvæmni).`;
+  const fjoldiMetin = fjoldiSvarad - fjoldiSleppt;
+  const nakvaemni = fjoldiMetin ? Math.round((fjoldiRett / fjoldiMetin) * 100) : 0;
+  const sleppTexti = fjoldiSleppt ? `, ${fjoldiSleppt} sleppt` : "";
+  stodurNiðurstada.textContent =
+    `Þú hefur svarað ${fjoldiSvarad} spurningum í þessu verkefni${sleppTexti}, ${fjoldiRett} réttum (${nakvaemni}% nákvæmni).`;
 }

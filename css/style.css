@@ -483,6 +483,22 @@ button.aðal-hnappur:hover {
   box-shadow: none;
 }
 
+.svar-form button.sleppa-btn {
+  flex: 0 0 auto;
+  background: transparent;
+  color: var(--litur-daufur);
+  border: 1px solid var(--litur-jadar);
+  box-shadow: none;
+  font-weight: 600;
+}
+
+.svar-form button.sleppa-btn:hover:not(:disabled) {
+  border-color: var(--litur-had);
+  color: var(--litur-texti);
+  transform: none;
+  filter: none;
+}
+
 .spurning-nidurstada {
   margin-bottom: 0;
   font-weight: 600;
@@ -500,6 +516,14 @@ button.aðal-hnappur:hover {
   display: inline-block;
   background: rgba(224, 53, 90, 0.12);
   color: var(--litur-rangt);
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.spurning-nidurstada.sleppt {
+  display: inline-block;
+  background: rgba(111, 103, 144, 0.14);
+  color: var(--litur-daufur);
   padding: 6px 14px;
   border-radius: 999px;
 }
@@ -629,6 +653,13 @@ td .smabtn + .smabtn {
   font-size: 0.75rem;
   color: var(--litur-rangt);
   margin-bottom: 6px;
+}
+
+.heimild-tilvitnun {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--litur-daufur);
 }
 
 .framvinda-lysing {
