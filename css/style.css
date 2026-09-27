@@ -678,7 +678,30 @@ th {
 
 @media (max-width: 600px) {
   header.sida-haus {
-    padding: 16px 18px;
+    padding: 14px 16px;
+    gap: 8px;
+  }
+
+  .merki {
+    font-size: 1.1rem;
+  }
+
+  .notandi-svaedi {
+    gap: 8px;
+    font-size: 0.8rem;
+  }
+
+  .notandi-svaedi span {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .notandi-svaedi .smabtn {
+    white-space: nowrap;
+    padding: 6px 10px;
+    font-size: 0.78rem;
   }
 
   main {
