@@ -18,7 +18,7 @@ const notandaNafn = document.getElementById("notandaNafn");
 const utskraBtn = document.getElementById("utskraBtn");
 const notendaTafla = document.getElementById("notendaTafla").querySelector("tbody");
 const verkefnaTafla = document.getElementById("verkefnaTafla").querySelector("tbody");
-const spurningaTafla = document.getElementById("spurningaTafla").querySelector("tbody");
+const spurningaFlokkar = document.getElementById("spurningaFlokkar");
 const nySpurningForm = document.getElementById("nySpurningForm");
 const verkefniValiö = document.getElementById("verkefniValiö");
 const endurhladaBtn = document.getElementById("endurhladaBtn");
@@ -707,13 +707,82 @@ async function hladaSpurningayfirlit() {
   const rettSvor = new Map(svorSnap.docs.map((d) => [d.id, d.data().correctAnswers || []]));
   const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
 
-  spurningaTafla.innerHTML = "";
+  spurningaFlokkar.innerHTML = "";
   if (spurningarSnap.empty) {
-    spurningaTafla.innerHTML = `<tr><td colspan="5">Engar spurningar ennþá.</td></tr>`;
+    spurningaFlokkar.innerHTML = "<p>Engar spurningar ennþá.</p>";
     return;
   }
 
+  const spurningarPerVerkefni = new Map();
   spurningarSnap.forEach((qDoc) => {
+    const verkefniId = qDoc.data().verkefniId || "";
+    if (!spurningarPerVerkefni.has(verkefniId)) spurningarPerVerkefni.set(verkefniId, []);
+    spurningarPerVerkefni.get(verkefniId).push(qDoc);
+  });
+
+  const flokkar = [...spurningarPerVerkefni.entries()]
+    .map(([verkefniId, skjol]) => ({
+      verkefniId,
+      titill: verkefnaTitlar.get(verkefniId) || "Ótengdar spurningar",
+      skjol
+    }))
+    .sort((a, b) => a.titill.localeCompare(b.titill, "is"));
+
+  flokkar.forEach((flokkur) => {
+    spurningaFlokkar.appendChild(byggjaSpurningaflokkur(flokkur, rettSvor));
+  });
+}
+
+function byggjaSpurningaflokkur(flokkur, rettSvor) {
+  const { titill, skjol } = flokkur;
+
+  const kort = document.createElement("div");
+  kort.className = "spurningaflokkur";
+
+  const haus = document.createElement("div");
+  haus.className = "spurningaflokkur-haus";
+
+  const titillSpan = document.createElement("span");
+  titillSpan.className = "spurningaflokkur-titill";
+  titillSpan.textContent = `${titill} (${skjol.length})`;
+  haus.appendChild(titillSpan);
+
+  const hnappar = document.createElement("div");
+
+  const skodaBtn = document.createElement("button");
+  skodaBtn.type = "button";
+  skodaBtn.className = "smabtn";
+  skodaBtn.textContent = "Skoða";
+
+  const hendaBtn = document.createElement("button");
+  hendaBtn.type = "button";
+  hendaBtn.className = "smabtn";
+  hendaBtn.textContent = "Henda";
+  hendaBtn.addEventListener("click", async () => {
+    if (!confirm(`Eyða öllum ${skjol.length} spurningum í "${titill}"? Þetta er óafturkræft.`)) return;
+    hendaBtn.disabled = true;
+    try {
+      await eydaSpurningaflokki(skjol.map((d) => d.id));
+      hladaSpurningayfirlit();
+    } catch (villa) {
+      console.error(villa);
+      alert("Tókst ekki að eyða möppunni: " + villa.message);
+      hendaBtn.disabled = false;
+    }
+  });
+
+  hnappar.appendChild(skodaBtn);
+  hnappar.appendChild(hendaBtn);
+  haus.appendChild(hnappar);
+  kort.appendChild(haus);
+
+  const innihaldsTafla = document.createElement("table");
+  innihaldsTafla.className = "spurningaflokkur-tafla";
+  innihaldsTafla.hidden = true;
+  innihaldsTafla.innerHTML = "<thead><tr><th>Texti</th><th>Rétt svar</th><th>Staða</th><th>Aðgerð</th></tr></thead>";
+
+  const tbody = document.createElement("tbody");
+  skjol.forEach((qDoc) => {
     const spurning = qDoc.data();
     const tr = document.createElement("tr");
 
@@ -732,9 +801,6 @@ async function hladaSpurningayfirlit() {
     const svarTd = document.createElement("td");
     svarTd.textContent = (rettSvor.get(qDoc.id) || [])[0] ?? "—";
 
-    const verkefniTd = document.createElement("td");
-    verkefniTd.textContent = verkefnaTitlar.get(spurning.verkefniId) || "—";
-
     const stodaTd = document.createElement("td");
     stodaTd.textContent = spurning.active ? "Virk" : "Óvirk";
 
@@ -743,11 +809,40 @@ async function hladaSpurningayfirlit() {
 
     tr.appendChild(textTd);
     tr.appendChild(svarTd);
-    tr.appendChild(verkefniTd);
     tr.appendChild(stodaTd);
     tr.appendChild(adgerdTd);
-    spurningaTafla.appendChild(tr);
+    tbody.appendChild(tr);
   });
+  innihaldsTafla.appendChild(tbody);
+  kort.appendChild(innihaldsTafla);
+
+  skodaBtn.addEventListener("click", () => {
+    innihaldsTafla.hidden = !innihaldsTafla.hidden;
+    skodaBtn.textContent = innihaldsTafla.hidden ? "Skoða" : "Loka";
+  });
+
+  return kort;
+}
+
+// Eyðir öllum spurningunum (og samsvarandi réttu svörunum) í heilli möppu í
+// bútum af 480 aðgerðum (Firestore hámark er 500 í einum batch).
+async function eydaSpurningaflokki(questionIds) {
+  let batch = writeBatch(db);
+  let fjoldiIBatch = 0;
+
+  for (const id of questionIds) {
+    batch.delete(doc(db, "questions", id));
+    batch.delete(doc(db, "answers", id));
+    fjoldiIBatch += 2;
+
+    if (fjoldiIBatch >= 480) {
+      await batch.commit();
+      batch = writeBatch(db);
+      fjoldiIBatch = 0;
+    }
+  }
+
+  if (fjoldiIBatch > 0) await batch.commit();
 }
 
 function samraema(text) {
@@ -783,8 +878,10 @@ function ritstjornarfjarlaegd(a, b) {
 
 function erSvarRett(svar, rettSvor) {
   if (rettSvor.includes(svar)) return true;
+  if (/\d/.test(svar)) return false;
 
   return rettSvor.some((r) => {
+    if (/\d/.test(r)) return false;
     const thol = r.length <= 4 ? 0 : r.length <= 8 ? 1 : 2;
     if (thol === 0) return false;
     if (Math.abs(r.length - svar.length) > thol) return false;

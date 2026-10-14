@@ -108,10 +108,15 @@ function ritstjornarfjarlaegd(a, b) {
 // Leyfir svari sem er mjög nálægt (fá stafsetningarvilla) einhverju af réttu
 // svörunum að teljast rétt, í stað þess að krefjast nákvæmrar stafsetningar.
 // Þolið vex með lengd svarsins - stutt svör þurfa áfram að vera nákvæm.
+// Tölugildi eru UNDANSKILIN - þau eiga alltaf að vera nákvæm (sveigjanleikinn
+// á eingöngu við stafsetningu, ekki tölur: "20000" á ekki að teljast sama og
+// "20001" þó ritstjórnarfjarlægðin sé lítil).
 function erSvarRett(svar, rettSvor) {
   if (rettSvor.includes(svar)) return true;
+  if (/\d/.test(svar)) return false;
 
   return rettSvor.some((r) => {
+    if (/\d/.test(r)) return false;
     const thol = r.length <= 4 ? 0 : r.length <= 8 ? 1 : 2;
     if (thol === 0) return false;
     if (Math.abs(r.length - svar.length) > thol) return false;

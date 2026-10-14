@@ -569,6 +569,41 @@ th {
   font-size: 0.85rem;
 }
 
+.spurningaflokkur {
+  background: var(--litur-korti);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  border-left: 4px solid var(--litur-had);
+  box-shadow: 0 4px 18px -10px rgba(124, 92, 255, 0.15);
+  overflow: hidden;
+}
+
+.spurningaflokkur-haus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px;
+}
+
+.spurningaflokkur-titill {
+  font-weight: 700;
+}
+
+.spurningaflokkur-haus div {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.spurningaflokkur-tafla {
+  width: 100%;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--litur-baksvid);
+}
+
 .smabtn {
   padding: 6px 12px;
   border-radius: 8px;
