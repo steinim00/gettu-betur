@@ -102,7 +102,15 @@ vistaAnthropicTeiknBtn.addEventListener("click", () => {
 vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
   notandaNafn.textContent = gogn.nafn || user.email;
   hladaAllt();
-  setInterval(hladaAllt, 30000);
+
+  // Endurhleður allt á 5 mín fresti í stað 30 sek - stjórnborðið gerir fulla
+  // yfirferð á öllum spurningum/svörum/notendum í hvert sinn, svo tíðari
+  // sjálfvirk endurhleðsla getur klárað daglegan lestrarkvóta Firestore
+  // (Spark-áætlun) á örfáum mínútum eftir því sem spurningabankinn stækkar.
+  // Sleppir líka endurhleðslu alveg á meðan flipinn er ekki í fókus.
+  setInterval(() => {
+    if (document.visibilityState === "visible") hladaAllt();
+  }, 300000);
 });
 
 utskraBtn.addEventListener("click", () => skraUt());
