@@ -10,7 +10,9 @@
   --litur-gull: #f2a93b;
   --litur-rett: #1f9d6c;
   --litur-rangt: #e0355a;
+  --litur-merki: #262626;
   --leturgerd: "Jost", system-ui, sans-serif;
+  --leturgerd-merki: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
 }
 
 * {
@@ -40,10 +42,12 @@ header.sida-haus {
   display: flex;
   align-items: center;
   gap: 10px;
+  font-family: var(--leturgerd-merki);
   font-size: 1.3rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  color: var(--litur-texti);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--litur-merki);
   text-decoration: none;
 }
 
@@ -55,7 +59,7 @@ header.sida-haus {
 }
 
 .merki span {
-  color: var(--litur-had);
+  color: inherit;
 }
 
 .notandi-svaedi {
@@ -152,6 +156,14 @@ main h2 {
 .innskraning-box h1 {
   margin-top: 0;
   text-align: center;
+}
+
+.merki-fyrirsogn {
+  font-family: var(--leturgerd-merki);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--litur-merki);
 }
 
 .innskraning-box p.undirtitill {
