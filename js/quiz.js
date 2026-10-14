@@ -37,6 +37,7 @@ const glaeruSvaedi = document.getElementById("glaeruSvaedi");
 const verkefnaTitill = document.getElementById("verkefnaTitill");
 const glaerurInnihald = document.getElementById("glaerurInnihald");
 const afromISpurningar = document.getElementById("afromISpurningar");
+const faraBeintISpurningarBtn = document.getElementById("faraBeintISpurningarBtn");
 const tilbakaFraGlaerum = document.getElementById("tilbakaFraGlaerum");
 
 const spurningaSvaedi = document.getElementById("spurningaSvaedi");
@@ -480,7 +481,27 @@ function byggjaVerkefniKort(vDoc, verkefni, spurningaIds, svaradIds) {
   hnappur.addEventListener("click", () => opnaVerkefni(vDoc.id, verkefni));
   kort.appendChild(hnappur);
 
+  const beintBtn = document.createElement("button");
+  beintBtn.type = "button";
+  beintBtn.className = "smabtn";
+  beintBtn.style.marginTop = "10px";
+  beintBtn.style.width = "100%";
+  beintBtn.textContent = "Fara beint í spurningar →";
+  beintBtn.addEventListener("click", () => opnaSpurningarBeint(vDoc.id, verkefni));
+  kort.appendChild(beintBtn);
+
   return kort;
+}
+
+// Hoppar beint í spurningalistu verkefnisins, án þess að fara í gegnum
+// glærurnar fyrst - flýtileið fyrir nemendur sem vilja bara svara.
+function opnaSpurningarBeint(verkefniId, verkefni) {
+  valdVerkefniId = verkefniId;
+  spurningaBunkastaerd = erProfVerkefni(verkefni) ? SPURNINGAR_A_SIDU_PROF : SPURNINGAR_A_SIDU_VENJULEGT;
+  spurningaTitill.textContent = verkefni.title;
+  synaSvaedi("spurningar");
+  hladaSpurningum();
+  hladaMinumStodum();
 }
 
 function byggjaHradaspurningarKort(vDoc, verkefni, spurningaIds, svaradIds) {
@@ -688,12 +709,14 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") lokaHeilskja();
 });
 
-afromISpurningar.addEventListener("click", () => {
+function faraISpurningarFraGlaerum() {
   spurningaTitill.textContent = verkefnaTitill.textContent;
   synaSvaedi("spurningar");
   hladaSpurningum();
   hladaMinumStodum();
-});
+}
+afromISpurningar.addEventListener("click", faraISpurningarFraGlaerum);
+faraBeintISpurningarBtn.addEventListener("click", faraISpurningarFraGlaerum);
 
 async function hladaSpurningum() {
   spurningaListi.innerHTML = skeletonKort(5, 1);
