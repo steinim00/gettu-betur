@@ -1,16 +1,21 @@
 :root {
-  --litur-baksvid: #faf8fd;
+  --litur-baksvid: #f2f2ec;
   --litur-korti: #ffffff;
-  --litur-jadar: #e7e1f5;
-  --litur-texti: #211c33;
-  --litur-daufur: #6f6790;
-  --litur-had: #7c5cff;
-  --litur-had2: #4b4652;
-  --litur-had-daufur: #6947e0;
-  --litur-gull: #f2a93b;
-  --litur-rett: #1f9d6c;
-  --litur-rangt: #e0355a;
-  --litur-merki: #262626;
+  --litur-jadar: #e6e6e0;
+  --litur-texti: #161616;
+  --litur-daufur: #6e6e68;
+  --litur-svart: #161616;
+  --litur-svart-daufur: #2b2b2b;
+  --litur-lime: #d7ff3e;
+  --litur-lime-deild: rgba(215, 255, 62, 0.35);
+  --litur-had: #161616;
+  --litur-had2: #d7ff3e;
+  --litur-had-daufur: #2b2b2b;
+  --litur-rett: #5d8f1f;
+  --litur-rangt: #d6335a;
+  --litur-merki: #161616;
+  --skuggi: 0 4px 18px -8px rgba(22, 22, 22, 0.12);
+  --skuggi-stor: 0 14px 36px -14px rgba(22, 22, 22, 0.22);
   --leturgerd: "Jost", system-ui, sans-serif;
   --leturgerd-merki: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
 }
@@ -22,7 +27,7 @@
 body {
   margin: 0;
   font-family: var(--leturgerd);
-  background: linear-gradient(180deg, #f5f0ff 0%, #fdf3f9 45%, #faf8fd 100%);
+  background: var(--litur-baksvid);
   color: var(--litur-texti);
   min-height: 100vh;
 }
@@ -33,9 +38,7 @@ header.sida-haus {
   justify-content: space-between;
   padding: 18px 32px;
   background: var(--litur-korti);
-  border-bottom: 2px solid transparent;
-  border-image: linear-gradient(90deg, var(--litur-had), var(--litur-had2)) 1;
-  box-shadow: 0 2px 14px rgba(124, 92, 255, 0.1);
+  border-bottom: 1px solid var(--litur-jadar);
 }
 
 .merki {
@@ -103,11 +106,10 @@ main h2 {
 
 .hradaspurning-kort {
   background: var(--litur-korti);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 16px;
   margin-bottom: 12px;
-  border-left: 4px solid var(--litur-had);
-  box-shadow: 0 4px 14px -8px rgba(124, 92, 255, 0.15);
+  box-shadow: var(--skuggi);
 }
 
 .hradaspurning-kort h3 {
@@ -148,9 +150,9 @@ main h2 {
   margin: 60px auto;
   background: var(--litur-korti);
   border: 1px solid var(--litur-jadar);
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 36px;
-  box-shadow: 0 14px 40px -14px rgba(124, 92, 255, 0.22);
+  box-shadow: var(--skuggi-stor);
 }
 
 .innskraning-box h1 {
@@ -184,9 +186,9 @@ form label {
 input, select, textarea {
   width: 100%;
   padding: 12px 14px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid var(--litur-jadar);
-  background: #faf8fd;
+  background: var(--litur-baksvid);
   color: var(--litur-texti);
   font-family: inherit;
   font-size: 1rem;
@@ -194,7 +196,7 @@ input, select, textarea {
 
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: var(--litur-had);
+  border-color: var(--litur-svart);
 }
 
 textarea {
@@ -210,18 +212,17 @@ button.aðal-hnappur {
   width: 100%;
   margin-top: 24px;
   padding: 13px;
-  border-radius: 10px;
+  border-radius: 999px;
   border: none;
-  background: linear-gradient(135deg, var(--litur-had), var(--litur-had2));
+  background: var(--litur-svart);
   color: white;
   font-weight: 700;
   font-size: 1rem;
-  box-shadow: 0 8px 20px -8px rgba(124, 92, 255, 0.4);
-  transition: filter 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 button.aðal-hnappur:hover {
-  filter: brightness(1.06);
+  background: var(--litur-svart-daufur);
   transform: translateY(-1px);
 }
 
@@ -230,22 +231,24 @@ button.aðal-hnappur:hover {
   justify-content: center;
   gap: 8px;
   margin-bottom: 20px;
+  background: var(--litur-baksvid);
+  padding: 6px;
+  border-radius: 999px;
 }
 
 .flipar button {
   flex: 1;
   padding: 10px;
-  border-radius: 8px;
-  border: 1px solid var(--litur-jadar);
+  border-radius: 999px;
+  border: none;
   background: transparent;
   color: var(--litur-daufur);
   font-weight: 600;
 }
 
 .flipar button.virkur {
-  background: linear-gradient(135deg, var(--litur-had), var(--litur-had2));
+  background: var(--litur-svart);
   color: white;
-  border-color: transparent;
 }
 
 .eda-skil {
@@ -271,7 +274,7 @@ button.aðal-hnappur:hover {
   justify-content: center;
   gap: 10px;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 999px;
   border: 1px solid var(--litur-jadar);
   background: #ffffff;
   color: var(--litur-texti);
@@ -280,8 +283,7 @@ button.aðal-hnappur:hover {
 }
 
 .google-hnappur:hover {
-  border-color: var(--litur-had);
-  box-shadow: 0 2px 10px rgba(124, 92, 255, 0.12);
+  border-color: var(--litur-svart);
 }
 
 .villuskilabod {
@@ -293,11 +295,10 @@ button.aðal-hnappur:hover {
 
 .spurning-kort {
   background: var(--litur-korti);
-  border-radius: 14px;
+  border-radius: 20px;
   padding: 24px;
   margin-bottom: 16px;
-  border-left: 4px solid var(--litur-had);
-  box-shadow: 0 4px 18px -8px rgba(124, 92, 255, 0.15);
+  box-shadow: var(--skuggi);
 }
 
 .spurning-kort h3 {
@@ -320,34 +321,33 @@ button.aðal-hnappur:hover {
 
 .glaera-kort {
   background: var(--litur-korti);
-  border-radius: 14px;
+  border-radius: 20px;
   padding: 20px 22px;
   margin-bottom: 14px;
-  border-left: 4px solid var(--litur-had);
-  box-shadow: 0 4px 18px -8px rgba(124, 92, 255, 0.15);
+  box-shadow: var(--skuggi);
 }
 
 .pptx-skodari {
   width: 100%;
   height: 70vh;
   border: 1px solid var(--litur-jadar);
-  border-radius: 12px;
+  border-radius: 16px;
   background: white;
-  box-shadow: 0 4px 18px -8px rgba(124, 92, 255, 0.15);
+  box-shadow: var(--skuggi);
 }
 
 .glaera-kort img {
   width: 100%;
   max-height: 320px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 14px;
   display: block;
 }
 
 .glaera-kort h3 {
   margin-top: 0;
-  color: var(--litur-had);
+  color: var(--litur-texti);
 }
 
 .glaera-kort p {
@@ -432,7 +432,7 @@ button.aðal-hnappur:hover {
 }
 
 .heilskja-innihald h2 {
-  color: var(--litur-had);
+  color: var(--litur-texti);
   margin-bottom: 14px;
 }
 
@@ -476,23 +476,21 @@ button.aðal-hnappur:hover {
 
 .svar-form button {
   padding: 0 22px;
-  border-radius: 10px;
+  border-radius: 999px;
   border: none;
-  background: linear-gradient(135deg, var(--litur-had), var(--litur-had2));
+  background: var(--litur-svart);
   color: white;
   font-weight: 700;
-  box-shadow: 0 6px 16px -6px rgba(124, 92, 255, 0.35);
-  transition: filter 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .svar-form button:hover:not(:disabled) {
-  filter: brightness(1.06);
+  background: var(--litur-svart-daufur);
   transform: translateY(-1px);
 }
 
 .svar-form button:disabled {
   opacity: 0.5;
-  box-shadow: none;
 }
 
 .svar-form button.sleppa-btn {
@@ -500,15 +498,14 @@ button.aðal-hnappur:hover {
   background: transparent;
   color: var(--litur-daufur);
   border: 1px solid var(--litur-jadar);
-  box-shadow: none;
   font-weight: 600;
 }
 
 .svar-form button.sleppa-btn:hover:not(:disabled) {
-  border-color: var(--litur-had);
+  border-color: var(--litur-svart);
   color: var(--litur-texti);
   transform: none;
-  filter: none;
+  background: transparent;
 }
 
 .spurning-nidurstada {
@@ -518,15 +515,15 @@ button.aðal-hnappur:hover {
 
 .spurning-nidurstada.rett {
   display: inline-block;
-  background: rgba(31, 157, 108, 0.12);
-  color: var(--litur-rett);
+  background: var(--litur-lime);
+  color: #202b0a;
   padding: 6px 14px;
   border-radius: 999px;
 }
 
 .spurning-nidurstada.rangt {
   display: inline-block;
-  background: rgba(224, 53, 90, 0.12);
+  background: rgba(214, 51, 90, 0.12);
   color: var(--litur-rangt);
   padding: 6px 14px;
   border-radius: 999px;
@@ -534,7 +531,7 @@ button.aðal-hnappur:hover {
 
 .spurning-nidurstada.sleppt {
   display: inline-block;
-  background: rgba(111, 103, 144, 0.14);
+  background: var(--litur-jadar);
   color: var(--litur-daufur);
   padding: 6px 14px;
   border-radius: 999px;
@@ -550,10 +547,10 @@ table {
   width: 100%;
   border-collapse: collapse;
   background: var(--litur-korti);
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   margin-bottom: 32px;
-  box-shadow: 0 4px 18px -10px rgba(124, 92, 255, 0.18);
+  box-shadow: var(--skuggi);
 }
 
 th, td {
@@ -583,10 +580,9 @@ th {
 
 .spurningaflokkur {
   background: var(--litur-korti);
-  border-radius: 12px;
+  border-radius: 16px;
   margin-bottom: 12px;
-  border-left: 4px solid var(--litur-had);
-  box-shadow: 0 4px 18px -10px rgba(124, 92, 255, 0.15);
+  box-shadow: var(--skuggi);
   overflow: hidden;
 }
 
@@ -618,7 +614,7 @@ th {
 
 .smabtn {
   padding: 6px 12px;
-  border-radius: 8px;
+  border-radius: 999px;
   border: 1px solid var(--litur-jadar);
   background: transparent;
   color: var(--litur-texti);
@@ -626,7 +622,7 @@ th {
 }
 
 .smabtn:hover {
-  border-color: var(--litur-had);
+  border-color: var(--litur-svart);
 }
 
 td .smabtn + .smabtn {
@@ -642,21 +638,22 @@ td .smabtn + .smabtn {
 
 .ny-spurning-form {
   background: var(--litur-korti);
-  border-radius: 14px;
+  border-radius: 20px;
   padding: 24px;
-  border-left: 4px solid var(--litur-had);
-  box-shadow: 0 4px 18px -8px rgba(124, 92, 255, 0.15);
+  box-shadow: var(--skuggi);
 }
 
 .tengill {
-  color: var(--litur-had);
-  text-decoration: none;
+  color: var(--litur-texti);
+  text-decoration: underline;
+  text-decoration-color: var(--litur-lime);
+  text-decoration-thickness: 2px;
 }
 
 .nafn-stjornbord {
   cursor: pointer;
   text-decoration: underline;
-  text-decoration-color: var(--litur-had);
+  text-decoration-color: var(--litur-lime);
 }
 
 .undirtitill-vinstri {
@@ -688,14 +685,14 @@ td .smabtn + .smabtn {
   gap: 10px;
   align-items: start;
   background: var(--litur-korti);
-  border-radius: 10px;
+  border-radius: 14px;
   padding: 14px;
   margin-bottom: 10px;
-  box-shadow: 0 2px 10px -4px rgba(124, 92, 255, 0.14);
+  box-shadow: var(--skuggi);
 }
 
 .draft-rad.tharf-yfirferd {
-  box-shadow: 0 2px 10px -4px rgba(124, 92, 255, 0.14), inset 3px 0 0 var(--litur-rangt);
+  box-shadow: var(--skuggi), inset 3px 0 0 var(--litur-rangt);
 }
 
 .draft-rad input[type="checkbox"] {
@@ -723,8 +720,8 @@ td .smabtn + .smabtn {
 
 .framvinda-lysing {
   display: inline-block;
-  background: rgba(124, 92, 255, 0.1);
-  color: var(--litur-had-daufur);
+  background: var(--litur-lime);
+  color: #202b0a;
   padding: 4px 12px;
   border-radius: 999px;
   font-weight: 700;
@@ -743,22 +740,22 @@ td .smabtn + .smabtn {
 .framvinda-fylling {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--litur-had), var(--litur-had2));
+  background: var(--litur-svart);
   transition: width 0.3s ease;
 }
 
 .skeleton-kort {
   background: var(--litur-korti);
-  border-radius: 14px;
+  border-radius: 20px;
   padding: 24px;
   margin-bottom: 16px;
-  box-shadow: 0 4px 18px -8px rgba(124, 92, 255, 0.1);
+  box-shadow: var(--skuggi);
 }
 
 .skeleton-lina {
   height: 14px;
   border-radius: 6px;
-  background: linear-gradient(90deg, #ece7f7 25%, #f8f6fc 37%, #ece7f7 63%);
+  background: linear-gradient(90deg, #ececE4 25%, #f7f7f2 37%, #ececE4 63%);
   background-size: 400% 100%;
   animation: skeleton-hreyfing 1.4s ease infinite;
   margin-bottom: 10px;
@@ -790,7 +787,7 @@ td .smabtn + .smabtn {
   gap: 6px;
   background: var(--litur-korti);
   border: 1px solid var(--litur-jadar);
-  border-radius: 8px;
+  border-radius: 999px;
   padding: 8px 12px;
   font-size: 0.9rem;
   color: var(--litur-texti);
@@ -803,7 +800,7 @@ td .smabtn + .smabtn {
 }
 
 .leitar-nidurstodur {
-  border-radius: 10px;
+  border-radius: 14px;
   overflow: hidden;
   margin-bottom: 4px;
 }
@@ -827,15 +824,15 @@ td .smabtn + .smabtn {
 
 .leitar-nidurstodur button:first-child {
   border-top: 1px solid var(--litur-jadar);
-  border-radius: 10px 10px 0 0;
+  border-radius: 14px 14px 0 0;
 }
 
 .leitar-nidurstodur button:last-child {
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 14px 14px;
 }
 
 .leitar-nidurstodur button:hover {
-  background: #f3effb;
+  background: var(--litur-baksvid);
 }
 
 .aefing-spurning-rad {
@@ -844,7 +841,7 @@ td .smabtn + .smabtn {
   gap: 10px;
   background: var(--litur-korti);
   border: 1px solid var(--litur-jadar);
-  border-radius: 10px;
+  border-radius: 14px;
   padding: 10px 14px;
   margin-bottom: 8px;
 }
@@ -862,7 +859,7 @@ td .smabtn + .smabtn {
 
 .rett-rangt-togglar button {
   padding: 6px 12px;
-  border-radius: 8px;
+  border-radius: 999px;
   border: 1px solid var(--litur-jadar);
   background: transparent;
   color: var(--litur-daufur);
@@ -870,9 +867,9 @@ td .smabtn + .smabtn {
 }
 
 .rett-rangt-togglar button.rett.virkur {
-  background: var(--litur-rett);
-  border-color: var(--litur-rett);
-  color: #ffffff;
+  background: var(--litur-lime);
+  border-color: var(--litur-lime);
+  color: #202b0a;
 }
 
 .rett-rangt-togglar button.rangt.virkur {
@@ -893,6 +890,238 @@ td .smabtn + .smabtn {
 
 .fjarlaegja-btn:hover {
   color: var(--litur-rangt);
+}
+
+/* --- Stjórnborð: hliðarvalmynd --- */
+
+.stjorn-grind {
+  display: flex;
+  min-height: 100vh;
+}
+
+.stjorn-hlid {
+  width: 248px;
+  flex-shrink: 0;
+  background: var(--litur-svart);
+  color: #f3f3ee;
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.stjorn-hlid .merki {
+  color: #ffffff;
+  font-size: 1.05rem;
+  margin-bottom: 26px;
+  padding: 0 10px;
+}
+
+.stjorn-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.stjorn-nav button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: #c9c9c2;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.stjorn-nav button .takn {
+  font-size: 1.05rem;
+  width: 20px;
+  text-align: center;
+}
+
+.stjorn-nav button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.stjorn-nav button.virkur {
+  background: #ffffff;
+  color: var(--litur-svart);
+}
+
+.stjorn-nav button .merki-talning {
+  margin-left: auto;
+  background: var(--litur-lime);
+  color: #202b0a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.stjorn-hlid .utskra-hnappur {
+  margin-top: 12px;
+  padding: 11px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: #f3f3ee;
+  font-family: inherit;
+  font-weight: 600;
+  text-align: left;
+}
+
+.stjorn-hlid .utskra-hnappur:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.stjorn-efni {
+  flex: 1;
+  min-width: 0;
+  padding: 32px 40px 80px;
+  max-width: 1100px;
+}
+
+.stjorn-efni-haus {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.stjorn-efni-haus h1 {
+  font-size: 2rem;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+
+.stjorn-efni-haus p {
+  margin: 0;
+  color: var(--litur-daufur);
+}
+
+.stjorn-sida {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stjorn-sida.virk {
+  display: flex;
+}
+
+.stjorn-sida table,
+.stjorn-sida .spurningaflokkur,
+.stjorn-sida .ny-spurning-form,
+.stjorn-sida .skeleton-kort {
+  margin-bottom: 24px;
+}
+
+.tolu-kort-net {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.tolu-kort {
+  background: var(--litur-korti);
+  border-radius: 20px;
+  padding: 20px 22px;
+  box-shadow: var(--skuggi);
+}
+
+.tolu-kort-haus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--litur-daufur);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.tolu-kort-haus .tolu-kort-takn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--litur-baksvid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.tolu-kort-gildi {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.tolu-kort-gildi .tala {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.tolu-kort-gildi .merki-talning {
+  background: var(--litur-lime);
+  color: #202b0a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+@media (max-width: 900px) {
+  .stjorn-grind {
+    flex-direction: column;
+  }
+
+  .stjorn-hlid {
+    width: 100%;
+    height: auto;
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    padding: 14px 16px;
+  }
+
+  .stjorn-hlid .merki {
+    margin-bottom: 0;
+    margin-right: 10px;
+  }
+
+  .stjorn-nav {
+    flex-direction: row;
+    flex: none;
+  }
+
+  .stjorn-nav button span.texti {
+    display: none;
+  }
+
+  .stjorn-hlid .utskra-hnappur {
+    margin-top: 0;
+    margin-left: 10px;
+    white-space: nowrap;
+  }
+
+  .stjorn-efni {
+    padding: 24px 18px 60px;
+  }
 }
 
 @media (max-width: 600px) {

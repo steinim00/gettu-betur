@@ -16,6 +16,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const notandaNafn = document.getElementById("notandaNafn");
+const yfirlitVerkefni = document.getElementById("yfirlitVerkefni");
+const yfirlitSpurningar = document.getElementById("yfirlitSpurningar");
+const yfirlitVirkar = document.getElementById("yfirlitVirkar");
+const yfirlitNotendur = document.getElementById("yfirlitNotendur");
 const utskraBtn = document.getElementById("utskraBtn");
 const notendaTafla = document.getElementById("notendaTafla").querySelector("tbody");
 const verkefnaTafla = document.getElementById("verkefnaTafla").querySelector("tbody");
@@ -463,6 +467,13 @@ async function hladaNotendayfirlit() {
   const rettSvor = new Map(svorSnap.docs.map((d) => [d.id, d.data().correctAnswers || []]));
   const verkefniPerSpurningu = new Map(spurningarSnap.docs.map((d) => [d.id, d.data().verkefniId || ""]));
   const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
+
+  // Yfirlits-tölukortin eru fyllt út frá sömu gögnum og þegar voru sótt hér
+  // að ofan - engar aukafyrirspurnir.
+  yfirlitVerkefni.textContent = verkefnaSnap.size;
+  yfirlitSpurningar.textContent = spurningarSnap.size;
+  yfirlitVirkar.textContent = spurningarSnap.docs.filter((d) => d.data().active).length;
+  yfirlitNotendur.textContent = notendurSnap.docs.filter((d) => d.data().role !== "admin").length;
 
   const rows = [];
   for (const notandiDoc of notendurSnap.docs) {

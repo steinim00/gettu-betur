@@ -14,211 +14,292 @@
 </head>
 <body>
 
-<header class="sida-haus">
-  <div>
-    <a class="merki" href="index.html"><img class="merki-icon" src="favicon.svg" alt=""><span>Gettu</span> Betur</a> — Stjórnborð
+<div class="stjorn-grind">
+  <aside class="stjorn-hlid">
+    <a class="merki" href="index.html"><img class="merki-icon" src="favicon.svg" alt=""><span>Gettu</span> Betur</a>
+
+    <nav class="stjorn-nav" id="stjornNav">
+      <button type="button" class="virkur" data-malsvaedi="yfirlit"><span class="takn">📊</span><span class="texti">Yfirlit</span></button>
+      <button type="button" data-malsvaedi="verkefni"><span class="takn">📁</span><span class="texti">Verkefni</span></button>
+      <button type="button" data-malsvaedi="spurningar"><span class="takn">❓</span><span class="texti">Spurningar</span></button>
+      <button type="button" data-malsvaedi="notendur"><span class="takn">👥</span><span class="texti">Notendur</span></button>
+      <button type="button" data-malsvaedi="graenadeildin"><span class="takn">🏃</span><span class="texti">Grænadeildin</span></button>
+      <button type="button" data-malsvaedi="stillingar"><span class="takn">⚙️</span><span class="texti">Stillingar</span></button>
+    </nav>
+
+    <a class="smabtn" href="leikur.html?forskodun=1" target="_blank" rel="noopener" style="color:#f3f3ee;border-color:rgba(255,255,255,0.2);text-align:center;text-decoration:none;margin-bottom:8px;">Sjá eins og nemandi</a>
+    <span id="notandaNafn" style="color:#c9c9c2;font-size:0.85rem;padding:0 14px 8px;"></span>
+    <button class="utskra-hnappur" id="utskraBtn">Skrá út</button>
+  </aside>
+
+  <div class="stjorn-efni">
+    <div class="stjorn-efni-haus">
+      <div>
+        <h1 id="sidaFyrirsogn">Yfirlit</h1>
+        <p id="sidaUndirtitill">Staðan á Gettu Betur í hnotskurn.</p>
+      </div>
+    </div>
+
+    <div class="stjorn-sida virk" id="sida-yfirlit">
+      <div class="tolu-kort-net">
+        <div class="tolu-kort">
+          <div class="tolu-kort-haus"><span class="tolu-kort-takn">📁</span> Verkefni</div>
+          <div class="tolu-kort-gildi"><span class="tala" id="yfirlitVerkefni">—</span></div>
+        </div>
+        <div class="tolu-kort">
+          <div class="tolu-kort-haus"><span class="tolu-kort-takn">❓</span> Spurningar samtals</div>
+          <div class="tolu-kort-gildi"><span class="tala" id="yfirlitSpurningar">—</span></div>
+        </div>
+        <div class="tolu-kort">
+          <div class="tolu-kort-haus"><span class="tolu-kort-takn">✅</span> Virkar spurningar</div>
+          <div class="tolu-kort-gildi"><span class="tala" id="yfirlitVirkar">—</span></div>
+        </div>
+        <div class="tolu-kort">
+          <div class="tolu-kort-haus"><span class="tolu-kort-takn">👥</span> Notendur</div>
+          <div class="tolu-kort-gildi"><span class="tala" id="yfirlitNotendur">—</span></div>
+        </div>
+      </div>
+      <p class="undirtitill-vinstri">Veldu flokk í hliðarvalmyndinni til vinstri til að skoða nánar og gera breytingar.</p>
+    </div>
+
+    <div class="stjorn-sida" id="sida-stillingar">
+      <p class="undirtitill-vinstri">
+        Til að innflutningur hér fyrir neðan geti líka birt upprunalega skjalið sjálft
+        (nákvæmlega eins og PowerPoint sýnir það, með öllum myndum), sett þarf GitHub
+        aðgangsteikn (<em>Personal Access Token</em>) með skrifheimild á
+        <code>steinim00/gettu-betur</code> repoið. Teiknið er <strong>eingöngu geymt í
+        þessum vafra</strong> (localStorage) - fer aldrei í gagnagrunninn eða annað.
+        Án teikns er samt allt í lagi að flytja inn - spurningar virka eins, en glærurnar
+        birtast þá sem endursaminn texti í stað upprunalega skjalsins.
+        <a class="tengill" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Búa til teikn hjá GitHub →</a>
+      </p>
+      <div class="innflutnings-form">
+        <input type="password" id="githubTeiknInnsl" placeholder="GitHub Personal Access Token (github_pat_... eða ghp_...)">
+        <button type="button" class="smabtn" id="vistaTeiknBtn">Vista</button>
+      </div>
+      <p id="teiknStada"></p>
+
+      <p class="undirtitill-vinstri">
+        Til að láta gervigreind (Claude) semja spurningar sjálfkrafa út frá efni
+        verkefnis (t.d. glósum/ævisögum sem passa ekki við "Spurning:/Svar:" sniðið),
+        settu inn þinn eigin Anthropic API-lykil. <strong>Kostar eftir notkun</strong>
+        hjá Anthropic (ekki hjá okkur) - lykillinn er líka eingöngu geymt í þessum vafra.
+        <a class="tengill" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Sækja lykil hjá Anthropic →</a>
+      </p>
+      <div class="innflutnings-form">
+        <input type="password" id="anthropicTeiknInnsl" placeholder="Anthropic API lykill (sk-ant-...)">
+        <button type="button" class="smabtn" id="vistaAnthropicTeiknBtn">Vista</button>
+      </div>
+      <p id="anthropicTeiknStada"></p>
+    </div>
+
+    <div class="stjorn-sida" id="sida-notendur">
+      <div class="hluti-titill" style="margin-top:0;">
+        <h2>Frammistaða notenda</h2>
+        <button class="smabtn" id="endurhladaBtn">Endurhlaða</button>
+      </div>
+      <table id="notendaTafla">
+        <thead>
+          <tr><th>Nafn</th><th>Svarað</th><th>Pass</th><th>Rétt</th><th>Nákvæmni</th><th>Síðast virk/ur</th><th>Aðgerð</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="stjorn-sida" id="sida-verkefni">
+      <div class="hluti-titill" style="margin-top:0;">
+        <h2>Verkefni</h2>
+      </div>
+      <p class="undirtitill-vinstri">
+        Verkefni eru glærur/efni sem nemandi skoðar áður en hann svarar tengdum spurningum.
+      </p>
+      <table id="verkefnaTafla">
+        <thead>
+          <tr><th>Titill</th><th>Glærur</th><th>Spurningar</th><th>Staða</th><th>Aðgerð</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <h3>Búa til spurningar með gervigreind</h3>
+      <p class="undirtitill-vinstri">
+        Veldu verkefni sem þegar hefur glærur/efni — Claude les efnið og semur
+        spurningar-svör pör í sama uppkasts-viðmóti og skjalainnflutningurinn, til
+        yfirferðar áður en neitt er vistað. Krefst Anthropic API-lykils í Stillingum.
+      </p>
+      <div class="innflutnings-form">
+        <select id="aiVerkefniValiö">
+          <option value="">Veldu verkefni…</option>
+        </select>
+        <input type="number" id="aiFjoldiInnsl" value="50" min="1" max="100" style="max-width:100px">
+        <button type="button" class="smabtn" id="generaSpurningarBtn">Generera spurningar</button>
+      </div>
+      <p id="generaStada"></p>
+      <div class="innflutnings-form" id="aiGatlistaHnappar" hidden>
+        <button type="button" class="smabtn" id="aiVeljaAllarBtn">Velja allar</button>
+        <button type="button" class="smabtn" id="aiAfveljaAllarBtn">Afvelja allar</button>
+      </div>
+      <div id="aiDrafListi"></div>
+      <button type="button" class="aðal-hnappur" id="aiVistaValdarBtn" hidden>Vista valdar spurningar</button>
+
+      <h3>Búa til verkefni handvirkt</h3>
+      <p class="undirtitill-vinstri">
+        Fyrir efni sem tengist ekki endilega neinum spurningum - t.d. listi yfir
+        embættismenn, bókalisti eða annað lesefni sem nemandi á bara að skoða.
+        Hver efnisgrein (aðskilin með auðri línu) verður sín glæra; fyrsta línan í
+        hverri efnisgrein er fyrirsögn hennar.
+      </p>
+      <form id="nyttVerkefniForm" class="ny-spurning-form">
+        <label for="handVerkefniTitill">Titill</label>
+        <input type="text" id="handVerkefniTitill" name="titill" required>
+
+        <label for="handVerkefniEfni">Efni</label>
+        <textarea id="handVerkefniEfni" name="efni" rows="8" required placeholder="Embættismaður 1&#10;Lýsing hans/hennar...&#10;&#10;Embættismaður 2&#10;Lýsing hans/hennar..."></textarea>
+
+        <button type="submit" class="aðal-hnappur">Búa til verkefni</button>
+      </form>
+    </div>
+
+    <div class="stjorn-sida" id="sida-spurningar">
+      <div class="hluti-titill" style="margin-top:0;">
+        <h2>Spurningar</h2>
+      </div>
+      <p class="undirtitill-vinstri">
+        Spurningum er skipt niður í möppur eftir verkefni. Smelltu á "Skoða" til að
+        opna möppu, eða "Henda" til að eyða öllum spurningunum í henni endanlega.
+      </p>
+      <div id="spurningaFlokkar"></div>
+
+      <h3>Bæta við spurningu handvirkt</h3>
+      <form id="nySpurningForm" class="ny-spurning-form">
+        <label for="text">Spurning</label>
+        <input type="text" id="text" name="text" required>
+
+        <label for="rettSvar">Rétt svar</label>
+        <input type="text" id="rettSvar" name="rettSvar" required>
+
+        <label for="onnurSvor">Önnur samþykkt svör (valfrjálst, aðskilin með kommu)</label>
+        <input type="text" id="onnurSvor" name="onnurSvor" placeholder="t.d. afbrigði í stafsetningu">
+
+        <label for="verkefniValiö">Verkefni</label>
+        <select id="verkefniValiö" name="verkefniValiö">
+          <option value="">Ekkert verkefni (almenn spurning)</option>
+        </select>
+
+        <button type="submit" class="aðal-hnappur">Bæta við spurningu</button>
+      </form>
+
+      <h3>Flytja inn verkefni úr skrá</h3>
+      <p class="undirtitill-vinstri">
+        Glærur/efni skjalsins verða sjálfkrafa vistuð sem verkefni sem nemandi skoðar.
+        Ef GitHub-teikn er vistað í Stillingum birtist upprunalega skjalið sjálft
+        (raunveruleg PowerPoint-sýn) - annars endursaminn texti/myndir.
+        Sjálfvirka spurningagreiningin virkar best fyrir skjöl sem hafa "Spurning: ..." og
+        "Svar: ..." línur — annars konar skjöl (t.d. glósur/ævisögur) þarf að skrifa
+        spurningar handvirkt hér fyrir ofan, eða senda á umsjónarmann til vinnslu.
+      </p>
+      <div class="innflutnings-form">
+        <input type="text" id="verkefnaTitillInnsl" placeholder="Titill verkefnis (t.d. nafn glæruskjals)">
+      </div>
+      <div class="innflutnings-form">
+        <input type="file" id="innflutningsSkra" accept=".pptx,.docx">
+        <button type="button" class="smabtn" id="vinnaUrSkraBtn">Vinna úr skrá</button>
+      </div>
+      <p id="innflutningsStada"></p>
+      <div class="innflutnings-form" id="drafGatlistaHnappar" hidden>
+        <button type="button" class="smabtn" id="veljaAllarBtn">Velja allar</button>
+        <button type="button" class="smabtn" id="afveljaAllarBtn">Afvelja allar</button>
+      </div>
+      <div id="drafListi"></div>
+      <button type="button" class="aðal-hnappur" id="vistaValdarBtn" hidden>Vista valdar spurningar</button>
+    </div>
+
+    <div class="stjorn-sida" id="sida-graenadeildin">
+      <div class="hluti-titill" style="margin-top:0;">
+        <h2>Grænadeildin — æfingar</h2>
+      </div>
+      <p class="undirtitill-vinstri">
+        Skráðu æfingar/keppnir þar sem liðið svarar saman upphátt: dagsetningu, hverjir
+        mættu, og hvort liðið náði hverri spurningu réttri eða rangri. Sagan hér fyrir
+        neðan sýnir þróunina milli æfinga.
+      </p>
+
+      <h3>Liðsmenn</h3>
+      <table id="lidsmannaTafla">
+        <thead><tr><th>Nafn</th><th>Aðgerð</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="innflutnings-form">
+        <input type="text" id="nyttLidsmadurInnsl" placeholder="Nafn nýs liðsmanns">
+        <button type="button" class="smabtn" id="bataLidsmadurBtn">Bæta við</button>
+      </div>
+
+      <h3>Skrá nýja æfingu</h3>
+      <div class="ny-spurning-form">
+        <label for="aefingDagsetning">Dagsetning</label>
+        <input type="date" id="aefingDagsetning">
+
+        <label>Hverjir mættu</label>
+        <div id="maettirGatlisti" class="gatlisti-net"></div>
+
+        <label for="aefingSpurningaLeit">Leita að spurningu úr Grænadeildinni</label>
+        <input type="text" id="aefingSpurningaLeit" placeholder="Skrifaðu hluta af spurningunni…" autocomplete="off">
+        <div id="aefingLeitarNidurstodur" class="leitar-nidurstodur"></div>
+
+        <label>Spurningar í þessari æfingu</label>
+        <div id="aefingValdarSpurningar"></div>
+
+        <button type="button" class="aðal-hnappur" id="vistaAefinguBtn">Vista æfingu</button>
+      </div>
+      <p id="aefingStada"></p>
+
+      <h3>Saga æfinga</h3>
+      <table id="aefingaTafla">
+        <thead><tr><th>Dagsetning</th><th>Mættir</th><th>Spurningar</th><th>Réttar</th><th>Hlutfall</th><th>Aðgerð</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
-  <div class="notandi-svaedi">
-    <a class="tengill" href="leikur.html?forskodun=1" target="_blank" rel="noopener">Sjá eins og nemandi</a>
-    <span id="notandaNafn"></span>
-    <button class="smabtn" id="utskraBtn">Skrá út</button>
-  </div>
-</header>
-
-<main>
-  <div class="hluti-titill">
-    <h2>Stillingar</h2>
-  </div>
-  <p class="undirtitill-vinstri">
-    Til að innflutningur hér fyrir neðan geti líka birt upprunalega skjalið sjálft
-    (nákvæmlega eins og PowerPoint sýnir það, með öllum myndum), sett þarf GitHub
-    aðgangsteikn (<em>Personal Access Token</em>) með skrifheimild á
-    <code>steinim00/gettu-betur</code> repoið. Teiknið er <strong>eingöngu geymt í
-    þessum vafra</strong> (localStorage) - fer aldrei í gagnagrunninn eða annað.
-    Án teikns er samt allt í lagi að flytja inn - spurningar virka eins, en glærurnar
-    birtast þá sem endursaminn texti í stað upprunalega skjalsins.
-    <a class="tengill" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Búa til teikn hjá GitHub →</a>
-  </p>
-  <div class="innflutnings-form">
-    <input type="password" id="githubTeiknInnsl" placeholder="GitHub Personal Access Token (github_pat_... eða ghp_...)">
-    <button type="button" class="smabtn" id="vistaTeiknBtn">Vista</button>
-  </div>
-  <p id="teiknStada"></p>
-
-  <p class="undirtitill-vinstri">
-    Til að láta gervigreind (Claude) semja spurningar sjálfkrafa út frá efni
-    verkefnis (t.d. glósum/ævisögum sem passa ekki við "Spurning:/Svar:" sniðið),
-    settu inn þinn eigin Anthropic API-lykil. <strong>Kostar eftir notkun</strong>
-    hjá Anthropic (ekki hjá okkur) - lykillinn er líka eingöngu geymt í þessum vafra.
-    <a class="tengill" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Sækja lykil hjá Anthropic →</a>
-  </p>
-  <div class="innflutnings-form">
-    <input type="password" id="anthropicTeiknInnsl" placeholder="Anthropic API lykill (sk-ant-...)">
-    <button type="button" class="smabtn" id="vistaAnthropicTeiknBtn">Vista</button>
-  </div>
-  <p id="anthropicTeiknStada"></p>
-
-  <div class="hluti-titill">
-    <h2>Frammistaða notenda</h2>
-    <button class="smabtn" id="endurhladaBtn">Endurhlaða</button>
-  </div>
-  <table id="notendaTafla">
-    <thead>
-      <tr><th>Nafn</th><th>Svarað</th><th>Pass</th><th>Rétt</th><th>Nákvæmni</th><th>Síðast virk/ur</th><th>Aðgerð</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <div class="hluti-titill">
-    <h2>Verkefni</h2>
-  </div>
-  <p class="undirtitill-vinstri">
-    Verkefni eru glærur/efni sem nemandi skoðar áður en hann svarar tengdum spurningum.
-  </p>
-  <table id="verkefnaTafla">
-    <thead>
-      <tr><th>Titill</th><th>Glærur</th><th>Spurningar</th><th>Staða</th><th>Aðgerð</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <h3>Búa til spurningar með gervigreind</h3>
-  <p class="undirtitill-vinstri">
-    Veldu verkefni sem þegar hefur glærur/efni — Claude les efnið og semur
-    spurningar-svör pör í sama uppkasts-viðmóti og skjalainnflutningurinn, til
-    yfirferðar áður en neitt er vistað. Krefst Anthropic API-lykils hér fyrir ofan.
-  </p>
-  <div class="innflutnings-form">
-    <select id="aiVerkefniValiö">
-      <option value="">Veldu verkefni…</option>
-    </select>
-    <input type="number" id="aiFjoldiInnsl" value="50" min="1" max="100" style="max-width:100px">
-    <button type="button" class="smabtn" id="generaSpurningarBtn">Generera spurningar</button>
-  </div>
-  <p id="generaStada"></p>
-  <div class="innflutnings-form" id="aiGatlistaHnappar" hidden>
-    <button type="button" class="smabtn" id="aiVeljaAllarBtn">Velja allar</button>
-    <button type="button" class="smabtn" id="aiAfveljaAllarBtn">Afvelja allar</button>
-  </div>
-  <div id="aiDrafListi"></div>
-  <button type="button" class="aðal-hnappur" id="aiVistaValdarBtn" hidden>Vista valdar spurningar</button>
-
-  <h3>Búa til verkefni handvirkt</h3>
-  <p class="undirtitill-vinstri">
-    Fyrir efni sem tengist ekki endilega neinum spurningum - t.d. listi yfir
-    embættismenn, bókalisti eða annað lesefni sem nemandi á bara að skoða.
-    Hver efnisgrein (aðskilin með auðri línu) verður sín glæra; fyrsta línan í
-    hverri efnisgrein er fyrirsögn hennar.
-  </p>
-  <form id="nyttVerkefniForm" class="ny-spurning-form">
-    <label for="handVerkefniTitill">Titill</label>
-    <input type="text" id="handVerkefniTitill" name="titill" required>
-
-    <label for="handVerkefniEfni">Efni</label>
-    <textarea id="handVerkefniEfni" name="efni" rows="8" required placeholder="Embættismaður 1&#10;Lýsing hans/hennar...&#10;&#10;Embættismaður 2&#10;Lýsing hans/hennar..."></textarea>
-
-    <button type="submit" class="aðal-hnappur">Búa til verkefni</button>
-  </form>
-
-  <div class="hluti-titill">
-    <h2>Spurningar</h2>
-  </div>
-  <p class="undirtitill-vinstri">
-    Spurningum er skipt niður í möppur eftir verkefni. Smelltu á "Skoða" til að
-    opna möppu, eða "Henda" til að eyða öllum spurningunum í henni endanlega.
-  </p>
-  <div id="spurningaFlokkar"></div>
-
-  <h3>Bæta við spurningu handvirkt</h3>
-  <form id="nySpurningForm" class="ny-spurning-form">
-    <label for="text">Spurning</label>
-    <input type="text" id="text" name="text" required>
-
-    <label for="rettSvar">Rétt svar</label>
-    <input type="text" id="rettSvar" name="rettSvar" required>
-
-    <label for="onnurSvor">Önnur samþykkt svör (valfrjálst, aðskilin með kommu)</label>
-    <input type="text" id="onnurSvor" name="onnurSvor" placeholder="t.d. afbrigði í stafsetningu">
-
-    <label for="verkefniValiö">Verkefni</label>
-    <select id="verkefniValiö" name="verkefniValiö">
-      <option value="">Ekkert verkefni (almenn spurning)</option>
-    </select>
-
-    <button type="submit" class="aðal-hnappur">Bæta við spurningu</button>
-  </form>
-
-  <div class="hluti-titill">
-    <h2>Flytja inn verkefni úr skrá</h2>
-  </div>
-  <p class="undirtitill-vinstri">
-    Glærur/efni skjalsins verða sjálfkrafa vistuð sem verkefni sem nemandi skoðar.
-    Ef GitHub-teikn er vistað hér fyrir ofan birtist upprunalega skjalið sjálft
-    (raunveruleg PowerPoint-sýn) - annars endursaminn texti/myndir.
-    Sjálfvirka spurningagreiningin virkar best fyrir skjöl sem hafa "Spurning: ..." og
-    "Svar: ..." línur — annars konar skjöl (t.d. glósur/ævisögur) þarf að skrifa
-    spurningar handvirkt úr fyrir neðan, eða senda á umsjónarmann til vinnslu.
-  </p>
-  <div class="innflutnings-form">
-    <input type="text" id="verkefnaTitillInnsl" placeholder="Titill verkefnis (t.d. nafn glæruskjals)">
-  </div>
-  <div class="innflutnings-form">
-    <input type="file" id="innflutningsSkra" accept=".pptx,.docx">
-    <button type="button" class="smabtn" id="vinnaUrSkraBtn">Vinna úr skrá</button>
-  </div>
-  <p id="innflutningsStada"></p>
-  <div class="innflutnings-form" id="drafGatlistaHnappar" hidden>
-    <button type="button" class="smabtn" id="veljaAllarBtn">Velja allar</button>
-    <button type="button" class="smabtn" id="afveljaAllarBtn">Afvelja allar</button>
-  </div>
-  <div id="drafListi"></div>
-  <button type="button" class="aðal-hnappur" id="vistaValdarBtn" hidden>Vista valdar spurningar</button>
-
-  <div class="hluti-titill">
-    <h2>Grænadeildin — æfingar</h2>
-  </div>
-  <p class="undirtitill-vinstri">
-    Skráðu æfingar/keppnir þar sem liðið svarar saman upphátt: dagsetningu, hverjir
-    mættu, og hvort liðið náði hverri spurningu réttri eða rangri. Sagan hér fyrir
-    neðan sýnir þróunina milli æfinga.
-  </p>
-
-  <h3>Liðsmenn</h3>
-  <table id="lidsmannaTafla">
-    <thead><tr><th>Nafn</th><th>Aðgerð</th></tr></thead>
-    <tbody></tbody>
-  </table>
-  <div class="innflutnings-form">
-    <input type="text" id="nyttLidsmadurInnsl" placeholder="Nafn nýs liðsmanns">
-    <button type="button" class="smabtn" id="bataLidsmadurBtn">Bæta við</button>
-  </div>
-
-  <h3>Skrá nýja æfingu</h3>
-  <div class="ny-spurning-form">
-    <label for="aefingDagsetning">Dagsetning</label>
-    <input type="date" id="aefingDagsetning">
-
-    <label>Hverjir mættu</label>
-    <div id="maettirGatlisti" class="gatlisti-net"></div>
-
-    <label for="aefingSpurningaLeit">Leita að spurningu úr Grænadeildinni</label>
-    <input type="text" id="aefingSpurningaLeit" placeholder="Skrifaðu hluta af spurningunni…" autocomplete="off">
-    <div id="aefingLeitarNidurstodur" class="leitar-nidurstodur"></div>
-
-    <label>Spurningar í þessari æfingu</label>
-    <div id="aefingValdarSpurningar"></div>
-
-    <button type="button" class="aðal-hnappur" id="vistaAefinguBtn">Vista æfingu</button>
-  </div>
-  <p id="aefingStada"></p>
-
-  <h3>Saga æfinga</h3>
-  <table id="aefingaTafla">
-    <thead><tr><th>Dagsetning</th><th>Mættir</th><th>Spurningar</th><th>Réttar</th><th>Hlutfall</th><th>Aðgerð</th></tr></thead>
-    <tbody></tbody>
-  </table>
-</main>
+</div>
 
 <script type="module" src="js/admin.js"></script>
+<script>
+  (function () {
+    var SIDUR = ["yfirlit", "verkefni", "spurningar", "notendur", "graenadeildin", "stillingar"];
+    var FYRIRSAGNIR = {
+      yfirlit: ["Yfirlit", "Staðan á Gettu Betur í hnotskurn."],
+      verkefni: ["Verkefni", "Búa til, skoða og stjórna verkefnum."],
+      spurningar: ["Spurningar", "Flokkað eftir verkefni - flytja inn, búa til eða fara yfir."],
+      notendur: ["Notendur", "Frammistaða hvers og eins nemanda."],
+      graenadeildin: ["Grænadeildin", "Æfingaskráning fyrir liðið."],
+      stillingar: ["Stillingar", "GitHub og Anthropic tengingar fyrir þennan vafra."]
+    };
+
+    var nav = document.getElementById("stjornNav");
+    var fyrirsognEl = document.getElementById("sidaFyrirsogn");
+    var undirtitillEl = document.getElementById("sidaUndirtitill");
+
+    function synaSidu(nafn) {
+      SIDUR.forEach(function (s) {
+        var el = document.getElementById("sida-" + s);
+        if (el) el.classList.toggle("virk", s === nafn);
+      });
+      nav.querySelectorAll("button").forEach(function (b) {
+        b.classList.toggle("virkur", b.dataset.malsvaedi === nafn);
+      });
+      var upplysingar = FYRIRSAGNIR[nafn];
+      if (upplysingar) {
+        fyrirsognEl.textContent = upplysingar[0];
+        undirtitillEl.textContent = upplysingar[1];
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    nav.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-malsvaedi]");
+      if (!btn) return;
+      synaSidu(btn.dataset.malsvaedi);
+    });
+  })();
+</script>
 </body>
 </html>
