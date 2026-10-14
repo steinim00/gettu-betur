@@ -82,6 +82,43 @@ function samraema(text) {
     .replace(/\s+/g, " ");
 }
 
+// Ritstjórnarfjarlægð (Levenshtein) milli tveggja strengja - notað til að leyfa
+// smávægilegar stafsetningarvillur í svörum í stað þess að krefjast nákvæmrar
+// stafsetningar á við það sem admin sló inn.
+function ritstjornarfjarlaegd(a, b) {
+  const m = a.length;
+  const n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+
+  let fyrriRod = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const nyRod = [i];
+    for (let j = 1; j <= n; j++) {
+      nyRod[j] =
+        a[i - 1] === b[j - 1]
+          ? fyrriRod[j - 1]
+          : 1 + Math.min(fyrriRod[j - 1], fyrriRod[j], nyRod[j - 1]);
+    }
+    fyrriRod = nyRod;
+  }
+  return fyrriRod[n];
+}
+
+// Leyfir svari sem er mjög nálægt (fá stafsetningarvilla) einhverju af réttu
+// svörunum að teljast rétt, í stað þess að krefjast nákvæmrar stafsetningar.
+// Þolið vex með lengd svarsins - stutt svör þurfa áfram að vera nákvæm.
+function erSvarRett(svar, rettSvor) {
+  if (rettSvor.includes(svar)) return true;
+
+  return rettSvor.some((r) => {
+    const thol = r.length <= 4 ? 0 : r.length <= 8 ? 1 : 2;
+    if (thol === 0) return false;
+    if (Math.abs(r.length - svar.length) > thol) return false;
+    return ritstjornarfjarlaegd(svar, r) <= thol;
+  });
+}
+
 // TÍMABUNDIÐ meðan á þróun/grunnvinnu stendur: requireAuth er false svo hægt sé
 // að skoða verkefni/glærur án innskráningar. Innskráning er samt áskilin til að
 // svara spurningum (sjá byggjaSpurningaKort). Fyrir alvöru notkun: settu
@@ -586,7 +623,7 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar) {
 
   const rettSvor = svarSnap.data().correctAnswers || [];
 
-  if (rettSvor.includes(mittSvar)) {
+  if (erSvarRett(mittSvar, rettSvor)) {
     nidurstada.textContent = "Rétt svar! 🎉";
     nidurstada.classList.add("rett");
   } else {
@@ -619,7 +656,7 @@ async function hladaMinumStodum() {
     }
     const svarSnap = await getDoc(doc(db, "answers", attemptDoc.id));
     const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
-    if (rettSvor.includes(svar)) fjoldiRett++;
+    if (erSvarRett(svar, rettSvor)) fjoldiRett++;
   }
 
   const fjoldiSvarad = minarTilraunir.length;

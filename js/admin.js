@@ -475,7 +475,7 @@ async function hladaNotendayfirlit() {
       if (gogn.svar === SLEPPT_MERKI) {
         fjoldiPass++;
         b.pass++;
-      } else if ((rettSvor.get(a.id) || []).includes(gogn.svar)) {
+      } else if (erSvarRett(gogn.svar, rettSvor.get(a.id) || [])) {
         fjoldiRett++;
         b.rett++;
       }
@@ -756,6 +756,40 @@ function samraema(text) {
     .toLowerCase()
     .replace(/^[\s.,!?;:"'`´()]+|[\s.,!?;:"'`´()]+$/g, "")
     .replace(/\s+/g, " ");
+}
+
+// Sama ritstjórnarfjarlægðar-rökfræði og í js/quiz.js - leyfir smávægilegar
+// stafsetningarvillur í svörum þegar frammistaða notenda er reiknuð, svo
+// tölfræðin hér stemmi við það sem nemandinn sá sjálfur (sjá líka erSvarRett).
+function ritstjornarfjarlaegd(a, b) {
+  const m = a.length;
+  const n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+
+  let fyrriRod = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const nyRod = [i];
+    for (let j = 1; j <= n; j++) {
+      nyRod[j] =
+        a[i - 1] === b[j - 1]
+          ? fyrriRod[j - 1]
+          : 1 + Math.min(fyrriRod[j - 1], fyrriRod[j], nyRod[j - 1]);
+    }
+    fyrriRod = nyRod;
+  }
+  return fyrriRod[n];
+}
+
+function erSvarRett(svar, rettSvor) {
+  if (rettSvor.includes(svar)) return true;
+
+  return rettSvor.some((r) => {
+    const thol = r.length <= 4 ? 0 : r.length <= 8 ? 1 : 2;
+    if (thol === 0) return false;
+    if (Math.abs(r.length - svar.length) > thol) return false;
+    return ritstjornarfjarlaegd(svar, r) <= thol;
+  });
 }
 
 // entries: [{ text, correctAnswers: string[], verkefniId? }]. Skrifar questions+answers
