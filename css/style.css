@@ -537,6 +537,19 @@ button.aðal-hnappur:hover {
   border-radius: 999px;
 }
 
+.spurning-mynd {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-top: 14px;
+}
+
+.spurning-kort .heimild-tilvitnun {
+  margin-top: 4px;
+}
+
 #stodurNiðurstada {
   text-align: center;
   color: var(--litur-daufur);

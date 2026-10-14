@@ -213,6 +213,11 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
     minStadaBtn.hidden = false;
     hefjaTimamaelingu();
 
+    // "Mín staða" er upphafspunktur innskráðra nemenda - þau sjá eigin
+    // stöðu um leið og þau koma inn, frekar en að þurfa að smella á hnapp.
+    synaSvaedi("minstada");
+    hladaMinaStodu();
+
     // "?forskodun=1" (hlekkurinn "Sjá eins og nemandi" á stjórnborðinu) felur
     // stjórnborðs-sértæku snertifletina svo síðan birtist nákvæmlega eins og
     // venjulegur nemandi sér hana, jafnvel þó notandinn sé admin.
@@ -822,15 +827,15 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    svaraSpurningu(questionId, innslattur.value, korti, form, nidurstada, aefingaSvaedi);
+    svaraSpurningu(questionId, innslattur.value, korti, form, nidurstada, aefingaSvaedi, spurning);
   });
 
   sleppaBtn.addEventListener("click", () => {
-    svaraSpurningu(questionId, SLEPPT_MERKI, korti, form, nidurstada, aefingaSvaedi);
+    svaraSpurningu(questionId, SLEPPT_MERKI, korti, form, nidurstada, aefingaSvaedi, spurning);
   });
 
   if (buidSvarad) {
-    synaNidurstodu(questionId, korti, nidurstada, undefined, aefingaSvaedi);
+    synaNidurstodu(questionId, korti, nidurstada, undefined, aefingaSvaedi, spurning);
   }
 
   return korti;
@@ -881,7 +886,7 @@ function birtaAeftinguEftirRangt(svaedi, rettSvor) {
   svaedi.appendChild(aefingaNidurstada);
 }
 
-async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada, aefingaSvaedi) {
+async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada, aefingaSvaedi, spurning) {
   const svar = hraSvar === SLEPPT_MERKI ? SLEPPT_MERKI : samraema(hraSvar);
   if (!svar) return;
 
@@ -903,11 +908,30 @@ async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada, aefi
 
   korti.classList.add("svarad");
   svaradIdSett.add(questionId);
-  await synaNidurstodu(questionId, korti, nidurstada, svar, aefingaSvaedi);
+  await synaNidurstodu(questionId, korti, nidurstada, svar, aefingaSvaedi, spurning);
   hladaMinumStodum();
 }
 
-async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaSvaedi) {
+// Birtir mynd sem lýsir svarinu við spurningunni, þegar hún er til (sjá
+// scripts/add-hrifamiklir-question-images.js) - aðeins eftir að spurningin
+// er metin (rétt/rangt), aldrei fyrirfram.
+function birtaSpurningamynd(korti, spurning) {
+  if (!spurning?.image || korti.querySelector(".spurning-mynd")) return;
+  const mynd = document.createElement("img");
+  mynd.className = "spurning-mynd";
+  mynd.src = spurning.image;
+  mynd.alt = spurning.imageAlt || "";
+  mynd.loading = "lazy";
+  korti.appendChild(mynd);
+  if (spurning.imageCredit) {
+    const heimild = document.createElement("p");
+    heimild.className = "heimild-tilvitnun";
+    heimild.textContent = `Mynd: ${spurning.imageCredit}`;
+    korti.appendChild(heimild);
+  }
+}
+
+async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaSvaedi, spurning) {
   let mittSvar = gefidSvar;
   if (mittSvar === undefined) {
     const attemptSnap = await getDoc(doc(db, "users", notandi.uid, "attempts", questionId));
@@ -933,6 +957,7 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaS
     nidurstada.classList.add("rangt");
     if (aefingaSvaedi) birtaAeftinguEftirRangt(aefingaSvaedi, rettSvor);
   }
+  birtaSpurningamynd(korti, spurning);
 }
 
 async function hladaMinumStodum() {
