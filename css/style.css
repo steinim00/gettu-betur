@@ -557,6 +557,18 @@ th {
   letter-spacing: 0.04em;
 }
 
+.sundurlidun-tafla {
+  width: 100%;
+  margin: 4px 0 8px;
+  box-shadow: none;
+  background: var(--litur-baksvid);
+}
+
+.sundurlidun-tafla th, .sundurlidun-tafla td {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
 .smabtn {
   padding: 6px 12px;
   border-radius: 8px;

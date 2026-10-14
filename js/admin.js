@@ -60,6 +60,9 @@ const vistaAefinguBtn = document.getElementById("vistaAefinguBtn");
 const aefingStada = document.getElementById("aefingStada");
 const aefingaTafla = document.getElementById("aefingaTafla").querySelector("tbody");
 
+// Sama merki og í js/quiz.js - geymt í "svar" reitnum þegar notandi ýtir á Pass.
+const SLEPPT_MERKI = "__sleppt__";
+
 // Breyttu þessu ef repoið er einhvern tímann flutt/endurnefnt.
 const GITHUB_REPO = "steinim00/gettu-betur";
 const GITHUB_TEIKN_LYKILL = "gettubetur_github_token";
@@ -438,14 +441,18 @@ async function hladaAefingasogu() {
 }
 
 async function hladaNotendayfirlit() {
-  notendaTafla.innerHTML = `<tr><td colspan="5">Sæki gögn…</td></tr>`;
+  notendaTafla.innerHTML = `<tr><td colspan="7">Sæki gögn…</td></tr>`;
 
-  const [notendurSnap, svorSnap] = await Promise.all([
+  const [notendurSnap, svorSnap, spurningarSnap, verkefnaSnap] = await Promise.all([
     getDocs(collection(db, "users")),
-    getDocs(collection(db, "answers"))
+    getDocs(collection(db, "answers")),
+    getDocs(collection(db, "questions")),
+    getDocs(collection(db, "verkefni"))
   ]);
 
   const rettSvor = new Map(svorSnap.docs.map((d) => [d.id, d.data().correctAnswers || []]));
+  const verkefniPerSpurningu = new Map(spurningarSnap.docs.map((d) => [d.id, d.data().verkefniId || ""]));
+  const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
 
   const rows = [];
   for (const notandiDoc of notendurSnap.docs) {
@@ -454,25 +461,55 @@ async function hladaNotendayfirlit() {
 
     const attemptsSnap = await getDocs(collection(db, "users", notandiDoc.id, "attempts"));
     let fjoldiRett = 0;
+    let fjoldiPass = 0;
     let sidastSvarad = null;
+    const perVerkefni = new Map();
 
     attemptsSnap.forEach((a) => {
       const gogn = a.data();
-      if ((rettSvor.get(a.id) || []).includes(gogn.svar)) fjoldiRett++;
+      const verkefniId = verkefniPerSpurningu.get(a.id) || "";
+      if (!perVerkefni.has(verkefniId)) perVerkefni.set(verkefniId, { svarad: 0, pass: 0, rett: 0 });
+      const b = perVerkefni.get(verkefniId);
+      b.svarad++;
+
+      if (gogn.svar === SLEPPT_MERKI) {
+        fjoldiPass++;
+        b.pass++;
+      } else if ((rettSvor.get(a.id) || []).includes(gogn.svar)) {
+        fjoldiRett++;
+        b.rett++;
+      }
+
       const timi = gogn.answeredAt?.toMillis?.() ?? 0;
       if (!sidastSvarad || timi > sidastSvarad) sidastSvarad = timi;
     });
 
     const fjoldiSvarad = attemptsSnap.size;
-    const nakvaemni = fjoldiSvarad ? Math.round((fjoldiRett / fjoldiSvarad) * 100) : 0;
+    const fjoldiMetin = fjoldiSvarad - fjoldiPass;
+    const nakvaemni = fjoldiMetin ? Math.round((fjoldiRett / fjoldiMetin) * 100) : 0;
+
+    const verkefnaSundurlidun = [...perVerkefni.entries()]
+      .map(([verkefniId, b]) => {
+        const metin = b.svarad - b.pass;
+        return {
+          titill: verkefnaTitlar.get(verkefniId) || "Ótengdar spurningar",
+          svarad: b.svarad,
+          pass: b.pass,
+          rett: b.rett,
+          nakvaemni: metin ? Math.round((b.rett / metin) * 100) : 0
+        };
+      })
+      .sort((a, b) => b.svarad - a.svarad);
 
     rows.push({
       nafn: notandi.nafn || notandi.email,
       email: notandi.email,
       fjoldiSvarad,
+      fjoldiPass,
       fjoldiRett,
       nakvaemni,
-      sidastSvarad
+      sidastSvarad,
+      verkefnaSundurlidun
     });
   }
 
@@ -480,20 +517,84 @@ async function hladaNotendayfirlit() {
 
   notendaTafla.innerHTML = "";
   if (rows.length === 0) {
-    notendaTafla.innerHTML = `<tr><td colspan="5">Engir notendur skráðir ennþá.</td></tr>`;
+    notendaTafla.innerHTML = `<tr><td colspan="7">Engir notendur skráðir ennþá.</td></tr>`;
     return;
   }
 
   for (const r of rows) {
     const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${r.nafn}</td>
-      <td>${r.fjoldiSvarad}</td>
-      <td>${r.fjoldiRett}</td>
-      <td>${r.nakvaemni}%</td>
-      <td>${r.sidastSvarad ? new Date(r.sidastSvarad).toLocaleString("is-IS") : "—"}</td>
-    `;
+
+    const nafnTd = document.createElement("td");
+    nafnTd.textContent = r.nafn;
+    const svaradTd = document.createElement("td");
+    svaradTd.textContent = r.fjoldiSvarad;
+    const passTd = document.createElement("td");
+    passTd.textContent = r.fjoldiPass;
+    const rettTd = document.createElement("td");
+    rettTd.textContent = r.fjoldiRett;
+    const nakvaemniTd = document.createElement("td");
+    nakvaemniTd.textContent = `${r.nakvaemni}%`;
+    const sidastTd = document.createElement("td");
+    sidastTd.textContent = r.sidastSvarad ? new Date(r.sidastSvarad).toLocaleString("is-IS") : "—";
+
+    const adgerdTd = document.createElement("td");
+    const nanarBtn = document.createElement("button");
+    nanarBtn.type = "button";
+    nanarBtn.className = "smabtn";
+    nanarBtn.textContent = "Nánar";
+    adgerdTd.appendChild(nanarBtn);
+
+    tr.appendChild(nafnTd);
+    tr.appendChild(svaradTd);
+    tr.appendChild(passTd);
+    tr.appendChild(rettTd);
+    tr.appendChild(nakvaemniTd);
+    tr.appendChild(sidastTd);
+    tr.appendChild(adgerdTd);
     notendaTafla.appendChild(tr);
+
+    const sundurlidunTr = document.createElement("tr");
+    sundurlidunTr.hidden = true;
+    const sundurlidunTd = document.createElement("td");
+    sundurlidunTd.colSpan = 7;
+
+    if (r.verkefnaSundurlidun.length === 0) {
+      sundurlidunTd.textContent = "Engar spurningar svaraðar ennþá.";
+    } else {
+      const smatafla = document.createElement("table");
+      smatafla.className = "sundurlidun-tafla";
+      smatafla.innerHTML = "<thead><tr><th>Verkefni</th><th>Svarað</th><th>Pass</th><th>Rétt</th><th>Nákvæmni</th></tr></thead>";
+      const tbody = document.createElement("tbody");
+      r.verkefnaSundurlidun.forEach((v) => {
+        const vtr = document.createElement("tr");
+        const titillTd = document.createElement("td");
+        titillTd.textContent = v.titill;
+        const svaradVTd = document.createElement("td");
+        svaradVTd.textContent = v.svarad;
+        const passVTd = document.createElement("td");
+        passVTd.textContent = v.pass;
+        const rettVTd = document.createElement("td");
+        rettVTd.textContent = v.rett;
+        const nakvaemniVTd = document.createElement("td");
+        nakvaemniVTd.textContent = `${v.nakvaemni}%`;
+        vtr.appendChild(titillTd);
+        vtr.appendChild(svaradVTd);
+        vtr.appendChild(passVTd);
+        vtr.appendChild(rettVTd);
+        vtr.appendChild(nakvaemniVTd);
+        tbody.appendChild(vtr);
+      });
+      smatafla.appendChild(tbody);
+      sundurlidunTd.appendChild(smatafla);
+    }
+
+    sundurlidunTr.appendChild(sundurlidunTd);
+    notendaTafla.appendChild(sundurlidunTr);
+
+    nanarBtn.addEventListener("click", () => {
+      sundurlidunTr.hidden = !sundurlidunTr.hidden;
+      nanarBtn.textContent = sundurlidunTr.hidden ? "Nánar" : "Loka";
+    });
   }
 }
 
