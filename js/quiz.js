@@ -94,7 +94,11 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
     notandaNafn.textContent = gogn.nafn || user.email;
     utskraBtn.hidden = false;
 
-    if (gogn.role === "admin") {
+    // "?forskodun=1" (hlekkurinn "Sjá eins og nemandi" á stjórnborðinu) felur
+    // stjórnborðs-sértæku snertifletina svo síðan birtist nákvæmlega eins og
+    // venjulegur nemandi sér hana, jafnvel þó notandinn sé admin.
+    const erForskodun = new URLSearchParams(window.location.search).get("forskodun") === "1";
+    if (gogn.role === "admin" && !erForskodun) {
       notandaNafn.classList.add("nafn-stjornbord");
       notandaNafn.title = "Fara í stjórnborðið";
       notandaNafn.addEventListener("click", () => {
