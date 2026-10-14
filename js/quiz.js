@@ -4,15 +4,29 @@ import {
   collection,
   query,
   where,
+  documentId,
   getDocs,
   doc,
   getDoc,
   setDoc,
+  updateDoc,
+  increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const notandaNafn = document.getElementById("notandaNafn");
 const utskraBtn = document.getElementById("utskraBtn");
+
+const minStadaBtn = document.getElementById("minStadaBtn");
+const minStadaSvaedi = document.getElementById("minStadaSvaedi");
+const tilbakaFraMinniStodu = document.getElementById("tilbakaFraMinniStodu");
+const minarStodurSvarad = document.getElementById("minarStodurSvarad");
+const minarStodurRett = document.getElementById("minarStodurRett");
+const minarStodurNakvaemni = document.getElementById("minarStodurNakvaemni");
+const minarStodurPass = document.getElementById("minarStodurPass");
+const minarStodurSkjatimi = document.getElementById("minarStodurSkjatimi");
+const minarStodurListi = document.getElementById("minarStodurListi");
+const rangarSpurningarBtn = document.getElementById("rangarSpurningarBtn");
 
 const verkefnaSvaedi = document.getElementById("verkefnaSvaedi");
 const verkefnaListi = document.getElementById("verkefnaListi");
@@ -124,6 +138,67 @@ function erSvarRett(svar, rettSvor) {
   });
 }
 
+function formatSkjatimi(sekundur) {
+  if (!sekundur) return "0 mín";
+  const klst = Math.floor(sekundur / 3600);
+  const min = Math.round((sekundur % 3600) / 60);
+  return klst > 0 ? `${klst} klst ${min} mín` : `${min} mín`;
+}
+
+// --- Skjátímamæling ---
+// Mælir hversu lengi notandinn er með flipann virkan (ekki falinn/í bakgrunni)
+// og vistar uppsafnaðan tíma reglulega á users/{uid}.screenTimeSeconds með
+// increment() svo ekkert tapist þó margir flipar/lotur skrifi samtímis.
+let virkTimamaeling = null;
+let ovistadurSkjatimi = 0;
+
+function hefjaTimamaelingu() {
+  if (notandi && document.visibilityState === "visible" && !virkTimamaeling) {
+    virkTimamaeling = Date.now();
+  }
+}
+
+function stodvaTimamaelingu() {
+  if (virkTimamaeling) {
+    ovistadurSkjatimi += (Date.now() - virkTimamaeling) / 1000;
+    virkTimamaeling = null;
+  }
+}
+
+function vistaSkjatima() {
+  stodvaTimamaelingu();
+  if (!notandi || ovistadurSkjatimi < 1) {
+    hefjaTimamaelingu();
+    return;
+  }
+  const sekundur = Math.round(ovistadurSkjatimi);
+  ovistadurSkjatimi = 0;
+  updateDoc(doc(db, "users", notandi.uid), { screenTimeSeconds: increment(sekundur) }).catch((villa) => {
+    console.error(villa);
+    ovistadurSkjatimi += sekundur;
+  });
+  hefjaTimamaelingu();
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    vistaSkjatima();
+  } else {
+    hefjaTimamaelingu();
+  }
+});
+
+window.addEventListener("beforeunload", () => {
+  stodvaTimamaelingu();
+  if (notandi && ovistadurSkjatimi >= 1) {
+    updateDoc(doc(db, "users", notandi.uid), {
+      screenTimeSeconds: increment(Math.round(ovistadurSkjatimi))
+    }).catch(() => {});
+  }
+});
+
+setInterval(vistaSkjatima, 60000);
+
 // TÍMABUNDIÐ meðan á þróun/grunnvinnu stendur: requireAuth er false svo hægt sé
 // að skoða verkefni/glærur án innskráningar. Innskráning er samt áskilin til að
 // svara spurningum (sjá byggjaSpurningaKort). Fyrir alvöru notkun: settu
@@ -135,6 +210,8 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
   if (user) {
     notandaNafn.textContent = gogn.nafn || user.email;
     utskraBtn.hidden = false;
+    minStadaBtn.hidden = false;
+    hefjaTimamaelingu();
 
     // "?forskodun=1" (hlekkurinn "Sjá eins og nemandi" á stjórnborðinu) felur
     // stjórnborðs-sértæku snertifletina svo síðan birtist nákvæmlega eins og
@@ -150,6 +227,7 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
   } else {
     notandaNafn.textContent = "Gestur (ekki skráð/ur inn)";
     utskraBtn.hidden = true;
+    minStadaBtn.hidden = true;
   }
 
   hladaVerkefnaListi();
@@ -158,6 +236,7 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
 utskraBtn.addEventListener("click", () => skraUt());
 
 function synaSvaedi(svaedi) {
+  minStadaSvaedi.hidden = svaedi !== "minstada";
   verkefnaSvaedi.hidden = svaedi !== "verkefni";
   glaeruSvaedi.hidden = svaedi !== "glaerur";
   spurningaSvaedi.hidden = svaedi !== "spurningar";
@@ -165,6 +244,175 @@ function synaSvaedi(svaedi) {
 
 tilbakaFraGlaerum.addEventListener("click", () => synaSvaedi("verkefni"));
 tilbakaFraSpurningum.addEventListener("click", () => synaSvaedi("verkefni"));
+tilbakaFraMinniStodu.addEventListener("click", () => synaSvaedi("verkefni"));
+
+minStadaBtn.addEventListener("click", () => {
+  synaSvaedi("minstada");
+  hladaMinaStodu();
+});
+
+async function hladaMinaStodu() {
+  if (!notandi) return;
+
+  minarStodurListi.innerHTML = skeletonKort(3, 1);
+  minarStodurSvarad.textContent = "—";
+  minarStodurRett.textContent = "—";
+  minarStodurNakvaemni.textContent = "—";
+  minarStodurPass.textContent = "—";
+  minarStodurSkjatimi.textContent = "—";
+
+  const [verkefnaSnap, spurningarSnap, attemptsSnap, notandiSnap] = await Promise.all([
+    getDocs(collection(db, "verkefni")),
+    getDocs(collection(db, "questions")),
+    getDocs(collection(db, "users", notandi.uid, "attempts")),
+    getDoc(doc(db, "users", notandi.uid))
+  ]);
+
+  const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
+  const verkefniPerSpurningu = new Map(spurningarSnap.docs.map((d) => [d.id, d.data().verkefniId || ""]));
+
+  // Núverandi óvistaður skjátími (síðan á síðustu skrifum) talinn með svo talan sé lifandi.
+  const grunnSkjatimi = notandiSnap.data()?.screenTimeSeconds || 0;
+  const birturSkjatimi = grunnSkjatimi + Math.round(ovistadurSkjatimi);
+  minarStodurSkjatimi.textContent = formatSkjatimi(birturSkjatimi);
+
+  let fjoldiRett = 0;
+  let fjoldiPass = 0;
+  const perVerkefni = new Map();
+
+  for (const a of attemptsSnap.docs) {
+    const svar = a.data().svar;
+    const verkefniId = verkefniPerSpurningu.get(a.id) || "";
+    if (!perVerkefni.has(verkefniId)) perVerkefni.set(verkefniId, { svarad: 0, pass: 0, rett: 0 });
+    const b = perVerkefni.get(verkefniId);
+    b.svarad++;
+
+    if (svar === SLEPPT_MERKI) {
+      fjoldiPass++;
+      b.pass++;
+      continue;
+    }
+
+    const svarSnap = await getDoc(doc(db, "answers", a.id));
+    const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
+    if (erSvarRett(svar, rettSvor)) {
+      fjoldiRett++;
+      b.rett++;
+    }
+  }
+
+  const fjoldiSvarad = attemptsSnap.size;
+  const fjoldiMetin = fjoldiSvarad - fjoldiPass;
+  const nakvaemni = fjoldiMetin ? Math.round((fjoldiRett / fjoldiMetin) * 100) : 0;
+
+  minarStodurSvarad.textContent = fjoldiSvarad;
+  minarStodurRett.textContent = fjoldiRett;
+  minarStodurNakvaemni.textContent = `${nakvaemni}%`;
+  minarStodurPass.textContent = fjoldiPass;
+
+  minarStodurListi.innerHTML = "";
+
+  if (perVerkefni.size === 0) {
+    minarStodurListi.innerHTML = "<p>Þú hefur ekki svarað neinum spurningum ennþá.</p>";
+    return;
+  }
+
+  const rodud = [...perVerkefni.entries()].sort((a, b) => b[1].svarad - a[1].svarad);
+
+  rodud.forEach(([verkefniId, b]) => {
+    const metin = b.svarad - b.pass;
+    const hlutfall = metin ? Math.round((b.rett / metin) * 100) : 0;
+
+    const kort = document.createElement("article");
+    kort.className = "spurning-kort";
+
+    const haus = document.createElement("div");
+    haus.style.display = "flex";
+    haus.style.justifyContent = "space-between";
+    haus.style.alignItems = "center";
+    haus.style.marginBottom = "10px";
+
+    const titill = document.createElement("strong");
+    titill.textContent = verkefnaTitlar.get(verkefniId) || "Ótengdar spurningar";
+
+    const lysing = document.createElement("span");
+    lysing.className = "framvinda-lysing";
+    lysing.style.margin = "0";
+    lysing.textContent = `${b.rett}/${metin} rétt`;
+
+    haus.appendChild(titill);
+    haus.appendChild(lysing);
+    kort.appendChild(haus);
+
+    const bar = document.createElement("div");
+    bar.className = "framvinda-bar";
+    bar.style.marginBottom = "6px";
+    const fylling = document.createElement("div");
+    fylling.className = "framvinda-fylling";
+    fylling.style.width = `${hlutfall}%`;
+    bar.appendChild(fylling);
+    kort.appendChild(bar);
+
+    const smatexti = document.createElement("p");
+    smatexti.className = "verkefni-lysing";
+    smatexti.style.margin = "0";
+    smatexti.style.fontSize = "0.82rem";
+    smatexti.textContent = `${hlutfall}% nákvæmni${b.pass ? ` · ${b.pass} pass` : ""}`;
+    kort.appendChild(smatexti);
+
+    minarStodurListi.appendChild(kort);
+  });
+}
+
+rangarSpurningarBtn.addEventListener("click", () => {
+  synaSvaedi("spurningar");
+  hladaRangarSpurningar();
+});
+
+// Safnar saman spurningum úr ÖLLUM verkefnum sem notandinn hefur svarað
+// rangt (ekki pass, ekki rétt) og birtir þær í sömu síðuflettu spurningalistu
+// og venjulegt verkefni notar - svo "Reyna aftur"-æfingasvæðið á hverju korti
+// virkar sjálfkrafa eins, án nokkurs auka kóða.
+async function hladaRangarSpurningar() {
+  valdVerkefniId = null;
+  spurningaTitill.textContent = "Rangt svaraðar spurningar";
+  spurningaListi.innerHTML = skeletonKort(5, 1);
+  siduflettingarEfri.hidden = true;
+  siduflettingar.hidden = true;
+  stodurNiðurstada.textContent = "";
+
+  const attemptsSnap = await getDocs(collection(db, "users", notandi.uid, "attempts"));
+  const rangarIds = [];
+
+  for (const a of attemptsSnap.docs) {
+    const svar = a.data().svar;
+    if (svar === SLEPPT_MERKI) continue;
+    const svarSnap = await getDoc(doc(db, "answers", a.id));
+    const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
+    if (!erSvarRett(svar, rettSvor)) rangarIds.push(a.id);
+  }
+
+  if (rangarIds.length === 0) {
+    allarSpurningaskjol = [];
+    spurningaListi.innerHTML = "<p>Engar rangt svaraðar spurningar eins og er - vel gert! 🎉</p>";
+    return;
+  }
+
+  // Firestore leyfir mest 30 gildi í "in" fyrirspurn - hólfað niður ef þörf krefur.
+  const skjol = [];
+  for (let i = 0; i < rangarIds.length; i += 30) {
+    const biti = rangarIds.slice(i, i + 30);
+    const snap = await getDocs(query(collection(db, "questions"), where(documentId(), "in", biti)));
+    snap.forEach((d) => skjol.push(d));
+  }
+
+  svaradIdSett = new Set(rangarIds);
+  spurningaBunkastaerd = SPURNINGAR_A_SIDU_VENJULEGT;
+  allarSpurningaskjol = skjol;
+  spurningaSida = 0;
+  synaSpurningaSidu();
+  stodurNiðurstada.textContent = `${skjol.length} spurning${skjol.length === 1 ? "" : "ar"} sem þú átt eftir að ná réttri.`;
+}
 
 function skeletonKort(fjoldi, linurPerKort = 2) {
   let html = "";
@@ -568,23 +816,72 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
   nidurstada.className = "spurning-nidurstada";
   korti.appendChild(nidurstada);
 
+  const aefingaSvaedi = document.createElement("div");
+  aefingaSvaedi.hidden = true;
+  korti.appendChild(aefingaSvaedi);
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    svaraSpurningu(questionId, innslattur.value, korti, form, nidurstada);
+    svaraSpurningu(questionId, innslattur.value, korti, form, nidurstada, aefingaSvaedi);
   });
 
   sleppaBtn.addEventListener("click", () => {
-    svaraSpurningu(questionId, SLEPPT_MERKI, korti, form, nidurstada);
+    svaraSpurningu(questionId, SLEPPT_MERKI, korti, form, nidurstada, aefingaSvaedi);
   });
 
   if (buidSvarad) {
-    synaNidurstodu(questionId, korti, nidurstada);
+    synaNidurstodu(questionId, korti, nidurstada, undefined, aefingaSvaedi);
   }
 
   return korti;
 }
 
-async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada) {
+// Það "svar" sem þegar er skráð í Firestore er óbreytanlegt (sjá
+// firestore.rules - attempts leyfa ekki update/delete), svo "rétta svarið"
+// sem þegar var skráð helst óhaggað. Þessi reitur er hrein æfing: ber svarið
+// saman við réttu svörin í vafranum sjálfum, skrifar ekkert, og lætur
+// nemandann vita (skýrt orðað) að þetta breyti ekki skráðu niðurstöðunni.
+function birtaAeftinguEftirRangt(svaedi, rettSvor) {
+  svaedi.innerHTML = "";
+  svaedi.hidden = false;
+
+  const form = document.createElement("form");
+  form.className = "svar-form";
+
+  const innslattur = document.createElement("input");
+  innslattur.type = "text";
+  innslattur.placeholder = "Reyndu aftur (æfing)…";
+  innslattur.autocomplete = "off";
+
+  const btn = document.createElement("button");
+  btn.type = "submit";
+  btn.textContent = "Athuga";
+
+  form.appendChild(innslattur);
+  form.appendChild(btn);
+
+  const aefingaNidurstada = document.createElement("p");
+  aefingaNidurstada.className = "spurning-nidurstada";
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const svar = samraema(innslattur.value);
+    if (!svar) return;
+    aefingaNidurstada.className = "spurning-nidurstada";
+    if (erSvarRett(svar, rettSvor)) {
+      aefingaNidurstada.textContent = "Rétt núna! 🎉 (æfing - breytir ekki skráðu svari)";
+      aefingaNidurstada.classList.add("rett");
+    } else {
+      aefingaNidurstada.textContent = "Ennþá ekki rétt - prófaðu aftur.";
+      aefingaNidurstada.classList.add("rangt");
+    }
+  });
+
+  svaedi.appendChild(form);
+  svaedi.appendChild(aefingaNidurstada);
+}
+
+async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada, aefingaSvaedi) {
   const svar = hraSvar === SLEPPT_MERKI ? SLEPPT_MERKI : samraema(hraSvar);
   if (!svar) return;
 
@@ -606,11 +903,11 @@ async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada) {
 
   korti.classList.add("svarad");
   svaradIdSett.add(questionId);
-  await synaNidurstodu(questionId, korti, nidurstada, svar);
+  await synaNidurstodu(questionId, korti, nidurstada, svar, aefingaSvaedi);
   hladaMinumStodum();
 }
 
-async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar) {
+async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaSvaedi) {
   let mittSvar = gefidSvar;
   if (mittSvar === undefined) {
     const attemptSnap = await getDoc(doc(db, "users", notandi.uid, "attempts", questionId));
@@ -634,6 +931,7 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar) {
   } else {
     nidurstada.textContent = `Rangt svar. Rétt svar: ${rettSvor[0] ?? "—"}`;
     nidurstada.classList.add("rangt");
+    if (aefingaSvaedi) birtaAeftinguEftirRangt(aefingaSvaedi, rettSvor);
   }
 }
 
@@ -642,6 +940,9 @@ async function hladaMinumStodum() {
     stodurNiðurstada.textContent = "";
     return;
   }
+  // Á rangar-spurningar yfirlitinu er valdVerkefniId null (spurningar koma úr
+  // mörgum verkefnum) - þar setur hladaRangarSpurningar sinn eigin stöðutexta.
+  if (valdVerkefniId === null) return;
 
   const spurningarSnap = await getDocs(
     query(collection(db, "questions"), where("verkefniId", "==", valdVerkefniId))

@@ -1084,6 +1084,64 @@ td .smabtn + .smabtn {
   border-radius: 999px;
 }
 
+.sundurlidun-smatolur {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 2px 0 14px;
+}
+
+.sundurlidun-smatolur .smatala-kort {
+  background: var(--litur-korti);
+  border-radius: 14px;
+  padding: 10px 14px;
+  box-shadow: var(--skuggi);
+  min-width: 90px;
+}
+
+.sundurlidun-smatolur .smatala-haus {
+  font-size: 0.72rem;
+  color: var(--litur-daufur);
+  margin-bottom: 4px;
+}
+
+.sundurlidun-smatolur .smatala-gildi {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.sundurlidun-kort-net {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 0 0 8px;
+}
+
+.sundurlidun-kort {
+  background: var(--litur-korti);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: var(--skuggi);
+}
+
+.sundurlidun-kort-titill {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.sundurlidun-kort-tolur {
+  display: flex;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--litur-daufur);
+  margin-bottom: 6px;
+}
+
+.sundurlidun-kort .framvinda-bar {
+  margin-bottom: 0;
+}
+
 @media (max-width: 900px) {
   .stjorn-grind {
     flex-direction: column;

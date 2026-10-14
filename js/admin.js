@@ -454,8 +454,15 @@ async function hladaAefingasogu() {
   });
 }
 
+function formatSkjatimi(sekundur) {
+  if (!sekundur) return "0 mín";
+  const klst = Math.floor(sekundur / 3600);
+  const min = Math.round((sekundur % 3600) / 60);
+  return klst > 0 ? `${klst} klst ${min} mín` : `${min} mín`;
+}
+
 async function hladaNotendayfirlit() {
-  notendaTafla.innerHTML = `<tr><td colspan="7">Sæki gögn…</td></tr>`;
+  notendaTafla.innerHTML = `<tr><td colspan="8">Sæki gögn…</td></tr>`;
 
   const [notendurSnap, svorSnap, spurningarSnap, verkefnaSnap] = await Promise.all([
     getDocs(collection(db, "users")),
@@ -529,6 +536,7 @@ async function hladaNotendayfirlit() {
       fjoldiPass,
       fjoldiRett,
       nakvaemni,
+      skjatimi: notandi.screenTimeSeconds || 0,
       sidastSvarad,
       verkefnaSundurlidun
     });
@@ -538,7 +546,7 @@ async function hladaNotendayfirlit() {
 
   notendaTafla.innerHTML = "";
   if (rows.length === 0) {
-    notendaTafla.innerHTML = `<tr><td colspan="7">Engir notendur skráðir ennþá.</td></tr>`;
+    notendaTafla.innerHTML = `<tr><td colspan="8">Engir notendur skráðir ennþá.</td></tr>`;
     return;
   }
 
@@ -555,6 +563,8 @@ async function hladaNotendayfirlit() {
     rettTd.textContent = r.fjoldiRett;
     const nakvaemniTd = document.createElement("td");
     nakvaemniTd.textContent = `${r.nakvaemni}%`;
+    const skjatimiTd = document.createElement("td");
+    skjatimiTd.textContent = formatSkjatimi(r.skjatimi);
     const sidastTd = document.createElement("td");
     sidastTd.textContent = r.sidastSvarad ? new Date(r.sidastSvarad).toLocaleString("is-IS") : "—";
 
@@ -570,6 +580,7 @@ async function hladaNotendayfirlit() {
     tr.appendChild(passTd);
     tr.appendChild(rettTd);
     tr.appendChild(nakvaemniTd);
+    tr.appendChild(skjatimiTd);
     tr.appendChild(sidastTd);
     tr.appendChild(adgerdTd);
     notendaTafla.appendChild(tr);
@@ -577,36 +588,70 @@ async function hladaNotendayfirlit() {
     const sundurlidunTr = document.createElement("tr");
     sundurlidunTr.hidden = true;
     const sundurlidunTd = document.createElement("td");
-    sundurlidunTd.colSpan = 7;
+    sundurlidunTd.colSpan = 8;
+
+    const smatolur = document.createElement("div");
+    smatolur.className = "sundurlidun-smatolur";
+    [
+      ["Svarað samtals", r.fjoldiSvarad],
+      ["Rétt", r.fjoldiRett],
+      ["Pass", r.fjoldiPass],
+      ["Nákvæmni", `${r.nakvaemni}%`],
+      ["Skjátími", formatSkjatimi(r.skjatimi)]
+    ].forEach(([haus, gildi]) => {
+      const kort = document.createElement("div");
+      kort.className = "smatala-kort";
+      const hausDiv = document.createElement("div");
+      hausDiv.className = "smatala-haus";
+      hausDiv.textContent = haus;
+      const gildiDiv = document.createElement("div");
+      gildiDiv.className = "smatala-gildi";
+      gildiDiv.textContent = gildi;
+      kort.appendChild(hausDiv);
+      kort.appendChild(gildiDiv);
+      smatolur.appendChild(kort);
+    });
+    sundurlidunTd.appendChild(smatolur);
 
     if (r.verkefnaSundurlidun.length === 0) {
-      sundurlidunTd.textContent = "Engar spurningar svaraðar ennþá.";
+      const tomtP = document.createElement("p");
+      tomtP.textContent = "Engar spurningar svaraðar ennþá.";
+      sundurlidunTd.appendChild(tomtP);
     } else {
-      const smatafla = document.createElement("table");
-      smatafla.className = "sundurlidun-tafla";
-      smatafla.innerHTML = "<thead><tr><th>Verkefni</th><th>Svarað</th><th>Pass</th><th>Rétt</th><th>Nákvæmni</th></tr></thead>";
-      const tbody = document.createElement("tbody");
+      const kortNet = document.createElement("div");
+      kortNet.className = "sundurlidun-kort-net";
       r.verkefnaSundurlidun.forEach((v) => {
-        const vtr = document.createElement("tr");
-        const titillTd = document.createElement("td");
-        titillTd.textContent = v.titill;
-        const svaradVTd = document.createElement("td");
-        svaradVTd.textContent = v.svarad;
-        const passVTd = document.createElement("td");
-        passVTd.textContent = v.pass;
-        const rettVTd = document.createElement("td");
-        rettVTd.textContent = v.rett;
-        const nakvaemniVTd = document.createElement("td");
-        nakvaemniVTd.textContent = `${v.nakvaemni}%`;
-        vtr.appendChild(titillTd);
-        vtr.appendChild(svaradVTd);
-        vtr.appendChild(passVTd);
-        vtr.appendChild(rettVTd);
-        vtr.appendChild(nakvaemniVTd);
-        tbody.appendChild(vtr);
+        const kort = document.createElement("div");
+        kort.className = "sundurlidun-kort";
+
+        const titillDiv = document.createElement("div");
+        titillDiv.className = "sundurlidun-kort-titill";
+        titillDiv.textContent = v.titill;
+
+        const tolurDiv = document.createElement("div");
+        tolurDiv.className = "sundurlidun-kort-tolur";
+        tolurDiv.innerHTML = `<span>📝 ${v.svarad} svarað</span><span>✅ ${v.rett} rétt</span><span>⏭ ${v.pass} pass</span>`;
+
+        const barDiv = document.createElement("div");
+        barDiv.className = "framvinda-bar";
+        const fyllingDiv = document.createElement("div");
+        fyllingDiv.className = "framvinda-fylling";
+        fyllingDiv.style.width = `${v.nakvaemni}%`;
+        barDiv.appendChild(fyllingDiv);
+
+        const nakvaemniSpan = document.createElement("div");
+        nakvaemniSpan.className = "sundurlidun-kort-tolur";
+        nakvaemniSpan.style.marginTop = "6px";
+        nakvaemniSpan.style.marginBottom = "0";
+        nakvaemniSpan.innerHTML = `<span>🎯 ${v.nakvaemni}% nákvæmni</span>`;
+
+        kort.appendChild(titillDiv);
+        kort.appendChild(tolurDiv);
+        kort.appendChild(barDiv);
+        kort.appendChild(nakvaemniSpan);
+        kortNet.appendChild(kort);
       });
-      smatafla.appendChild(tbody);
-      sundurlidunTd.appendChild(smatafla);
+      sundurlidunTd.appendChild(kortNet);
     }
 
     sundurlidunTr.appendChild(sundurlidunTd);
