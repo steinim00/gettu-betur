@@ -10,6 +10,7 @@ import {
   query,
   where,
   updateDoc,
+  arrayUnion,
   serverTimestamp,
   writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
@@ -71,6 +72,7 @@ const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 
 let sidustuBlokkir = [];
 let sidastaSkra = null;
+const opnirSpurningaflokkar = new Set();
 
 githubTeiknInnsl.value = localStorage.getItem(GITHUB_TEIKN_LYKILL) || "";
 anthropicTeiknInnsl.value = localStorage.getItem(ANTHROPIC_TEIKN_LYKILL) || "";
@@ -734,7 +736,8 @@ async function hladaSpurningayfirlit() {
 }
 
 function byggjaSpurningaflokkur(flokkur, rettSvor) {
-  const { titill, skjol } = flokkur;
+  const { verkefniId, titill, skjol } = flokkur;
+  const erOpinn = opnirSpurningaflokkar.has(verkefniId);
 
   const kort = document.createElement("div");
   kort.className = "spurningaflokkur";
@@ -752,7 +755,7 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
   const skodaBtn = document.createElement("button");
   skodaBtn.type = "button";
   skodaBtn.className = "smabtn";
-  skodaBtn.textContent = "Skoða";
+  skodaBtn.textContent = erOpinn ? "Loka" : "Skoða";
 
   const hendaBtn = document.createElement("button");
   hendaBtn.type = "button";
@@ -778,7 +781,7 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
 
   const innihaldsTafla = document.createElement("table");
   innihaldsTafla.className = "spurningaflokkur-tafla";
-  innihaldsTafla.hidden = true;
+  innihaldsTafla.hidden = !erOpinn;
   innihaldsTafla.innerHTML = "<thead><tr><th>Texti</th><th>Rétt svar</th><th>Staða</th><th>Aðgerð</th></tr></thead>";
 
   const tbody = document.createElement("tbody");
@@ -795,17 +798,32 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
       hladaSpurningayfirlit();
     });
 
+    const bataSvariKnappur = document.createElement("button");
+    bataSvariKnappur.type = "button";
+    bataSvariKnappur.className = "smabtn";
+    bataSvariKnappur.textContent = "Bæta við svari";
+    bataSvariKnappur.title = "Bættu við öðru málfræðilega réttu svari (t.d. annað orðform) - gildir líka afturvirkt fyrir þá sem þegar svöruðu því";
+    bataSvariKnappur.addEventListener("click", async () => {
+      const nyttSvar = prompt("Nýtt samþykkt svar (annað orðform/samheiti sem á líka að teljast rétt):");
+      if (!nyttSvar || !nyttSvar.trim()) return;
+      const samraemt = samraema(nyttSvar);
+      if (!samraemt) return;
+      await updateDoc(doc(db, "answers", qDoc.id), { correctAnswers: arrayUnion(samraemt) });
+      hladaSpurningayfirlit();
+    });
+
     const textTd = document.createElement("td");
     textTd.textContent = spurning.text;
 
     const svarTd = document.createElement("td");
-    svarTd.textContent = (rettSvor.get(qDoc.id) || [])[0] ?? "—";
+    svarTd.textContent = (rettSvor.get(qDoc.id) || []).join(" / ") || "—";
 
     const stodaTd = document.createElement("td");
     stodaTd.textContent = spurning.active ? "Virk" : "Óvirk";
 
     const adgerdTd = document.createElement("td");
     adgerdTd.appendChild(kveikjaKnappur);
+    adgerdTd.appendChild(bataSvariKnappur);
 
     tr.appendChild(textTd);
     tr.appendChild(svarTd);
@@ -819,6 +837,8 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
   skodaBtn.addEventListener("click", () => {
     innihaldsTafla.hidden = !innihaldsTafla.hidden;
     skodaBtn.textContent = innihaldsTafla.hidden ? "Skoða" : "Loka";
+    if (innihaldsTafla.hidden) opnirSpurningaflokkar.delete(verkefniId);
+    else opnirSpurningaflokkar.add(verkefniId);
   });
 
   return kort;
