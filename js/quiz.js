@@ -849,6 +849,7 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
 function birtaAeftinguEftirRangt(svaedi, rettSvor) {
   svaedi.innerHTML = "";
   svaedi.hidden = false;
+  svaedi.style.marginTop = "10px";
 
   const form = document.createElement("form");
   form.className = "svar-form";
@@ -868,6 +869,19 @@ function birtaAeftinguEftirRangt(svaedi, rettSvor) {
   const aefingaNidurstada = document.createElement("p");
   aefingaNidurstada.className = "spurning-nidurstada";
 
+  // Svarið er ekki ljóstrað upp fyrr en nemandinn biður sjálfur um það - annars
+  // væri "reyndu aftur" tilgangslaust (svarið stæði þegar fyrir ofan).
+  const synaSvarBtn = document.createElement("button");
+  synaSvarBtn.type = "button";
+  synaSvarBtn.className = "smabtn";
+  synaSvarBtn.style.marginTop = "8px";
+  synaSvarBtn.textContent = "Sýna rétt svar";
+  synaSvarBtn.addEventListener("click", () => {
+    aefingaNidurstada.className = "spurning-nidurstada";
+    aefingaNidurstada.textContent = `Rétt svar: ${rettSvor[0] ?? "—"}`;
+    synaSvarBtn.remove();
+  });
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const svar = samraema(innslattur.value);
@@ -876,6 +890,7 @@ function birtaAeftinguEftirRangt(svaedi, rettSvor) {
     if (erSvarRett(svar, rettSvor)) {
       aefingaNidurstada.textContent = "Rétt núna! 🎉 (æfing - breytir ekki skráðu svari)";
       aefingaNidurstada.classList.add("rett");
+      synaSvarBtn.remove();
     } else {
       aefingaNidurstada.textContent = "Ennþá ekki rétt - prófaðu aftur.";
       aefingaNidurstada.classList.add("rangt");
@@ -883,6 +898,7 @@ function birtaAeftinguEftirRangt(svaedi, rettSvor) {
   });
 
   svaedi.appendChild(form);
+  svaedi.appendChild(synaSvarBtn);
   svaedi.appendChild(aefingaNidurstada);
 }
 
@@ -952,10 +968,16 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaS
   if (erSvarRett(mittSvar, rettSvor)) {
     nidurstada.textContent = "Rétt svar! 🎉";
     nidurstada.classList.add("rett");
+  } else if (aefingaSvaedi) {
+    // Svarið er ekki birt strax - þá væri "reyndu aftur" hér fyrir neðan
+    // tilgangslaust. Nemandinn getur sjálfur beðið um að sjá það (sjá
+    // birtaAeftinguEftirRangt).
+    nidurstada.textContent = "Rangt svar. Reyndu aftur hér fyrir neðan!";
+    nidurstada.classList.add("rangt");
+    birtaAeftinguEftirRangt(aefingaSvaedi, rettSvor);
   } else {
     nidurstada.textContent = `Rangt svar. Rétt svar: ${rettSvor[0] ?? "—"}`;
     nidurstada.classList.add("rangt");
-    if (aefingaSvaedi) birtaAeftinguEftirRangt(aefingaSvaedi, rettSvor);
   }
   birtaSpurningamynd(korti, spurning);
 }
