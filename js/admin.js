@@ -462,7 +462,7 @@ function formatSkjatimi(sekundur) {
 }
 
 async function hladaNotendayfirlit() {
-  notendaTafla.innerHTML = `<tr><td colspan="8">Sæki gögn…</td></tr>`;
+  notendaTafla.innerHTML = `<tr><td colspan="9">Sæki gögn…</td></tr>`;
 
   const [notendurSnap, svorSnap, spurningarSnap, verkefnaSnap] = await Promise.all([
     getDocs(collection(db, "users")),
@@ -537,6 +537,7 @@ async function hladaNotendayfirlit() {
       fjoldiRett,
       nakvaemni,
       skjatimi: notandi.screenTimeSeconds || 0,
+      nyskraning: notandi.createdAt?.toMillis?.() ?? null,
       sidastSvarad,
       verkefnaSundurlidun
     });
@@ -546,7 +547,7 @@ async function hladaNotendayfirlit() {
 
   notendaTafla.innerHTML = "";
   if (rows.length === 0) {
-    notendaTafla.innerHTML = `<tr><td colspan="8">Engir notendur skráðir ennþá.</td></tr>`;
+    notendaTafla.innerHTML = `<tr><td colspan="9">Engir notendur skráðir ennþá.</td></tr>`;
     return;
   }
 
@@ -565,6 +566,8 @@ async function hladaNotendayfirlit() {
     nakvaemniTd.textContent = `${r.nakvaemni}%`;
     const skjatimiTd = document.createElement("td");
     skjatimiTd.textContent = formatSkjatimi(r.skjatimi);
+    const nyskraningTd = document.createElement("td");
+    nyskraningTd.textContent = r.nyskraning ? new Date(r.nyskraning).toLocaleString("is-IS") : "—";
     const sidastTd = document.createElement("td");
     sidastTd.textContent = r.sidastSvarad ? new Date(r.sidastSvarad).toLocaleString("is-IS") : "—";
 
@@ -581,6 +584,7 @@ async function hladaNotendayfirlit() {
     tr.appendChild(rettTd);
     tr.appendChild(nakvaemniTd);
     tr.appendChild(skjatimiTd);
+    tr.appendChild(nyskraningTd);
     tr.appendChild(sidastTd);
     tr.appendChild(adgerdTd);
     notendaTafla.appendChild(tr);
@@ -588,7 +592,7 @@ async function hladaNotendayfirlit() {
     const sundurlidunTr = document.createElement("tr");
     sundurlidunTr.hidden = true;
     const sundurlidunTd = document.createElement("td");
-    sundurlidunTd.colSpan = 8;
+    sundurlidunTd.colSpan = 9;
 
     const smatolur = document.createElement("div");
     smatolur.className = "sundurlidun-smatolur";
