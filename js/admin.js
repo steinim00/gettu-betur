@@ -671,10 +671,15 @@ async function hladaVerkefnayfirlit() {
   ]);
 
   const fjoldiSpurningaPerVerkefni = new Map();
+  const fjoldiVirkraSpurningaPerVerkefni = new Map();
   spurningarSnap.forEach((qDoc) => {
-    const id = qDoc.data().verkefniId;
+    const gogn = qDoc.data();
+    const id = gogn.verkefniId;
     if (!id) return;
     fjoldiSpurningaPerVerkefni.set(id, (fjoldiSpurningaPerVerkefni.get(id) || 0) + 1);
+    if (gogn.active) {
+      fjoldiVirkraSpurningaPerVerkefni.set(id, (fjoldiVirkraSpurningaPerVerkefni.get(id) || 0) + 1);
+    }
   });
 
   hladaVerkefniSelect(verkefnaSnap);
@@ -726,7 +731,9 @@ async function hladaVerkefnayfirlit() {
     glaeruTd.textContent = (verkefni.slides || []).length;
 
     const spurningaTd = document.createElement("td");
-    spurningaTd.textContent = fjoldiSpurningaPerVerkefni.get(vDoc.id) || 0;
+    const heildSpurninga = fjoldiSpurningaPerVerkefni.get(vDoc.id) || 0;
+    const virkarSpurningar = fjoldiVirkraSpurningaPerVerkefni.get(vDoc.id) || 0;
+    spurningaTd.textContent = `${heildSpurninga} (${virkarSpurningar} virkar)`;
 
     const stodaTd = document.createElement("td");
     stodaTd.textContent = verkefni.active ? "Virkt" : "Óvirkt";
