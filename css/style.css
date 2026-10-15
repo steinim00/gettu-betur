@@ -226,6 +226,10 @@ button.aðal-hnappur:hover {
   transform: translateY(-1px);
 }
 
+button.aðal-hnappur:active {
+  transform: translateY(0) scale(0.98);
+}
+
 .flipar {
   display: flex;
   justify-content: center;
@@ -540,8 +544,10 @@ button.aðal-hnappur:hover {
 .spurning-mynd {
   display: block;
   width: 100%;
-  height: 220px;
-  object-fit: cover;
+  height: 280px;
+  object-fit: contain;
+  background: var(--litur-baksvid);
+  border: 1px solid var(--litur-jadar);
   border-radius: 14px;
   margin-top: 14px;
 }
@@ -632,10 +638,15 @@ th {
   background: transparent;
   color: var(--litur-texti);
   font-size: 0.85rem;
+  transition: background 0.1s ease, border-color 0.1s ease;
 }
 
 .smabtn:hover {
   border-color: var(--litur-svart);
+}
+
+.smabtn:active {
+  background: var(--litur-jadar);
 }
 
 td .smabtn + .smabtn {

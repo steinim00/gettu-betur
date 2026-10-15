@@ -246,6 +246,9 @@ function synaSvaedi(svaedi) {
   verkefnaSvaedi.hidden = svaedi !== "verkefni";
   glaeruSvaedi.hidden = svaedi !== "glaerur";
   spurningaSvaedi.hidden = svaedi !== "spurningar";
+  // Án þessa getur t.d. "Fara beint í spurningar" virst ekkert gera, ef
+  // notandinn var skrollaður niður þegar hann smellti.
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 tilbakaFraGlaerum.addEventListener("click", () => synaSvaedi("verkefni"));
