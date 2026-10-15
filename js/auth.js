@@ -76,7 +76,23 @@ export function vaktaInnskraningu({ requireAuth = true, requireAdmin = false } =
 
     const notandaRef = doc(db, "users", user.uid);
     const snap = await getDoc(notandaRef);
-    const notandagogn = snap.exists() ? snap.data() : { nafn: user.email, role: "user" };
+    let notandagogn;
+
+    if (snap.exists()) {
+      notandagogn = snap.data();
+    } else {
+      // Sjálfheilun: notandaskjalið vantar, líklega vegna þess að síðan
+      // endurvísaði burt (sjá index.html) áður en setDoc-ið í skra()/
+      // skraInnMedGoogle() náði að klárast. Búum það til núna svo
+      // notandinn hætti ekki að vera "ósýnilegur" í stjórnborðinu.
+      notandagogn = {
+        nafn: user.displayName || user.email,
+        email: user.email,
+        role: erAdminNetfang(user.email) ? "admin" : "user",
+        createdAt: serverTimestamp()
+      };
+      await setDoc(notandaRef, notandagogn);
+    }
 
     // Sjálfheilun: ef þetta netfang er á admin-listanum en skjalið segir ekki admin
     // ennþá (t.d. skráð sig inn áður en netfangið var bætt á listann), uppfærum við það.

@@ -58,11 +58,21 @@
 
   const innskraningBox = document.getElementById("innskraningBox");
 
+  // true á meðan eitt af formunum hér fyrir neðan er að skrá/skrá inn
+  // notanda. Án þessa getur vaktaInnskraningu endurvísað um leið og
+  // Firebase Auth skráir notandann inn (gerist strax við nýskráningu),
+  // áður en setDoc-ið í skra() í js/auth.js nær að klára að skrifa
+  // notandaskjalið - sem skildi notandann eftir "ósýnilegan" í
+  // stjórnborðinu þó hann gæti svarað spurningum eðlilega.
+  let formAfgreidsla = false;
+
   vaktaInnskraningu({ requireAuth: false }, (user) => {
     if (user) {
-      // Vísa strax áfram - innskraningBox er falið fram að þessu svo
-      // innskráðir notendur sjái aldrei innskráningarformið leiftra á skjánum.
-      window.location.href = "leikur.html";
+      if (!formAfgreidsla) {
+        // Vísa strax áfram - innskraningBox er falið fram að þessu svo
+        // innskráðir notendur sjái aldrei innskráningarformið leiftra á skjánum.
+        window.location.href = "leikur.html";
+      }
     } else {
       innskraningBox.hidden = false;
     }
@@ -93,6 +103,7 @@
   innskraningForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     villuskilabod.textContent = "";
+    formAfgreidsla = true;
     try {
       await skraInn(
         document.getElementById("innEmail").value,
@@ -100,6 +111,7 @@
       );
       window.location.href = "leikur.html";
     } catch (villa) {
+      formAfgreidsla = false;
       villuskilabod.textContent = thydaVillu(villa.code);
     }
   });
@@ -107,6 +119,7 @@
   skraningForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     villuskilabod.textContent = "";
+    formAfgreidsla = true;
     try {
       await skra(
         document.getElementById("skraEmail").value,
@@ -115,16 +128,19 @@
       );
       window.location.href = "leikur.html";
     } catch (villa) {
+      formAfgreidsla = false;
       villuskilabod.textContent = thydaVillu(villa.code);
     }
   });
 
   document.getElementById("googleBtn").addEventListener("click", async () => {
     villuskilabod.textContent = "";
+    formAfgreidsla = true;
     try {
       await skraInnMedGoogle();
       window.location.href = "leikur.html";
     } catch (villa) {
+      formAfgreidsla = false;
       villuskilabod.textContent = thydaVillu(villa.code);
     }
   });
