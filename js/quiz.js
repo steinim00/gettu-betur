@@ -595,21 +595,20 @@ function byggjaVerkefniKort(vDoc, verkefni, spurningaIds, svaradIds) {
     kort.appendChild(byggjaFramvindukort(spurningaIds, svaradIds));
   }
 
+  const beintBtn = document.createElement("button");
+  beintBtn.type = "button";
+  beintBtn.className = "aðal-hnappur";
+  beintBtn.textContent = "Fara í spurningar →";
+  beintBtn.addEventListener("click", () => opnaSpurningarBeint(vDoc.id, verkefni));
+  kort.appendChild(beintBtn);
+
   const hnappur = document.createElement("button");
   hnappur.type = "button";
-  hnappur.className = "aðal-hnappur";
+  hnappur.className = "smabtn";
+  hnappur.style.marginTop = "10px";
   hnappur.textContent = "Skoða glærur";
   hnappur.addEventListener("click", () => opnaVerkefni(vDoc.id, verkefni));
   kort.appendChild(hnappur);
-
-  const beintBtn = document.createElement("button");
-  beintBtn.type = "button";
-  beintBtn.className = "smabtn";
-  beintBtn.style.marginTop = "10px";
-  beintBtn.style.width = "100%";
-  beintBtn.textContent = "Fara beint í spurningar →";
-  beintBtn.addEventListener("click", () => opnaSpurningarBeint(vDoc.id, verkefni));
-  kort.appendChild(beintBtn);
 
   return kort;
 }

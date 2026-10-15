@@ -1305,6 +1305,15 @@ td .smabtn + .smabtn {
     font-size: 0.78rem;
   }
 
+  .viku-ahersla-hnappar {
+    width: 100%;
+  }
+
+  .viku-ahersla-hnappar button {
+    flex: 1 1 auto;
+    padding: 13px 16px;
+  }
+
   main {
     padding: 24px 14px 60px;
   }
