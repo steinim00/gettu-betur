@@ -526,25 +526,28 @@ function birtaVikuAherslu(verkefnaSnap) {
   const borði = document.createElement("div");
   borði.className = "viku-ahersla";
 
-  const texti = document.createElement("div");
-  const merki = document.createElement("span");
-  merki.className = "viku-ahersla-merki";
-  merki.textContent = "Mikilvægast þessa viku";
   const titill = document.createElement("h3");
   titill.textContent = verkefni.title;
-  const lysing = document.createElement("p");
-  lysing.textContent = "Æfðu þig í spurningunum beint - engar glærur, bara byrja.";
-  texti.appendChild(merki);
-  texti.appendChild(titill);
-  texti.appendChild(lysing);
 
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.textContent = "Fara í spurningar →";
-  btn.addEventListener("click", () => opnaSpurningarBeint(vDoc.id, verkefni));
+  const hnappar = document.createElement("div");
+  hnappar.className = "viku-ahersla-hnappar";
 
-  borði.appendChild(texti);
-  borði.appendChild(btn);
+  const spurningaBtn = document.createElement("button");
+  spurningaBtn.type = "button";
+  spurningaBtn.textContent = "Fara í spurningar →";
+  spurningaBtn.addEventListener("click", () => opnaSpurningarBeint(vDoc.id, verkefni));
+
+  const glaeruBtn = document.createElement("button");
+  glaeruBtn.type = "button";
+  glaeruBtn.className = "hvitur";
+  glaeruBtn.textContent = "Fara í glærur";
+  glaeruBtn.addEventListener("click", () => opnaVerkefni(vDoc.id, verkefni));
+
+  hnappar.appendChild(spurningaBtn);
+  hnappar.appendChild(glaeruBtn);
+
+  borði.appendChild(titill);
+  borði.appendChild(hnappar);
   vikuAherslaSvaedi.appendChild(borði);
   vikuAherslaSvaedi.hidden = false;
 }
