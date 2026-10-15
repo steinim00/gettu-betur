@@ -1051,6 +1051,62 @@ td .smabtn + .smabtn {
   margin-bottom: 24px;
 }
 
+.viku-ahersla {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: var(--litur-svart);
+  color: white;
+  border-radius: 20px;
+  padding: 24px 28px;
+  margin-bottom: 28px;
+}
+
+.viku-ahersla-merki {
+  display: inline-block;
+  background: var(--litur-lime);
+  color: #202b0a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+
+.viku-ahersla h3 {
+  margin: 0 0 4px;
+  font-size: 1.3rem;
+}
+
+.viku-ahersla p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.viku-ahersla button {
+  flex-shrink: 0;
+  padding: 13px 26px;
+  border-radius: 999px;
+  border: none;
+  background: var(--litur-lime);
+  color: #202b0a;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: transform 0.15s ease;
+}
+
+.viku-ahersla button:hover {
+  transform: translateY(-1px);
+}
+
+.viku-ahersla button:active {
+  transform: translateY(0) scale(0.98);
+}
+
 .tolu-kort-net {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));

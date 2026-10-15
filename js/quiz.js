@@ -27,6 +27,7 @@ const minarStodurPass = document.getElementById("minarStodurPass");
 const minarStodurSkjatimi = document.getElementById("minarStodurSkjatimi");
 const minarStodurListi = document.getElementById("minarStodurListi");
 const rangarSpurningarBtn = document.getElementById("rangarSpurningarBtn");
+const vikuAherslaSvaedi = document.getElementById("vikuAherslaSvaedi");
 
 const verkefnaSvaedi = document.getElementById("verkefnaSvaedi");
 const verkefnaListi = document.getElementById("verkefnaListi");
@@ -280,6 +281,8 @@ async function hladaMinaStodu() {
   const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
   const verkefniPerSpurningu = new Map(spurningarSnap.docs.map((d) => [d.id, d.data().verkefniId || ""]));
 
+  birtaVikuAherslu(verkefnaSnap);
+
   // Núverandi óvistaður skjátími (síðan á síðustu skrifum) talinn með svo talan sé lifandi.
   const grunnSkjatimi = notandiSnap.data()?.screenTimeSeconds || 0;
   const birturSkjatimi = grunnSkjatimi + Math.round(ovistadurSkjatimi);
@@ -505,6 +508,45 @@ function opnaSpurningarBeint(verkefniId, verkefni) {
   synaSvaedi("spurningar");
   hladaSpurningum();
   hladaMinumStodum();
+}
+
+// Áberandi borði efst á "Mín staða" sem bendir beint á verkefni vikunnar -
+// núna "50 áhrifamiklir einstaklingar". Finnur verkefnið með titilleit
+// (sama mynstur og upload-hrifamiklir-extra.js notar), svo ekkert
+// harðkóðað skjal-ID þarf að uppfæra ef verkefnið er endurskapað.
+function birtaVikuAherslu(verkefnaSnap) {
+  const vDoc = verkefnaSnap.docs.find((d) => (d.data().title || "").toLowerCase().includes("áhrifamiklir"));
+  vikuAherslaSvaedi.innerHTML = "";
+  vikuAherslaSvaedi.hidden = true;
+  if (!vDoc) return;
+
+  const verkefni = vDoc.data();
+  if (!verkefni.active) return;
+
+  const borði = document.createElement("div");
+  borði.className = "viku-ahersla";
+
+  const texti = document.createElement("div");
+  const merki = document.createElement("span");
+  merki.className = "viku-ahersla-merki";
+  merki.textContent = "Mikilvægast þessa viku";
+  const titill = document.createElement("h3");
+  titill.textContent = verkefni.title;
+  const lysing = document.createElement("p");
+  lysing.textContent = "Æfðu þig í spurningunum beint - engar glærur, bara byrja.";
+  texti.appendChild(merki);
+  texti.appendChild(titill);
+  texti.appendChild(lysing);
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = "Fara í spurningar →";
+  btn.addEventListener("click", () => opnaSpurningarBeint(vDoc.id, verkefni));
+
+  borði.appendChild(texti);
+  borði.appendChild(btn);
+  vikuAherslaSvaedi.appendChild(borði);
+  vikuAherslaSvaedi.hidden = false;
 }
 
 function byggjaHradaspurningarKort(vDoc, verkefni, spurningaIds, svaradIds) {

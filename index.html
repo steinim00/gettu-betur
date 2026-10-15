@@ -13,7 +13,7 @@
 <body>
 
 <main>
-  <div class="innskraning-box">
+  <div class="innskraning-box" id="innskraningBox" hidden>
     <div class="innskraning-merki">
       <img src="favicon.svg" alt="">
       <h1 class="merki-fyrirsogn">Gettu Betur</h1>
@@ -56,8 +56,16 @@
 <script type="module">
   import { skraInn, skra, skraInnMedGoogle, vaktaInnskraningu } from "./js/auth.js";
 
+  const innskraningBox = document.getElementById("innskraningBox");
+
   vaktaInnskraningu({ requireAuth: false }, (user) => {
-    if (user) window.location.href = "leikur.html";
+    if (user) {
+      // Vísa strax áfram - innskraningBox er falið fram að þessu svo
+      // innskráðir notendur sjái aldrei innskráningarformið leiftra á skjánum.
+      window.location.href = "leikur.html";
+    } else {
+      innskraningBox.hidden = false;
+    }
   });
 
   const flipInn = document.getElementById("flipInn");
