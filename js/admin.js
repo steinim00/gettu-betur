@@ -11,6 +11,7 @@ import {
   where,
   updateDoc,
   arrayUnion,
+  arrayRemove,
   serverTimestamp,
   writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
@@ -887,6 +888,21 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
       hladaSpurningayfirlit();
     });
 
+    const fjarlaegjaSvarKnappur = document.createElement("button");
+    fjarlaegjaSvarKnappur.type = "button";
+    fjarlaegjaSvarKnappur.className = "smabtn";
+    fjarlaegjaSvarKnappur.textContent = "Fjarlægja svar";
+    fjarlaegjaSvarKnappur.title = "Fjarlægðu rangt/úrelt samþykkt svar (t.d. gamalt nafn þegar staðreynd breytist, eins og nýr borgarstjóri)";
+    fjarlaegjaSvarKnappur.addEventListener("click", async () => {
+      const nuverandi = (rettSvor.get(qDoc.id) || []).join(" / ") || "(engin skráð)";
+      const svarTilFjarlaegingar = prompt(`Hvaða svar á að fjarlægja?\nNúverandi samþykkt svör: ${nuverandi}`);
+      if (!svarTilFjarlaegingar || !svarTilFjarlaegingar.trim()) return;
+      const samraemt = samraema(svarTilFjarlaegingar);
+      if (!samraemt) return;
+      await updateDoc(doc(db, "answers", qDoc.id), { correctAnswers: arrayRemove(samraemt) });
+      hladaSpurningayfirlit();
+    });
+
     const textTd = document.createElement("td");
     textTd.textContent = spurning.text;
 
@@ -899,6 +915,7 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
     const adgerdTd = document.createElement("td");
     adgerdTd.appendChild(kveikjaKnappur);
     adgerdTd.appendChild(bataSvariKnappur);
+    adgerdTd.appendChild(fjarlaegjaSvarKnappur);
 
     tr.appendChild(textTd);
     tr.appendChild(svarTd);
