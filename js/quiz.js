@@ -10,6 +10,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
@@ -28,6 +29,15 @@ const minarStodurSkjatimi = document.getElementById("minarStodurSkjatimi");
 const minarStodurListi = document.getElementById("minarStodurListi");
 const rangarSpurningarBtn = document.getElementById("rangarSpurningarBtn");
 const vikuAherslaSvaedi = document.getElementById("vikuAherslaSvaedi");
+
+const glosurBtn = document.getElementById("glosurBtn");
+const glosurSvaedi = document.getElementById("glosurSvaedi");
+const tilbakaFraGlosum = document.getElementById("tilbakaFraGlosum");
+const glosurListi = document.getElementById("glosurListi");
+const glosaBox = document.getElementById("glosaBox");
+const glosaTextarea = document.getElementById("glosaTextarea");
+const vistaGlosuBtn = document.getElementById("vistaGlosuBtn");
+const glosaStada = document.getElementById("glosaStada");
 
 const verkefnaSvaedi = document.getElementById("verkefnaSvaedi");
 const verkefnaListi = document.getElementById("verkefnaListi");
@@ -213,6 +223,7 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
     notandaNafn.textContent = gogn.nafn || user.email;
     utskraBtn.hidden = false;
     minStadaBtn.hidden = false;
+    glosurBtn.hidden = false;
     hefjaTimamaelingu();
 
     // "Mín staða" er upphafspunktur innskráðra nemenda - þau sjá eigin
@@ -235,6 +246,7 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
     notandaNafn.textContent = "Gestur (ekki skráð/ur inn)";
     utskraBtn.hidden = true;
     minStadaBtn.hidden = true;
+    glosurBtn.hidden = true;
   }
 
   hladaVerkefnaListi();
@@ -244,6 +256,7 @@ utskraBtn.addEventListener("click", () => skraUt());
 
 function synaSvaedi(svaedi) {
   minStadaSvaedi.hidden = svaedi !== "minstada";
+  glosurSvaedi.hidden = svaedi !== "glosur";
   verkefnaSvaedi.hidden = svaedi !== "verkefni";
   glaeruSvaedi.hidden = svaedi !== "glaerur";
   spurningaSvaedi.hidden = svaedi !== "spurningar";
@@ -255,11 +268,113 @@ function synaSvaedi(svaedi) {
 tilbakaFraGlaerum.addEventListener("click", () => synaSvaedi("verkefni"));
 tilbakaFraSpurningum.addEventListener("click", () => synaSvaedi("verkefni"));
 tilbakaFraMinniStodu.addEventListener("click", () => synaSvaedi("verkefni"));
+tilbakaFraGlosum.addEventListener("click", () => synaSvaedi("verkefni"));
 
 minStadaBtn.addEventListener("click", () => {
   synaSvaedi("minstada");
   hladaMinaStodu();
 });
+
+glosurBtn.addEventListener("click", () => {
+  synaSvaedi("glosur");
+  hladaGlosur();
+});
+
+// Sækir (ef til) og birtir glósu notandans fyrir verkefnið sem verið er að
+// skoða glærur fyrir - kallað úr opnaVerkefni(). Ein glósa á hvert verkefni,
+// skjal-ID = verkefniID.
+async function hladaGlosa(verkefniId) {
+  if (!notandi) {
+    glosaBox.hidden = true;
+    return;
+  }
+  glosaBox.hidden = false;
+  glosaTextarea.value = "";
+  glosaStada.textContent = "Sæki glósu…";
+
+  const snap = await getDoc(doc(db, "users", notandi.uid, "glosur", verkefniId));
+  glosaTextarea.value = snap.exists() ? snap.data().texti || "" : "";
+  glosaStada.textContent = "Aðeins þú sérð þetta.";
+}
+
+vistaGlosuBtn.addEventListener("click", async () => {
+  if (!notandi || !valdVerkefniId) return;
+  const texti = glosaTextarea.value.trim();
+  vistaGlosuBtn.disabled = true;
+  glosaStada.textContent = "Vista…";
+
+  try {
+    await setDoc(doc(db, "users", notandi.uid, "glosur", valdVerkefniId), {
+      texti,
+      verkefniTitill: verkefnaTitill.textContent,
+      updatedAt: serverTimestamp()
+    });
+    glosaStada.textContent = "Vistað ✓ (aðeins þú sérð þetta)";
+  } catch (villa) {
+    console.error(villa);
+    glosaStada.textContent = "Tókst ekki að vista - reyndu aftur.";
+  } finally {
+    vistaGlosuBtn.disabled = false;
+  }
+});
+
+// "Glósurnar mínar" - yfirlit yfir öll verkefni sem notandinn hefur skrifað
+// glósu um, með flýtileið til að breyta eða eyða hverri glósu.
+async function hladaGlosur() {
+  if (!notandi) return;
+  glosurListi.innerHTML = skeletonKort(3, 1);
+
+  const glosurSnap = await getDocs(collection(db, "users", notandi.uid, "glosur"));
+  const glosur = glosurSnap.docs.filter((d) => (d.data().texti || "").trim().length > 0);
+
+  glosurListi.innerHTML = "";
+  if (glosur.length === 0) {
+    glosurListi.innerHTML = "<p>Þú hefur ekki skrifað neinar glósur ennþá. Opnaðu glærur verkefnis og skrifaðu glósu þar.</p>";
+    return;
+  }
+
+  glosur.forEach((gDoc) => {
+    const gogn = gDoc.data();
+    const kort = document.createElement("article");
+    kort.className = "spurning-kort";
+
+    const titill = document.createElement("h3");
+    titill.textContent = gogn.verkefniTitill || "Ótengt verkefni";
+    kort.appendChild(titill);
+
+    const texti = document.createElement("p");
+    texti.style.whiteSpace = "pre-wrap";
+    texti.textContent = gogn.texti;
+    kort.appendChild(texti);
+
+    const breytaBtn = document.createElement("button");
+    breytaBtn.type = "button";
+    breytaBtn.className = "smabtn";
+    breytaBtn.textContent = "Breyta glósu →";
+    breytaBtn.addEventListener("click", async () => {
+      const verkefniSnap = await getDoc(doc(db, "verkefni", gDoc.id));
+      if (!verkefniSnap.exists()) {
+        alert("Þetta verkefni er ekki lengur til.");
+        return;
+      }
+      opnaVerkefni(gDoc.id, verkefniSnap.data());
+    });
+
+    const eydaBtn = document.createElement("button");
+    eydaBtn.type = "button";
+    eydaBtn.className = "smabtn";
+    eydaBtn.textContent = "Eyða glósu";
+    eydaBtn.addEventListener("click", async () => {
+      if (!confirm(`Eyða glósunni um "${gogn.verkefniTitill}"?`)) return;
+      await deleteDoc(gDoc.ref);
+      hladaGlosur();
+    });
+
+    kort.appendChild(breytaBtn);
+    kort.appendChild(eydaBtn);
+    glosurListi.appendChild(kort);
+  });
+}
 
 async function hladaMinaStodu() {
   if (!notandi) return;
@@ -645,6 +760,8 @@ function opnaVerkefni(verkefniId, verkefni) {
     hladaMinumStodum();
     return;
   }
+
+  hladaGlosa(verkefniId);
 
   verkefnaTitill.textContent = verkefni.title;
   glaerurInnihald.innerHTML = "";

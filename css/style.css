@@ -331,6 +331,23 @@ button.aðal-hnappur:active {
   box-shadow: var(--skuggi);
 }
 
+.glosa-box {
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-lime);
+  border-radius: 20px;
+  padding: 20px 22px;
+  margin-bottom: 20px;
+  box-shadow: var(--skuggi);
+}
+
+.glosa-box textarea {
+  margin-bottom: 8px;
+}
+
+.glosa-box .heimild-tilvitnun {
+  margin: 0;
+}
+
 .pptx-skodari {
   width: 100%;
   height: 70vh;

@@ -16,6 +16,7 @@
   <a class="merki" href="leikur.html"><img class="merki-icon" src="favicon.svg" alt=""><span>Gettu</span> Betur</a>
   <div class="notandi-svaedi">
     <button class="smabtn" id="minStadaBtn" hidden>Mín staða</button>
+    <button class="smabtn" id="glosurBtn" hidden>📝 Glósur</button>
     <span id="notandaNafn"></span>
     <button class="smabtn" id="utskraBtn">Skrá út</button>
   </div>
@@ -56,6 +57,14 @@
     <div id="minarStodurListi"></div>
   </div>
 
+  <div id="glosurSvaedi" hidden>
+    <div class="hluti-titill" style="margin-top:0;">
+      <h2>Glósurnar mínar</h2>
+      <button type="button" class="smabtn" id="tilbakaFraGlosum">← Öll verkefni</button>
+    </div>
+    <div id="glosurListi"></div>
+  </div>
+
   <div id="verkefnaSvaedi" class="verkefna-yfirlit">
     <div class="verkefna-adal">
       <h2>Verkefni</h2>
@@ -74,6 +83,14 @@
       <button type="button" class="smabtn" id="faraBeintISpurningarBtn">Fara beint í spurningar →</button>
     </div>
     <h2 id="verkefnaTitill"></h2>
+    <div class="glosa-box" id="glosaBox" hidden>
+      <div class="hluti-titill" style="margin-top:0;">
+        <h3>📝 Mín glósa</h3>
+        <button type="button" class="smabtn" id="vistaGlosuBtn">Vista glósu</button>
+      </div>
+      <textarea id="glosaTextarea" rows="4" placeholder="Skrifaðu glósur um þetta efni hér…"></textarea>
+      <p class="heimild-tilvitnun" id="glosaStada">Aðeins þú sérð þetta.</p>
+    </div>
     <div id="glaerurInnihald"></div>
     <button type="button" class="aðal-hnappur" id="afromISpurningar">Fara beint í spurningar</button>
   </div>

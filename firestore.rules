@@ -47,6 +47,18 @@ service cloud.firestore {
                       && exists(/databases/$(database)/documents/questions/$(questionId));
         allow update, delete: if false;
       }
+
+      // Glósur notandans um verkefni - hreinir einkaminnispunktar, ólíkt
+      // attempts mega þær breytast/eyðast frjálst. Skjal-ID = verkefniID,
+      // ein glósa á hvert verkefni.
+      match /glosur/{verkefniId} {
+        allow read: if innskradur() && (request.auth.uid == userId || erAdmin());
+        allow create, update: if innskradur() && request.auth.uid == userId
+                      && request.resource.data.keys().hasOnly(['texti', 'verkefniTitill', 'updatedAt'])
+                      && request.resource.data.texti is string
+                      && request.resource.data.texti.size() < 5000;
+        allow delete: if innskradur() && request.auth.uid == userId;
+      }
     }
 
     // Verkefni: glærur/efni sem nemandi skoðar áður en hann svarar spurningum.
