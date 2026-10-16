@@ -41,23 +41,23 @@
     </div>
 
     <div class="stjorn-sida virk" id="sida-yfirlit">
-      <div class="tolu-kort-net">
-        <div class="tolu-kort">
+      <div class="tolu-kort-net" id="yfirlitKortNet">
+        <button type="button" class="tolu-kort" data-malsvaedi="verkefni">
           <div class="tolu-kort-haus"><span class="tolu-kort-takn">📁</span> Verkefni</div>
           <div class="tolu-kort-gildi"><span class="tala" id="yfirlitVerkefni">—</span></div>
-        </div>
-        <div class="tolu-kort">
+        </button>
+        <button type="button" class="tolu-kort" data-malsvaedi="spurningar">
           <div class="tolu-kort-haus"><span class="tolu-kort-takn">❓</span> Spurningar samtals</div>
           <div class="tolu-kort-gildi"><span class="tala" id="yfirlitSpurningar">—</span></div>
-        </div>
-        <div class="tolu-kort">
+        </button>
+        <button type="button" class="tolu-kort" data-malsvaedi="spurningar">
           <div class="tolu-kort-haus"><span class="tolu-kort-takn">✅</span> Virkar spurningar</div>
           <div class="tolu-kort-gildi"><span class="tala" id="yfirlitVirkar">—</span></div>
-        </div>
-        <div class="tolu-kort">
+        </button>
+        <button type="button" class="tolu-kort" data-malsvaedi="notendur">
           <div class="tolu-kort-haus"><span class="tolu-kort-takn">👥</span> Notendur</div>
           <div class="tolu-kort-gildi"><span class="tala" id="yfirlitNotendur">—</span></div>
-        </div>
+        </button>
       </div>
       <p class="undirtitill-vinstri">Veldu flokk í hliðarvalmyndinni til vinstri til að skoða nánar og gera breytingar.</p>
     </div>
@@ -299,6 +299,15 @@
       if (!btn) return;
       synaSidu(btn.dataset.malsvaedi);
     });
+
+    var kortNet = document.getElementById("yfirlitKortNet");
+    if (kortNet) {
+      kortNet.addEventListener("click", function (e) {
+        var kort = e.target.closest("button[data-malsvaedi]");
+        if (!kort) return;
+        synaSidu(kort.dataset.malsvaedi);
+      });
+    }
   })();
 </script>
 </body>
