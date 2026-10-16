@@ -88,6 +88,7 @@ const SLEPPT_MERKI = "__sleppt__";
 
 const SPURNINGAR_A_SIDU_VENJULEGT = 20;
 const SPURNINGAR_A_SIDU_PROF = 5;
+const SPURNINGAR_A_SIDU_PROF_SKRAD = 999; // próf merkt "tegund: prof" - allar spurningar saman á einni síðu
 let spurningaBunkastaerd = SPURNINGAR_A_SIDU_VENJULEGT;
 let allarSpurningaskjol = [];
 let svaradIdSett = new Set();
@@ -101,6 +102,15 @@ let spurningaSida = 0;
 function erProfVerkefni(verkefni) {
   if (verkefni.tegund === "prof") return true;
   return !verkefni.pptxUrl && (verkefni.slides || []).length <= 1;
+}
+
+// Próf sem eru sérstaklega skráð sem slík (tegund: "prof") birta allar
+// spurningarnar saman á einni síðu, ólíkt öðrum spurningabönkum sem fara í
+// gegnum litla bútinn (SPURNINGAR_A_SIDU_PROF) til að létta álagið.
+function spurningaBunkastaerdFyrir(verkefni) {
+  if (verkefni.tegund === "prof") return SPURNINGAR_A_SIDU_PROF_SKRAD;
+  if (erProfVerkefni(verkefni)) return SPURNINGAR_A_SIDU_PROF;
+  return SPURNINGAR_A_SIDU_VENJULEGT;
 }
 
 function samraema(text) {
@@ -620,7 +630,7 @@ function byggjaVerkefniKort(vDoc, verkefni, spurningaIds, svaradIds) {
 // glærurnar fyrst - flýtileið fyrir nemendur sem vilja bara svara.
 function opnaSpurningarBeint(verkefniId, verkefni) {
   valdVerkefniId = verkefniId;
-  spurningaBunkastaerd = erProfVerkefni(verkefni) ? SPURNINGAR_A_SIDU_PROF : SPURNINGAR_A_SIDU_VENJULEGT;
+  spurningaBunkastaerd = spurningaBunkastaerdFyrir(verkefni);
   spurningaTitill.textContent = verkefni.title;
   synaSvaedi("spurningar");
   hladaSpurningum();
@@ -751,7 +761,7 @@ let pptxIframe = null;
 function opnaVerkefni(verkefniId, verkefni) {
   valdVerkefniId = verkefniId;
   heilskjaGlaerur = verkefni.slides || [];
-  spurningaBunkastaerd = erProfVerkefni(verkefni) ? SPURNINGAR_A_SIDU_PROF : SPURNINGAR_A_SIDU_VENJULEGT;
+  spurningaBunkastaerd = spurningaBunkastaerdFyrir(verkefni);
   pptxIframe = null;
 
   if (erProfVerkefni(verkefni)) {
