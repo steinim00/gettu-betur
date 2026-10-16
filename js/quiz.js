@@ -104,6 +104,16 @@ function erProfVerkefni(verkefni) {
   return !verkefni.pptxUrl && (verkefni.slides || []).length <= 1;
 }
 
+// Verkefni geta verið takmörkuð við ákveðna notendur (leyfdirNotendur í
+// stjórnborðinu, valið eftir netfangi) - tómt/ekkert svæði þýðir að allir
+// innskráðir sjái verkefnið, sem er sjálfgefna hegðunin fyrir öll eldri
+// verkefni.
+function synilegtNotanda(verkefni) {
+  const leyfdir = verkefni.leyfdirNotendur;
+  if (!leyfdir || leyfdir.length === 0) return true;
+  return !!notandi && leyfdir.includes(notandi.uid);
+}
+
 // Próf sem eru sérstaklega skráð sem slík (tegund: "prof") birta allar
 // spurningarnar saman á einni síðu, ólíkt öðrum spurningabönkum sem fara í
 // gegnum litla bútinn (SPURNINGAR_A_SIDU_PROF) til að létta álagið.
@@ -739,6 +749,7 @@ async function hladaVerkefnaListi() {
 
   snap.forEach((vDoc) => {
     const verkefni = vDoc.data();
+    if (!synilegtNotanda(verkefni)) return;
     const spurningaIds = spurningaIdEftirVerkefni.get(vDoc.id) || [];
 
     if (erProfVerkefni(verkefni)) {

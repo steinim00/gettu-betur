@@ -22,6 +22,7 @@
       <button type="button" class="virkur" data-malsvaedi="yfirlit"><span class="takn">📊</span><span class="texti">Yfirlit</span></button>
       <button type="button" data-malsvaedi="verkefni"><span class="takn">📁</span><span class="texti">Verkefni</span></button>
       <button type="button" data-malsvaedi="spurningar"><span class="takn">❓</span><span class="texti">Spurningar</span></button>
+      <button type="button" data-malsvaedi="serflokkar"><span class="takn">🏛️</span><span class="texti">Sérflokkar</span></button>
       <button type="button" data-malsvaedi="notendur"><span class="takn">👥</span><span class="texti">Notendur</span></button>
       <button type="button" data-malsvaedi="graenadeildin"><span class="takn">🏃</span><span class="texti">Grænadeildin</span></button>
       <button type="button" data-malsvaedi="stillingar"><span class="takn">⚙️</span><span class="texti">Stillingar</span></button>
@@ -117,7 +118,7 @@
       </p>
       <table id="verkefnaTafla">
         <thead>
-          <tr><th>Titill</th><th>Tegund</th><th>Glærur</th><th>Spurningar</th><th>Staða</th><th>Aðgerð</th></tr>
+          <tr><th>Titill</th><th>Tegund</th><th>Glærur</th><th>Spurningar</th><th>Staða</th><th>Sýnileiki</th><th>Aðgerð</th></tr>
         </thead>
         <tbody></tbody>
       </table>
@@ -215,6 +216,62 @@
       <button type="button" class="aðal-hnappur" id="vistaValdarBtn" hidden>Vista valdar spurningar</button>
     </div>
 
+    <div class="stjorn-sida" id="sida-serflokkar">
+      <div class="hluti-titill" style="margin-top:0;">
+        <h2>Embættismannalisti</h2>
+      </div>
+      <p class="undirtitill-vinstri">
+        Hver færsla býr sjálfkrafa til tvær spurningar - "Hver er [embætti]?" og
+        "Hvaða embætti gegnir [nafn]?" - sem bætast óvirkar við "Embættismannalisti"
+        verkefnið (kveiktu á þeim í Spurningar-flipanum þegar þú hefur farið yfir þær).
+      </p>
+      <form id="embaettismadurForm" class="ny-spurning-form">
+        <label for="embNafn">Nafn</label>
+        <input type="text" id="embNafn" required>
+
+        <label for="embEmbaetti">Embætti</label>
+        <input type="text" id="embEmbaetti" placeholder="t.d. borgarstjóri Reykjavíkur" required>
+
+        <label for="embMyndSlod">Mynd af einstaklingnum (slóð, valfrjálst)</label>
+        <input type="url" id="embMyndSlod" placeholder="https://...">
+
+        <label for="embLogoSlod">Lógó/merki embættisins (slóð, valfrjálst)</label>
+        <input type="url" id="embLogoSlod" placeholder="https://...">
+
+        <button type="submit" class="aðal-hnappur">Bæta við embættismanni</button>
+      </form>
+      <p id="embStada"></p>
+      <table id="embaettismannaTafla">
+        <thead><tr><th>Nafn</th><th>Embætti</th><th>Aðgerð</th></tr></thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="hluti-titill">
+        <h2>Bókalisti</h2>
+      </div>
+      <p class="undirtitill-vinstri">
+        Hver færsla býr sjálfkrafa til tvær spurningar - "Hver skrifaði [bók]?" og
+        "Hvaða bók skrifaði [höfundur]?" - sem bætast óvirkar við "Bókalisti" verkefnið.
+      </p>
+      <form id="bokForm" class="ny-spurning-form">
+        <label for="bokHofundur">Höfundur</label>
+        <input type="text" id="bokHofundur" required>
+
+        <label for="bokTitill">Bókartitill</label>
+        <input type="text" id="bokTitill" required>
+
+        <label for="bokKapaSlod">Bókarkápa (slóð, valfrjálst)</label>
+        <input type="url" id="bokKapaSlod" placeholder="https://...">
+
+        <button type="submit" class="aðal-hnappur">Bæta við bók</button>
+      </form>
+      <p id="bokStada"></p>
+      <table id="bokalistaTafla">
+        <thead><tr><th>Höfundur</th><th>Bók</th><th>Aðgerð</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
     <div class="stjorn-sida" id="sida-graenadeildin">
       <div class="hluti-titill" style="margin-top:0;">
         <h2>Grænadeildin — æfingar</h2>
@@ -266,11 +323,12 @@
 <script type="module" src="js/admin.js"></script>
 <script>
   (function () {
-    var SIDUR = ["yfirlit", "verkefni", "spurningar", "notendur", "graenadeildin", "stillingar"];
+    var SIDUR = ["yfirlit", "verkefni", "spurningar", "serflokkar", "notendur", "graenadeildin", "stillingar"];
     var FYRIRSAGNIR = {
       yfirlit: ["Yfirlit", "Staðan á Gettu Betur í hnotskurn."],
       verkefni: ["Verkefni", "Búa til, skoða og stjórna verkefnum."],
       spurningar: ["Spurningar", "Flokkað eftir verkefni - flytja inn, búa til eða fara yfir."],
+      serflokkar: ["Sérflokkar", "Embættismannalisti og bókalisti - tvíátta spurningar."],
       notendur: ["Notendur", "Frammistaða hvers og eins nemanda."],
       graenadeildin: ["Grænadeildin", "Æfingaskráning fyrir liðið."],
       stillingar: ["Stillingar", "GitHub og Anthropic tengingar fyrir þennan vafra."]

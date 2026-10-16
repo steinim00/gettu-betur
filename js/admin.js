@@ -66,6 +66,21 @@ const vistaAefinguBtn = document.getElementById("vistaAefinguBtn");
 const aefingStada = document.getElementById("aefingStada");
 const aefingaTafla = document.getElementById("aefingaTafla").querySelector("tbody");
 
+const embaettismadurForm = document.getElementById("embaettismadurForm");
+const embNafn = document.getElementById("embNafn");
+const embEmbaetti = document.getElementById("embEmbaetti");
+const embMyndSlod = document.getElementById("embMyndSlod");
+const embLogoSlod = document.getElementById("embLogoSlod");
+const embStada = document.getElementById("embStada");
+const embaettismannaTafla = document.getElementById("embaettismannaTafla").querySelector("tbody");
+
+const bokForm = document.getElementById("bokForm");
+const bokHofundur = document.getElementById("bokHofundur");
+const bokTitill = document.getElementById("bokTitill");
+const bokKapaSlod = document.getElementById("bokKapaSlod");
+const bokStada = document.getElementById("bokStada");
+const bokalistaTafla = document.getElementById("bokalistaTafla").querySelector("tbody");
+
 // Sama merki og í js/quiz.js - geymt í "svar" reitnum þegar notandi ýtir á Pass.
 const SLEPPT_MERKI = "__sleppt__";
 
@@ -126,7 +141,8 @@ async function hladaAllt() {
     hladaNotendayfirlit(),
     hladaVerkefnayfirlit(),
     hladaSpurningayfirlit(),
-    hladaGraenadeildarAefingar()
+    hladaGraenadeildarAefingar(),
+    hladaSerflokkar()
   ]);
 }
 
@@ -691,7 +707,7 @@ async function hladaVerkefnayfirlit() {
 
   verkefnaTafla.innerHTML = "";
   if (verkefnaSnap.empty) {
-    verkefnaTafla.innerHTML = `<tr><td colspan="6">Engin verkefni ennþá.</td></tr>`;
+    verkefnaTafla.innerHTML = `<tr><td colspan="7">Engin verkefni ennþá.</td></tr>`;
     return;
   }
 
@@ -740,6 +756,45 @@ async function hladaVerkefnayfirlit() {
       hladaVerkefnayfirlit();
     });
 
+    const syileikiKnappur = document.createElement("button");
+    syileikiKnappur.type = "button";
+    syileikiKnappur.className = "smabtn";
+    syileikiKnappur.textContent = "Velja notendur";
+    syileikiKnappur.title = "Takmarkaðu verkefnið við ákveðna notendur - autt þýðir að allir sjái það";
+    syileikiKnappur.addEventListener("click", async () => {
+      const notendurSnap = await getDocs(collection(db, "users"));
+      const notendur = notendurSnap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((n) => n.role !== "admin" && n.email);
+
+      const nuverandiLeyfdir = new Set(verkefni.leyfdirNotendur || []);
+      const nuverandiTolvupostar = notendur
+        .filter((n) => nuverandiLeyfdir.has(n.id))
+        .map((n) => n.email)
+        .join(", ");
+
+      const svar = prompt(
+        `Netföng þeirra sem mega sjá "${verkefni.title}", aðskilin með kommu.\nSkildu eftir autt til að allir innskráðir sjái verkefnið.`,
+        nuverandiTolvupostar
+      );
+      if (svar === null) return;
+
+      const voldNetfong = svar.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
+      const voldUid = notendur
+        .filter((n) => voldNetfong.includes((n.email || "").toLowerCase()))
+        .map((n) => n.id);
+
+      const ofundin = voldNetfong.filter(
+        (np) => !notendur.some((n) => (n.email || "").toLowerCase() === np)
+      );
+      if (ofundin.length > 0) {
+        alert(`Fann ekki notanda með netfang: ${ofundin.join(", ")} - þau voru ekki valin.`);
+      }
+
+      await updateDoc(doc(db, "verkefni", vDoc.id), { leyfdirNotendur: voldUid });
+      hladaVerkefnayfirlit();
+    });
+
     const titillTd = document.createElement("td");
     titillTd.textContent = verkefni.title;
 
@@ -757,10 +812,15 @@ async function hladaVerkefnayfirlit() {
     const stodaTd = document.createElement("td");
     stodaTd.textContent = verkefni.active ? "Virkt" : "Óvirkt";
 
+    const fjoldiLeyfdir = (verkefni.leyfdirNotendur || []).length;
+    const syileikiTd = document.createElement("td");
+    syileikiTd.textContent = fjoldiLeyfdir > 0 ? `${fjoldiLeyfdir} valdir` : "Allir";
+
     const adgerdTd = document.createElement("td");
     adgerdTd.appendChild(kveikjaKnappur);
     adgerdTd.appendChild(breytaTitliKnappur);
     adgerdTd.appendChild(tegundKnappur);
+    adgerdTd.appendChild(syileikiKnappur);
     adgerdTd.appendChild(generaKnappur);
 
     tr.appendChild(titillTd);
@@ -768,6 +828,7 @@ async function hladaVerkefnayfirlit() {
     tr.appendChild(glaeruTd);
     tr.appendChild(spurningaTd);
     tr.appendChild(stodaTd);
+    tr.appendChild(syileikiTd);
     tr.appendChild(adgerdTd);
     verkefnaTafla.appendChild(tr);
   });
@@ -791,6 +852,222 @@ function fyllaVerkefniSelect(selectEl, verkefnaSnap, tomurValkostur) {
     selectEl.value = valid;
   }
 }
+
+// Finnur verkefni með nákvæmlega þessum titli, eða býr það til (ógallerí,
+// engar glærur - lendir því sjálfkrafa í "Hraðaspurningar" dálkinum hjá
+// nemendum, sbr. erProfVerkefni() í js/quiz.js).
+async function finnaEdaBuaTilVerkefni(titill) {
+  const snap = await getDocs(query(collection(db, "verkefni"), where("title", "==", titill)));
+  if (!snap.empty) return snap.docs[0].id;
+  const ref = await addDoc(collection(db, "verkefni"), {
+    title: titill,
+    slides: [],
+    active: false,
+    createdAt: serverTimestamp()
+  });
+  return ref.id;
+}
+
+// Sameiginleg eyðing fyrir eina "sérflokka" færslu (embættismaður eða bók) -
+// eyðir sjálfri færslunni og báðum spurningunum/svörunum sem hún bjó til.
+async function eydaSerflokkaFaerslu(faerslaRef, gogn) {
+  const batch = writeBatch(db);
+  if (gogn.q1Id) {
+    batch.delete(doc(db, "questions", gogn.q1Id));
+    batch.delete(doc(db, "answers", gogn.q1Id));
+  }
+  if (gogn.q2Id) {
+    batch.delete(doc(db, "questions", gogn.q2Id));
+    batch.delete(doc(db, "answers", gogn.q2Id));
+  }
+  batch.delete(faerslaRef);
+  await batch.commit();
+  hladaSerflokkar();
+  hladaVerkefnayfirlit();
+  hladaSpurningayfirlit();
+}
+
+async function hladaSerflokkar() {
+  const [embSnap, bokSnap] = await Promise.all([
+    getDocs(collection(db, "embaettismenn")),
+    getDocs(collection(db, "bokalisti"))
+  ]);
+
+  embaettismannaTafla.innerHTML = "";
+  if (embSnap.empty) {
+    embaettismannaTafla.innerHTML = `<tr><td colspan="3">Engir embættismenn skráðir ennþá.</td></tr>`;
+  }
+  embSnap.forEach((eDoc) => {
+    const gogn = eDoc.data();
+    const tr = document.createElement("tr");
+
+    const nafnTd = document.createElement("td");
+    nafnTd.textContent = gogn.nafn;
+    const embaettiTd = document.createElement("td");
+    embaettiTd.textContent = gogn.embaetti;
+
+    const eydaBtn = document.createElement("button");
+    eydaBtn.type = "button";
+    eydaBtn.className = "smabtn";
+    eydaBtn.textContent = "Eyða";
+    eydaBtn.addEventListener("click", () => {
+      if (!confirm(`Eyða "${gogn.nafn}" og báðum spurningunum sem fylgja?`)) return;
+      eydaSerflokkaFaerslu(eDoc.ref, gogn);
+    });
+    const adgerdTd = document.createElement("td");
+    adgerdTd.appendChild(eydaBtn);
+
+    tr.appendChild(nafnTd);
+    tr.appendChild(embaettiTd);
+    tr.appendChild(adgerdTd);
+    embaettismannaTafla.appendChild(tr);
+  });
+
+  bokalistaTafla.innerHTML = "";
+  if (bokSnap.empty) {
+    bokalistaTafla.innerHTML = `<tr><td colspan="3">Engar bækur skráðar ennþá.</td></tr>`;
+  }
+  bokSnap.forEach((bDoc) => {
+    const gogn = bDoc.data();
+    const tr = document.createElement("tr");
+
+    const hofundurTd = document.createElement("td");
+    hofundurTd.textContent = gogn.hofundur;
+    const titillTd = document.createElement("td");
+    titillTd.textContent = gogn.titill;
+
+    const eydaBtn = document.createElement("button");
+    eydaBtn.type = "button";
+    eydaBtn.className = "smabtn";
+    eydaBtn.textContent = "Eyða";
+    eydaBtn.addEventListener("click", () => {
+      if (!confirm(`Eyða "${gogn.titill}" og báðum spurningunum sem fylgja?`)) return;
+      eydaSerflokkaFaerslu(bDoc.ref, gogn);
+    });
+    const adgerdTd = document.createElement("td");
+    adgerdTd.appendChild(eydaBtn);
+
+    tr.appendChild(hofundurTd);
+    tr.appendChild(titillTd);
+    tr.appendChild(adgerdTd);
+    bokalistaTafla.appendChild(tr);
+  });
+}
+
+embaettismadurForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const nafn = embNafn.value.trim();
+  const embaetti = embEmbaetti.value.trim();
+  const myndSlod = embMyndSlod.value.trim();
+  const logoSlod = embLogoSlod.value.trim();
+  if (!nafn || !embaetti) return;
+
+  embStada.textContent = "Vista…";
+  try {
+    const verkefniId = await finnaEdaBuaTilVerkefni("Embættismannalisti");
+
+    const q1Ref = doc(collection(db, "questions"));
+    const q2Ref = doc(collection(db, "questions"));
+    const batch = writeBatch(db);
+
+    // Spurning 1: embætti -> nafn. Sýnir lógó embættisins sem vísbendingu.
+    batch.set(q1Ref, {
+      text: `Hver er ${embaetti}?`,
+      verkefniId,
+      active: false,
+      createdAt: serverTimestamp(),
+      ...(logoSlod ? { image: logoSlod } : {})
+    });
+    batch.set(doc(db, "answers", q1Ref.id), { correctAnswers: [samraema(nafn)] });
+
+    // Spurning 2: nafn -> embætti. Sýnir mynd af einstaklingnum.
+    batch.set(q2Ref, {
+      text: `Hvaða embætti gegnir ${nafn}?`,
+      verkefniId,
+      active: false,
+      createdAt: serverTimestamp(),
+      ...(myndSlod ? { image: myndSlod } : {})
+    });
+    batch.set(doc(db, "answers", q2Ref.id), { correctAnswers: [samraema(embaetti)] });
+
+    await batch.commit();
+    await addDoc(collection(db, "embaettismenn"), {
+      nafn,
+      embaetti,
+      myndSlod,
+      logoSlod,
+      verkefniId,
+      q1Id: q1Ref.id,
+      q2Id: q2Ref.id,
+      createdAt: serverTimestamp()
+    });
+
+    embaettismadurForm.reset();
+    embStada.textContent = `Bætti við "${nafn}" - tvær spurningar búnar til (óvirkar, kveiktu á þeim í Spurningar-flipanum).`;
+    hladaSerflokkar();
+    hladaVerkefnayfirlit();
+    hladaSpurningayfirlit();
+  } catch (villa) {
+    console.error(villa);
+    embStada.textContent = "Villa: " + villa.message;
+  }
+});
+
+bokForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const hofundur = bokHofundur.value.trim();
+  const titill = bokTitill.value.trim();
+  const kapaSlod = bokKapaSlod.value.trim();
+  if (!hofundur || !titill) return;
+
+  bokStada.textContent = "Vista…";
+  try {
+    const verkefniId = await finnaEdaBuaTilVerkefni("Bókalisti");
+
+    const q1Ref = doc(collection(db, "questions"));
+    const q2Ref = doc(collection(db, "questions"));
+    const batch = writeBatch(db);
+
+    // Spurning 1: titill -> höfundur. Sýnir bókarkápuna sem vísbendingu.
+    batch.set(q1Ref, {
+      text: `Hver skrifaði "${titill}"?`,
+      verkefniId,
+      active: false,
+      createdAt: serverTimestamp(),
+      ...(kapaSlod ? { image: kapaSlod } : {})
+    });
+    batch.set(doc(db, "answers", q1Ref.id), { correctAnswers: [samraema(hofundur)] });
+
+    // Spurning 2: höfundur -> titill.
+    batch.set(q2Ref, {
+      text: `Hvaða bók skrifaði ${hofundur}?`,
+      verkefniId,
+      active: false,
+      createdAt: serverTimestamp()
+    });
+    batch.set(doc(db, "answers", q2Ref.id), { correctAnswers: [samraema(titill)] });
+
+    await batch.commit();
+    await addDoc(collection(db, "bokalisti"), {
+      hofundur,
+      titill,
+      kapaSlod,
+      verkefniId,
+      q1Id: q1Ref.id,
+      q2Id: q2Ref.id,
+      createdAt: serverTimestamp()
+    });
+
+    bokForm.reset();
+    bokStada.textContent = `Bætti við "${titill}" - tvær spurningar búnar til (óvirkar, kveiktu á þeim í Spurningar-flipanum).`;
+    hladaSerflokkar();
+    hladaVerkefnayfirlit();
+    hladaSpurningayfirlit();
+  } catch (villa) {
+    console.error(villa);
+    bokStada.textContent = "Villa: " + villa.message;
+  }
+});
 
 async function hladaSpurningayfirlit() {
   const [spurningarSnap, svorSnap, verkefnaSnap] = await Promise.all([

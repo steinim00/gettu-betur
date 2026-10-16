@@ -100,5 +100,17 @@ service cloud.firestore {
     match /graenadeildinAefingar/{aefingId} {
       allow read, write: if erAdmin();
     }
+
+    // Sérflokkar (Embættismannalisti, Bókalisti) - uppspretta-gögnin sem
+    // stjórnborðið notar til að búa til tvíátta spurningar sjálfkrafa.
+    // Eingöngu admin les/skrifar - nemendur sjá eingöngu útkomuna sem
+    // venjulegar spurningar í questions/answers.
+    match /embaettismenn/{id} {
+      allow read, write: if erAdmin();
+    }
+
+    match /bokalisti/{id} {
+      allow read, write: if erAdmin();
+    }
   }
 }
