@@ -7,6 +7,10 @@
 // er X?" í stað "Hvaða embætti gegnir X?") í stað þess að endursemja þau.
 // Sveitarfélagamerkin eru vistuð í myndir/sveitarfelog/ (notandi sendi þau)
 // og notuð sem lógó/hint-mynd á fyrri spurningunni ("Hver er ... í X?").
+// Myndir af embættismönnunum sjálfum (myndir/sveitarstjorar/, sóttar af
+// opinberum vefjum sveitarfélaganna) eru notaðar á seinni spurningunni
+// ("Í hvaða sveitarfélagi er X ...?"). Engin mynd fannst af Vilhjálmi
+// Árnasyni (Reykjanesbær) þrátt fyrir ítrekaða leit.
 const path = require("path");
 const admin = require("firebase-admin");
 
@@ -23,18 +27,18 @@ function samraema(text) {
 }
 
 const FAERSLUR = [
-  { nafn: "Hildur Björnsdóttir", merki: "👑", embaetti: "borgarstjóri í Reykjavík", q1: "Hver er borgarstjóri í Reykjavík?", q2: "Í hvaða sveitarfélagi er Hildur Björnsdóttir borgarstjóri?", svar2: "Reykjavík", logo: "myndir/sveitarfelog/reykjavik.png" },
-  { nafn: "Ásdís Kristjánsdóttir", embaetti: "bæjarstjóri í Kópavogi", q1: "Hver er bæjarstjóri í Kópavogi?", q2: "Í hvaða sveitarfélagi er Ásdís Kristjánsdóttir bæjarstjóri?", svar2: "Kópavogur", logo: "myndir/sveitarfelog/kopavogur.png" },
-  { nafn: "Þórður Þórarinsson", embaetti: "bæjarstjóri í Hafnarfirði", q1: "Hver er bæjarstjóri í Hafnarfirði?", q2: "Í hvaða sveitarfélagi er Þórður Þórarinsson bæjarstjóri?", svar2: "Hafnarfjörður", logo: "myndir/sveitarfelog/hafnarfjordur.png" },
-  { nafn: "Almar Guðmundsson", embaetti: "bæjarstjóri í Garðabæ", q1: "Hver er bæjarstjóri í Garðabæ?", q2: "Í hvaða sveitarfélagi er Almar Guðmundsson bæjarstjóri?", svar2: "Garðabær", logo: "myndir/sveitarfelog/gardabaer.png" },
-  { nafn: "Hilmar Gunnarsson", embaetti: "bæjarstjóri í Mosfellsbæ", q1: "Hver er bæjarstjóri í Mosfellsbæ?", q2: "Í hvaða sveitarfélagi er Hilmar Gunnarsson bæjarstjóri?", svar2: "Mosfellsbær", logo: "myndir/sveitarfelog/mosfellsbaer.png" },
-  { nafn: "Þór Sigurgeirsson", embaetti: "bæjarstjóri á Seltjarnarnesi", q1: "Hver er bæjarstjóri á Seltjarnarnesi?", q2: "Í hvaða sveitarfélagi er Þór Sigurgeirsson bæjarstjóri?", svar2: "Seltjarnarnes", logo: "myndir/sveitarfelog/seltjarnarnes.png" },
+  { nafn: "Hildur Björnsdóttir", merki: "👑", embaetti: "borgarstjóri í Reykjavík", q1: "Hver er borgarstjóri í Reykjavík?", q2: "Í hvaða sveitarfélagi er Hildur Björnsdóttir borgarstjóri?", svar2: "Reykjavík", logo: "myndir/sveitarfelog/reykjavik.png", mynd: "myndir/sveitarstjorar/hildur_bjornsdottir.jpg" },
+  { nafn: "Ásdís Kristjánsdóttir", embaetti: "bæjarstjóri í Kópavogi", q1: "Hver er bæjarstjóri í Kópavogi?", q2: "Í hvaða sveitarfélagi er Ásdís Kristjánsdóttir bæjarstjóri?", svar2: "Kópavogur", logo: "myndir/sveitarfelog/kopavogur.png", mynd: "myndir/sveitarstjorar/asdis_kristjansdottir.jpg" },
+  { nafn: "Þórður Þórarinsson", embaetti: "bæjarstjóri í Hafnarfirði", q1: "Hver er bæjarstjóri í Hafnarfirði?", q2: "Í hvaða sveitarfélagi er Þórður Þórarinsson bæjarstjóri?", svar2: "Hafnarfjörður", logo: "myndir/sveitarfelog/hafnarfjordur.png", mynd: "myndir/sveitarstjorar/thordur_thorarinsson.jpg" },
+  { nafn: "Almar Guðmundsson", embaetti: "bæjarstjóri í Garðabæ", q1: "Hver er bæjarstjóri í Garðabæ?", q2: "Í hvaða sveitarfélagi er Almar Guðmundsson bæjarstjóri?", svar2: "Garðabær", logo: "myndir/sveitarfelog/gardabaer.png", mynd: "myndir/sveitarstjorar/almar_gudmundsson.jpg" },
+  { nafn: "Hilmar Gunnarsson", embaetti: "bæjarstjóri í Mosfellsbæ", q1: "Hver er bæjarstjóri í Mosfellsbæ?", q2: "Í hvaða sveitarfélagi er Hilmar Gunnarsson bæjarstjóri?", svar2: "Mosfellsbær", logo: "myndir/sveitarfelog/mosfellsbaer.png", mynd: "myndir/sveitarstjorar/hilmar_gunnarsson.jpg" },
+  { nafn: "Þór Sigurgeirsson", embaetti: "bæjarstjóri á Seltjarnarnesi", q1: "Hver er bæjarstjóri á Seltjarnarnesi?", q2: "Í hvaða sveitarfélagi er Þór Sigurgeirsson bæjarstjóri?", svar2: "Seltjarnarnes", logo: "myndir/sveitarfelog/seltjarnarnes.png", mynd: "myndir/sveitarstjorar/thor_sigurgeirsson.jpg" },
   { nafn: "Vilhjálmur Árnason", embaetti: "bæjarstjóri í Reykjanesbæ", q1: "Hver er bæjarstjóri í Reykjanesbæ?", q2: "Í hvaða sveitarfélagi er Vilhjálmur Árnason bæjarstjóri?", svar2: "Reykjanesbær", logo: "myndir/sveitarfelog/reykjanesbaer.png" },
-  { nafn: "Berglind Ósk Guðmundsdóttir", embaetti: "bæjarstjóri á Akureyri", q1: "Hver er bæjarstjóri á Akureyri?", q2: "Í hvaða sveitarfélagi er Berglind Ósk Guðmundsdóttir bæjarstjóri?", svar2: "Akureyri", logo: "myndir/sveitarfelog/akureyri.png" },
-  { nafn: "Bragi Bjarnason", embaetti: "bæjarstjóri í Árborg", q1: "Hver er bæjarstjóri í Árborg?", q2: "Í hvaða sveitarfélagi er Bragi Bjarnason bæjarstjóri?", svar2: "Árborg", logo: "myndir/sveitarfelog/arborg.png" },
-  { nafn: "Sturlaugur Haraldsson", embaetti: "bæjarstjóri á Akranesi", q1: "Hver er bæjarstjóri á Akranesi?", q2: "Í hvaða sveitarfélagi er Sturlaugur Haraldsson bæjarstjóri?", svar2: "Akranes", logo: "myndir/sveitarfelog/akranes.png" },
-  { nafn: "Dagmar Ýr Stefánsdóttir", embaetti: "sveitarstjóri í Múlaþingi", q1: "Hver er sveitarstjóri í Múlaþingi?", q2: "Í hvaða sveitarfélagi er Dagmar Ýr Stefánsdóttir sveitarstjóri?", svar2: "Múlaþing", logo: "myndir/sveitarfelog/mulathing.png" },
-  { nafn: "Jóna Árný Þórðardóttir", embaetti: "bæjarstjóri í Fjarðabyggð", q1: "Hver er bæjarstjóri í Fjarðabyggð?", q2: "Í hvaða sveitarfélagi er Jóna Árný Þórðardóttir bæjarstjóri?", svar2: "Fjarðabyggð", logo: "myndir/sveitarfelog/fjardabyggd.png" }
+  { nafn: "Berglind Ósk Guðmundsdóttir", embaetti: "bæjarstjóri á Akureyri", q1: "Hver er bæjarstjóri á Akureyri?", q2: "Í hvaða sveitarfélagi er Berglind Ósk Guðmundsdóttir bæjarstjóri?", svar2: "Akureyri", logo: "myndir/sveitarfelog/akureyri.png", mynd: "myndir/sveitarstjorar/berglind_osk_gudmundsdottir.jpg" },
+  { nafn: "Bragi Bjarnason", embaetti: "bæjarstjóri í Árborg", q1: "Hver er bæjarstjóri í Árborg?", q2: "Í hvaða sveitarfélagi er Bragi Bjarnason bæjarstjóri?", svar2: "Árborg", logo: "myndir/sveitarfelog/arborg.png", mynd: "myndir/sveitarstjorar/bragi_bjarnason.png" },
+  { nafn: "Sturlaugur Haraldsson", embaetti: "bæjarstjóri á Akranesi", q1: "Hver er bæjarstjóri á Akranesi?", q2: "Í hvaða sveitarfélagi er Sturlaugur Haraldsson bæjarstjóri?", svar2: "Akranes", logo: "myndir/sveitarfelog/akranes.png", mynd: "myndir/sveitarstjorar/sturlaugur_haraldsson.jpg" },
+  { nafn: "Dagmar Ýr Stefánsdóttir", embaetti: "sveitarstjóri í Múlaþingi", q1: "Hver er sveitarstjóri í Múlaþingi?", q2: "Í hvaða sveitarfélagi er Dagmar Ýr Stefánsdóttir sveitarstjóri?", svar2: "Múlaþing", logo: "myndir/sveitarfelog/mulathing.png", mynd: "myndir/sveitarstjorar/dagmar_yr_stefansdottir.jpg" },
+  { nafn: "Jóna Árný Þórðardóttir", embaetti: "bæjarstjóri í Fjarðabyggð", q1: "Hver er bæjarstjóri í Fjarðabyggð?", q2: "Í hvaða sveitarfélagi er Jóna Árný Þórðardóttir bæjarstjóri?", svar2: "Fjarðabyggð", logo: "myndir/sveitarfelog/fjardabyggd.png", mynd: "myndir/sveitarstjorar/jona_arny_thordardottir.jpg" }
 ];
 
 async function finnaEdaBuaTilVerkefni(titill) {
@@ -70,13 +74,19 @@ async function main() {
     const q1Svor = f.merki ? [`${f.nafn} ${f.merki}`, samraema(f.nafn)] : [samraema(f.nafn)];
     batch.set(db.collection("answers").doc(q1Ref.id), { correctAnswers: q1Svor });
 
-    batch.set(q2Ref, { text: f.q2, verkefniId, active: false, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+    batch.set(q2Ref, {
+      text: f.q2,
+      verkefniId,
+      active: false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      ...(f.mynd ? { image: f.mynd } : {})
+    });
     batch.set(db.collection("answers").doc(q2Ref.id), { correctAnswers: [samraema(f.svar2)] });
 
     batch.set(db.collection("embaettismenn").doc(), {
       nafn: f.nafn,
       embaetti: f.embaetti,
-      myndSlod: "",
+      myndSlod: f.mynd || "",
       logoSlod: f.logo,
       verkefniId,
       q1Id: q1Ref.id,
