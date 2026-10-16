@@ -23,7 +23,7 @@ function samraema(text) {
 }
 
 const FAERSLUR = [
-  { nafn: "Hildur Björnsdóttir", embaetti: "borgarstjóri í Reykjavík", q1: "Hver er borgarstjóri í Reykjavík?", q2: "Í hvaða sveitarfélagi er Hildur Björnsdóttir borgarstjóri?", svar2: "Reykjavík" },
+  { nafn: "Hildur Björnsdóttir", merki: "👑", embaetti: "borgarstjóri í Reykjavík", q1: "Hver er borgarstjóri í Reykjavík?", q2: "Í hvaða sveitarfélagi er Hildur Björnsdóttir borgarstjóri?", svar2: "Reykjavík" },
   { nafn: "Ásdís Kristjánsdóttir", embaetti: "bæjarstjóri í Kópavogi", q1: "Hver er bæjarstjóri í Kópavogi?", q2: "Í hvaða sveitarfélagi er Ásdís Kristjánsdóttir bæjarstjóri?", svar2: "Kópavogur" },
   { nafn: "Þórður Þórarinsson", embaetti: "bæjarstjóri í Hafnarfirði", q1: "Hver er bæjarstjóri í Hafnarfirði?", q2: "Í hvaða sveitarfélagi er Þórður Þórarinsson bæjarstjóri?", svar2: "Hafnarfjörður" },
   { nafn: "Almar Guðmundsson", embaetti: "bæjarstjóri í Garðabæ", q1: "Hver er bæjarstjóri í Garðabæ?", q2: "Í hvaða sveitarfélagi er Almar Guðmundsson bæjarstjóri?", svar2: "Garðabær" },
@@ -68,7 +68,9 @@ async function main() {
     batch.set(db.collection("answers").doc(q2Ref.id), { correctAnswers: [samraema(f.svar2)] });
 
     batch.set(db.collection("embaettismenn").doc(), {
-      nafn: f.nafn,
+      // merki (t.d. 👑 hjá Hildi Björnsdóttur) er eingöngu til sýnis í
+      // stjórnborðinu - rétta svarið notar hreina nafnið (f.nafn) fyrir ofan.
+      nafn: f.merki ? `${f.nafn} ${f.merki}` : f.nafn,
       embaetti: f.embaetti,
       myndSlod: "",
       logoSlod: "",

@@ -22,7 +22,9 @@ const BAEKUR = [
   { hofundur: "Bergur Ebbi Benediktsson", titill: "Öld ímyndunaraflsins", kapaSlod: "myndir/baekur/old-imyndunaraflsins.jpg" },
   { hofundur: "Gisèle Pelicot", titill: "Óður til lífsins", kapaSlod: "myndir/baekur/odur-til-lifsins.jpg" },
   { hofundur: "Ólafur Ragnar Grímsson", titill: "Vegferð um veröldina", kapaSlod: "myndir/baekur/vegferd-um-veroldina.jpg" },
-  { hofundur: "Óttar Sveinsson", titill: "Útkall - Þrekvirki í Djúpinu", kapaSlod: "myndir/baekur/utkall.jpg" }
+  // "Útkall" er langlíf bókaröð (25 ár á toppnum) - engin ein titilsvar fyrir
+  // "Hvaða bók skrifaði Óttar Sveinsson?", svo bareinA sleppir þeirri átt.
+  { hofundur: "Óttar Sveinsson", titill: "Útkall", kapaSlod: "myndir/baekur/utkall.jpg", bareinA: true }
 ];
 
 async function finnaEdaBuaTilVerkefni(titill) {
@@ -42,12 +44,11 @@ async function main() {
   console.log(`Nota verkefnið "Bókalisti" (${verkefniId}).`);
 
   let batch = db.batch();
-  let fjoldiIBatch = 0;
   let heild = 0;
+  let heildSpurninga = 0;
 
   for (const b of BAEKUR) {
     const q1Ref = db.collection("questions").doc();
-    const q2Ref = db.collection("questions").doc();
 
     batch.set(q1Ref, {
       text: `Hver skrifaði "${b.titill}"?`,
@@ -57,14 +58,20 @@ async function main() {
       image: b.kapaSlod
     });
     batch.set(db.collection("answers").doc(q1Ref.id), { correctAnswers: [samraema(b.hofundur)] });
+    heildSpurninga++;
 
-    batch.set(q2Ref, {
-      text: `Hvaða bók skrifaði ${b.hofundur}?`,
-      verkefniId,
-      active: false,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-    batch.set(db.collection("answers").doc(q2Ref.id), { correctAnswers: [samraema(b.titill)] });
+    let q2Ref = null;
+    if (!b.bareinA) {
+      q2Ref = db.collection("questions").doc();
+      batch.set(q2Ref, {
+        text: `Hvaða bók skrifaði ${b.hofundur}?`,
+        verkefniId,
+        active: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      batch.set(db.collection("answers").doc(q2Ref.id), { correctAnswers: [samraema(b.titill)] });
+      heildSpurninga++;
+    }
 
     batch.set(db.collection("bokalisti").doc(), {
       hofundur: b.hofundur,
@@ -72,16 +79,15 @@ async function main() {
       kapaSlod: b.kapaSlod,
       verkefniId,
       q1Id: q1Ref.id,
-      q2Id: q2Ref.id,
+      ...(q2Ref ? { q2Id: q2Ref.id } : {}),
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    fjoldiIBatch += 5;
     heild++;
   }
   await batch.commit();
 
-  console.log(`Bætti við ${heild} bókum (${heild * 2} spurningar, óvirkar) í Bókalistann.`);
+  console.log(`Bætti við ${heild} bókum (${heildSpurninga} spurningar, óvirkar) í Bókalistann.`);
 }
 
 main().catch((villa) => {
