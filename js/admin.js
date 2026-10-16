@@ -81,6 +81,12 @@ const bokKapaSlod = document.getElementById("bokKapaSlod");
 const bokStada = document.getElementById("bokStada");
 const bokalistaTafla = document.getElementById("bokalistaTafla").querySelector("tbody");
 
+const notendaValPanell = document.getElementById("notendaValPanell");
+const notendaValTitill = document.getElementById("notendaValTitill");
+const notendaValGatlisti = document.getElementById("notendaValGatlisti");
+const vistaNotendaValBtn = document.getElementById("vistaNotendaValBtn");
+const hættaVidNotendaValBtn = document.getElementById("hættaVidNotendaValBtn");
+
 // Sama merki og í js/quiz.js - geymt í "svar" reitnum þegar notandi ýtir á Pass.
 const SLEPPT_MERKI = "__sleppt__";
 
@@ -760,40 +766,8 @@ async function hladaVerkefnayfirlit() {
     syileikiKnappur.type = "button";
     syileikiKnappur.className = "smabtn";
     syileikiKnappur.textContent = "Velja notendur";
-    syileikiKnappur.title = "Takmarkaðu verkefnið við ákveðna notendur - autt þýðir að allir sjái það";
-    syileikiKnappur.addEventListener("click", async () => {
-      const notendurSnap = await getDocs(collection(db, "users"));
-      const notendur = notendurSnap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .filter((n) => n.role !== "admin" && n.email);
-
-      const nuverandiLeyfdir = new Set(verkefni.leyfdirNotendur || []);
-      const nuverandiTolvupostar = notendur
-        .filter((n) => nuverandiLeyfdir.has(n.id))
-        .map((n) => n.email)
-        .join(", ");
-
-      const svar = prompt(
-        `Netföng þeirra sem mega sjá "${verkefni.title}", aðskilin með kommu.\nSkildu eftir autt til að allir innskráðir sjái verkefnið.`,
-        nuverandiTolvupostar
-      );
-      if (svar === null) return;
-
-      const voldNetfong = svar.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
-      const voldUid = notendur
-        .filter((n) => voldNetfong.includes((n.email || "").toLowerCase()))
-        .map((n) => n.id);
-
-      const ofundin = voldNetfong.filter(
-        (np) => !notendur.some((n) => (n.email || "").toLowerCase() === np)
-      );
-      if (ofundin.length > 0) {
-        alert(`Fann ekki notanda með netfang: ${ofundin.join(", ")} - þau voru ekki valin.`);
-      }
-
-      await updateDoc(doc(db, "verkefni", vDoc.id), { leyfdirNotendur: voldUid });
-      hladaVerkefnayfirlit();
-    });
+    syileikiKnappur.title = "Takmarkaðu verkefnið við ákveðna notendur - ekkert valið þýðir að allir sjái það";
+    syileikiKnappur.addEventListener("click", () => opnaNotendaValPanell(vDoc.id, verkefni));
 
     const titillTd = document.createElement("td");
     titillTd.textContent = verkefni.title;
@@ -852,6 +826,53 @@ function fyllaVerkefniSelect(selectEl, verkefnaSnap, tomurValkostur) {
     selectEl.value = valid;
   }
 }
+
+let notendaValVerkefniId = "";
+
+// Fyllir gátlistann af öllum skráðum (ekki-admin) notendum með nafni sem
+// merki, forhakar þá sem þegar eru í leyfdirNotendur, og opnar panelinn.
+async function opnaNotendaValPanell(verkefniId, verkefni) {
+  notendaValVerkefniId = verkefniId;
+  notendaValTitill.textContent = `Veldu notendur - "${verkefni.title}"`;
+  notendaValGatlisti.innerHTML = "<p>Sæki notendur…</p>";
+  notendaValPanell.hidden = false;
+  notendaValPanell.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  const notendurSnap = await getDocs(collection(db, "users"));
+  const notendur = notendurSnap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((n) => n.role !== "admin")
+    .sort((a, b) => (a.nafn || a.email || "").localeCompare(b.nafn || b.email || "", "is"));
+
+  const nuverandiLeyfdir = new Set(verkefni.leyfdirNotendur || []);
+
+  notendaValGatlisti.innerHTML = "";
+  if (notendur.length === 0) {
+    notendaValGatlisti.innerHTML = "<p>Engir notendur skráðir ennþá.</p>";
+    return;
+  }
+  notendur.forEach((n) => {
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = n.id;
+    checkbox.checked = nuverandiLeyfdir.has(n.id);
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(n.nafn || n.email || n.id));
+    notendaValGatlisti.appendChild(label);
+  });
+}
+
+vistaNotendaValBtn.addEventListener("click", async () => {
+  const voldUid = [...notendaValGatlisti.querySelectorAll("input:checked")].map((i) => i.value);
+  await updateDoc(doc(db, "verkefni", notendaValVerkefniId), { leyfdirNotendur: voldUid });
+  notendaValPanell.hidden = true;
+  hladaVerkefnayfirlit();
+});
+
+hættaVidNotendaValBtn.addEventListener("click", () => {
+  notendaValPanell.hidden = true;
+});
 
 // Finnur verkefni með nákvæmlega þessum titli, eða býr það til (ógallerí,
 // engar glærur - lendir því sjálfkrafa í "Hraðaspurningar" dálkinum hjá
