@@ -7,10 +7,10 @@
 // er X?" í stað "Hvaða embætti gegnir X?") í stað þess að endursemja þau.
 // Sveitarfélagamerkin eru vistuð í myndir/sveitarfelog/ (notandi sendi þau)
 // og notuð sem lógó/hint-mynd á fyrri spurningunni ("Hver er ... í X?").
-// Myndir af embættismönnunum sjálfum (myndir/sveitarstjorar/, sóttar af
+// Myndir af embættismönnunum sjálfum (myndir/sveitarstjorar/, flestar sóttar af
 // opinberum vefjum sveitarfélaganna) eru notaðar á seinni spurningunni
-// ("Í hvaða sveitarfélagi er X ...?"). Engin mynd fannst af Vilhjálmi
-// Árnasyni (Reykjanesbær) þrátt fyrir ítrekaða leit.
+// ("Í hvaða sveitarfélagi er X ...?"). Mynd af Vilhjálmi Árnasyni (Reykjanesbær)
+// er opinber þingmannamynd af Wikimedia Commons, enda sat hann á Alþingi.
 const path = require("path");
 const admin = require("firebase-admin");
 
@@ -33,7 +33,7 @@ const FAERSLUR = [
   { nafn: "Almar Guðmundsson", embaetti: "bæjarstjóri í Garðabæ", q1: "Hver er bæjarstjóri í Garðabæ?", q2: "Í hvaða sveitarfélagi er Almar Guðmundsson bæjarstjóri?", svar2: "Garðabær", logo: "myndir/sveitarfelog/gardabaer.png", mynd: "myndir/sveitarstjorar/almar_gudmundsson.jpg" },
   { nafn: "Hilmar Gunnarsson", embaetti: "bæjarstjóri í Mosfellsbæ", q1: "Hver er bæjarstjóri í Mosfellsbæ?", q2: "Í hvaða sveitarfélagi er Hilmar Gunnarsson bæjarstjóri?", svar2: "Mosfellsbær", logo: "myndir/sveitarfelog/mosfellsbaer.png", mynd: "myndir/sveitarstjorar/hilmar_gunnarsson.jpg" },
   { nafn: "Þór Sigurgeirsson", embaetti: "bæjarstjóri á Seltjarnarnesi", q1: "Hver er bæjarstjóri á Seltjarnarnesi?", q2: "Í hvaða sveitarfélagi er Þór Sigurgeirsson bæjarstjóri?", svar2: "Seltjarnarnes", logo: "myndir/sveitarfelog/seltjarnarnes.png", mynd: "myndir/sveitarstjorar/thor_sigurgeirsson.jpg" },
-  { nafn: "Vilhjálmur Árnason", embaetti: "bæjarstjóri í Reykjanesbæ", q1: "Hver er bæjarstjóri í Reykjanesbæ?", q2: "Í hvaða sveitarfélagi er Vilhjálmur Árnason bæjarstjóri?", svar2: "Reykjanesbær", logo: "myndir/sveitarfelog/reykjanesbaer.png" },
+  { nafn: "Vilhjálmur Árnason", embaetti: "bæjarstjóri í Reykjanesbæ", q1: "Hver er bæjarstjóri í Reykjanesbæ?", q2: "Í hvaða sveitarfélagi er Vilhjálmur Árnason bæjarstjóri?", svar2: "Reykjanesbær", logo: "myndir/sveitarfelog/reykjanesbaer.png", mynd: "myndir/sveitarstjorar/vilhjalmur_arnason.jpg" },
   { nafn: "Berglind Ósk Guðmundsdóttir", embaetti: "bæjarstjóri á Akureyri", q1: "Hver er bæjarstjóri á Akureyri?", q2: "Í hvaða sveitarfélagi er Berglind Ósk Guðmundsdóttir bæjarstjóri?", svar2: "Akureyri", logo: "myndir/sveitarfelog/akureyri.png", mynd: "myndir/sveitarstjorar/berglind_osk_gudmundsdottir.jpg" },
   { nafn: "Bragi Bjarnason", embaetti: "bæjarstjóri í Árborg", q1: "Hver er bæjarstjóri í Árborg?", q2: "Í hvaða sveitarfélagi er Bragi Bjarnason bæjarstjóri?", svar2: "Árborg", logo: "myndir/sveitarfelog/arborg.png", mynd: "myndir/sveitarstjorar/bragi_bjarnason.png" },
   { nafn: "Sturlaugur Haraldsson", embaetti: "bæjarstjóri á Akranesi", q1: "Hver er bæjarstjóri á Akranesi?", q2: "Í hvaða sveitarfélagi er Sturlaugur Haraldsson bæjarstjóri?", svar2: "Akranes", logo: "myndir/sveitarfelog/akranes.png", mynd: "myndir/sveitarstjorar/sturlaugur_haraldsson.jpg" },
