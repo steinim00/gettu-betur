@@ -18,7 +18,7 @@ async function main() {
     console.log(`Verkefni: ${d.data().verkefniId}`);
     console.log(`Texti: ${d.data().text}`);
     console.log(`Virk: ${d.data().active}`);
-    console.log(`Rétt svör: ${JSON.stringify(svarSnap.exists() ? svarSnap.data().correctAnswers : "ENGIN")}`);
+    console.log(`Rétt svör: ${JSON.stringify(svarSnap.exists ? svarSnap.data().correctAnswers : "ENGIN")}`);
   }
 }
 
