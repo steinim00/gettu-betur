@@ -1,5 +1,5 @@
-// Einskiptis skrifta: hleður 4 bókum úr metsölulistanum (jólabókaflóð 2026)
-// inn í "bokalisti" safnið - sömu 4 bækur og eru í bokalisti-metsala.html,
+// Einskiptis skrifta: hleður bókum úr metsölulistanum (jólabókaflóð 2026)
+// inn í "bokalisti" safnið - sömu bækur og eru í bokalisti.html,
 // þ.e. þær einu sem höfðu staðfesta kápumynd til að vitna í. Myndirnar eru
 // þegar í repo-inu (myndir/baekur/), vísað í með relative slóð.
 const path = require("path");
@@ -21,7 +21,8 @@ const BAEKUR = [
   { hofundur: "Hallgrímur Helgason", titill: "Enginn deyr í IKEA", kapaSlod: "myndir/baekur/enginn-deyr-i-ikea.jpg" },
   { hofundur: "Bergur Ebbi Benediktsson", titill: "Öld ímyndunaraflsins", kapaSlod: "myndir/baekur/old-imyndunaraflsins.jpg" },
   { hofundur: "Gisèle Pelicot", titill: "Óður til lífsins", kapaSlod: "myndir/baekur/odur-til-lifsins.jpg" },
-  { hofundur: "Ólafur Ragnar Grímsson", titill: "Vegferð um veröldina", kapaSlod: "myndir/baekur/vegferd-um-veroldina.jpg" }
+  { hofundur: "Ólafur Ragnar Grímsson", titill: "Vegferð um veröldina", kapaSlod: "myndir/baekur/vegferd-um-veroldina.jpg" },
+  { hofundur: "Óttar Sveinsson", titill: "Útkall - Þrekvirki í Djúpinu", kapaSlod: "myndir/baekur/utkall.jpg" }
 ];
 
 async function finnaEdaBuaTilVerkefni(titill) {
