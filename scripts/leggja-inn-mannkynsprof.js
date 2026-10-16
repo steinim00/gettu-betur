@@ -40,6 +40,7 @@ async function main() {
   const verkefniRef = db.collection("verkefni").doc();
   await verkefniRef.set({
     title: VERKEFNA_TITILL,
+    tegund: "prof",
     slides: [
       {
         title: VERKEFNA_TITILL,

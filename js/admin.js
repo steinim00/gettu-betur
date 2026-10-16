@@ -691,7 +691,7 @@ async function hladaVerkefnayfirlit() {
 
   verkefnaTafla.innerHTML = "";
   if (verkefnaSnap.empty) {
-    verkefnaTafla.innerHTML = `<tr><td colspan="5">Engin verkefni ennþá.</td></tr>`;
+    verkefnaTafla.innerHTML = `<tr><td colspan="6">Engin verkefni ennþá.</td></tr>`;
     return;
   }
 
@@ -729,8 +729,22 @@ async function hladaVerkefnayfirlit() {
       generaSpurningarBtn.scrollIntoView({ behavior: "smooth", block: "center" });
     });
 
+    const erProf = verkefni.tegund === "prof";
+    const tegundKnappur = document.createElement("button");
+    tegundKnappur.type = "button";
+    tegundKnappur.className = "smabtn";
+    tegundKnappur.textContent = erProf ? "Gera að verkefni" : "Gera að prófi";
+    tegundKnappur.title = "Próf fara beint í spurningar í minni bútum í stað glæruflæðis";
+    tegundKnappur.addEventListener("click", async () => {
+      await updateDoc(doc(db, "verkefni", vDoc.id), { tegund: erProf ? "verkefni" : "prof" });
+      hladaVerkefnayfirlit();
+    });
+
     const titillTd = document.createElement("td");
     titillTd.textContent = verkefni.title;
+
+    const tegundTd = document.createElement("td");
+    tegundTd.textContent = erProf ? "📝 Próf" : "Verkefni";
 
     const glaeruTd = document.createElement("td");
     glaeruTd.textContent = (verkefni.slides || []).length;
@@ -746,9 +760,11 @@ async function hladaVerkefnayfirlit() {
     const adgerdTd = document.createElement("td");
     adgerdTd.appendChild(kveikjaKnappur);
     adgerdTd.appendChild(breytaTitliKnappur);
+    adgerdTd.appendChild(tegundKnappur);
     adgerdTd.appendChild(generaKnappur);
 
     tr.appendChild(titillTd);
+    tr.appendChild(tegundTd);
     tr.appendChild(glaeruTd);
     tr.appendChild(spurningaTd);
     tr.appendChild(stodaTd);

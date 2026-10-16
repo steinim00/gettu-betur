@@ -93,10 +93,13 @@ let allarSpurningaskjol = [];
 let svaradIdSett = new Set();
 let spurningaSida = 0;
 
-// Verkefni sem hafa enga alvöru glæruefni (eingöngu sjálfgerða lýsingarglæru úr
-// t.d. upload-questions.js, og ekkert upprunalegt pptx) eru hrein spurningabanka -
-// þau fara beint í spurningar í minni bútum, líkt og próf, í stað glæruflæðisins.
+// Verkefni geta verið sérstaklega merkt sem "próf" (tegund: "prof") í
+// stjórnborðinu. Annars eru verkefni sem hafa enga alvöru glæruefni
+// (eingöngu sjálfgerða lýsingarglæru úr t.d. upload-questions.js, og ekkert
+// upprunalegt pptx) talin hrein spurningabanki - þau fara beint í spurningar
+// í minni bútum, líkt og próf, í stað glæruflæðisins.
 function erProfVerkefni(verkefni) {
+  if (verkefni.tegund === "prof") return true;
   return !verkefni.pptxUrl && (verkefni.slides || []).length <= 1;
 }
 
