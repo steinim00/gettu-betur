@@ -62,15 +62,19 @@ async function main() {
     const q2Ref = db.collection("questions").doc();
 
     batch.set(q1Ref, { text: f.q1, verkefniId, active: false, createdAt: admin.firestore.FieldValue.serverTimestamp() });
-    batch.set(db.collection("answers").doc(q1Ref.id), { correctAnswers: [samraema(f.nafn)] });
+    // "merki" (t.d. 👑 hjá Hildi Björnsdóttur) er hreint skraut - bætt fremst
+    // í correctAnswers svo það birtist í "Rétt svar: ..." textanum þegar
+    // einhver svarar rangt (sjá rettSvor[0] í js/quiz.js), en teljandi svarið
+    // sjálft (samraema(f.nafn), án merkis) er alltaf til staðar á eftir svo
+    // skrautið hefur engin áhrif á hvort svar telst rétt.
+    const q1Svor = f.merki ? [`${f.nafn} ${f.merki}`, samraema(f.nafn)] : [samraema(f.nafn)];
+    batch.set(db.collection("answers").doc(q1Ref.id), { correctAnswers: q1Svor });
 
     batch.set(q2Ref, { text: f.q2, verkefniId, active: false, createdAt: admin.firestore.FieldValue.serverTimestamp() });
     batch.set(db.collection("answers").doc(q2Ref.id), { correctAnswers: [samraema(f.svar2)] });
 
     batch.set(db.collection("embaettismenn").doc(), {
-      // merki (t.d. 👑 hjá Hildi Björnsdóttur) er eingöngu til sýnis í
-      // stjórnborðinu - rétta svarið notar hreina nafnið (f.nafn) fyrir ofan.
-      nafn: f.merki ? `${f.nafn} ${f.merki}` : f.nafn,
+      nafn: f.nafn,
       embaetti: f.embaetti,
       myndSlod: "",
       logoSlod: "",
