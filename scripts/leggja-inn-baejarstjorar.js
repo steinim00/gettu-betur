@@ -5,8 +5,8 @@
 // þar eftir á. Notar nákvæmlega spurningatextann/svörin sem þegar voru skrifuð
 // í HTML-skránni (betur orðuð en sjálfvirka sniðmátið - "Í hvaða sveitarfélagi
 // er X?" í stað "Hvaða embætti gegnir X?") í stað þess að endursemja þau.
-// ENGAR myndaslóðir eru settar - upprunalega HTML-skráin vísaði í staðbundnar
-// skrár (t.d. reykjavik.png) sem eru ekki til sem vefslóðir.
+// Sveitarfélagamerkin eru vistuð í myndir/sveitarfelog/ (notandi sendi þau)
+// og notuð sem lógó/hint-mynd á fyrri spurningunni ("Hver er ... í X?").
 const path = require("path");
 const admin = require("firebase-admin");
 
@@ -23,18 +23,18 @@ function samraema(text) {
 }
 
 const FAERSLUR = [
-  { nafn: "Hildur Björnsdóttir", merki: "👑", embaetti: "borgarstjóri í Reykjavík", q1: "Hver er borgarstjóri í Reykjavík?", q2: "Í hvaða sveitarfélagi er Hildur Björnsdóttir borgarstjóri?", svar2: "Reykjavík" },
-  { nafn: "Ásdís Kristjánsdóttir", embaetti: "bæjarstjóri í Kópavogi", q1: "Hver er bæjarstjóri í Kópavogi?", q2: "Í hvaða sveitarfélagi er Ásdís Kristjánsdóttir bæjarstjóri?", svar2: "Kópavogur" },
-  { nafn: "Þórður Þórarinsson", embaetti: "bæjarstjóri í Hafnarfirði", q1: "Hver er bæjarstjóri í Hafnarfirði?", q2: "Í hvaða sveitarfélagi er Þórður Þórarinsson bæjarstjóri?", svar2: "Hafnarfjörður" },
-  { nafn: "Almar Guðmundsson", embaetti: "bæjarstjóri í Garðabæ", q1: "Hver er bæjarstjóri í Garðabæ?", q2: "Í hvaða sveitarfélagi er Almar Guðmundsson bæjarstjóri?", svar2: "Garðabær" },
-  { nafn: "Hilmar Gunnarsson", embaetti: "bæjarstjóri í Mosfellsbæ", q1: "Hver er bæjarstjóri í Mosfellsbæ?", q2: "Í hvaða sveitarfélagi er Hilmar Gunnarsson bæjarstjóri?", svar2: "Mosfellsbær" },
-  { nafn: "Þór Sigurgeirsson", embaetti: "bæjarstjóri á Seltjarnarnesi", q1: "Hver er bæjarstjóri á Seltjarnarnesi?", q2: "Í hvaða sveitarfélagi er Þór Sigurgeirsson bæjarstjóri?", svar2: "Seltjarnarnes" },
-  { nafn: "Vilhjálmur Árnason", embaetti: "bæjarstjóri í Reykjanesbæ", q1: "Hver er bæjarstjóri í Reykjanesbæ?", q2: "Í hvaða sveitarfélagi er Vilhjálmur Árnason bæjarstjóri?", svar2: "Reykjanesbær" },
-  { nafn: "Berglind Ósk Guðmundsdóttir", embaetti: "bæjarstjóri á Akureyri", q1: "Hver er bæjarstjóri á Akureyri?", q2: "Í hvaða sveitarfélagi er Berglind Ósk Guðmundsdóttir bæjarstjóri?", svar2: "Akureyri" },
-  { nafn: "Bragi Bjarnason", embaetti: "bæjarstjóri í Árborg", q1: "Hver er bæjarstjóri í Árborg?", q2: "Í hvaða sveitarfélagi er Bragi Bjarnason bæjarstjóri?", svar2: "Árborg" },
-  { nafn: "Sturlaugur Haraldsson", embaetti: "bæjarstjóri á Akranesi", q1: "Hver er bæjarstjóri á Akranesi?", q2: "Í hvaða sveitarfélagi er Sturlaugur Haraldsson bæjarstjóri?", svar2: "Akranes" },
-  { nafn: "Dagmar Ýr Stefánsdóttir", embaetti: "sveitarstjóri í Múlaþingi", q1: "Hver er sveitarstjóri í Múlaþingi?", q2: "Í hvaða sveitarfélagi er Dagmar Ýr Stefánsdóttir sveitarstjóri?", svar2: "Múlaþing" },
-  { nafn: "Jóna Árný Þórðardóttir", embaetti: "bæjarstjóri í Fjarðabyggð", q1: "Hver er bæjarstjóri í Fjarðabyggð?", q2: "Í hvaða sveitarfélagi er Jóna Árný Þórðardóttir bæjarstjóri?", svar2: "Fjarðabyggð" }
+  { nafn: "Hildur Björnsdóttir", merki: "👑", embaetti: "borgarstjóri í Reykjavík", q1: "Hver er borgarstjóri í Reykjavík?", q2: "Í hvaða sveitarfélagi er Hildur Björnsdóttir borgarstjóri?", svar2: "Reykjavík", logo: "myndir/sveitarfelog/reykjavik.png" },
+  { nafn: "Ásdís Kristjánsdóttir", embaetti: "bæjarstjóri í Kópavogi", q1: "Hver er bæjarstjóri í Kópavogi?", q2: "Í hvaða sveitarfélagi er Ásdís Kristjánsdóttir bæjarstjóri?", svar2: "Kópavogur", logo: "myndir/sveitarfelog/kopavogur.png" },
+  { nafn: "Þórður Þórarinsson", embaetti: "bæjarstjóri í Hafnarfirði", q1: "Hver er bæjarstjóri í Hafnarfirði?", q2: "Í hvaða sveitarfélagi er Þórður Þórarinsson bæjarstjóri?", svar2: "Hafnarfjörður", logo: "myndir/sveitarfelog/hafnarfjordur.png" },
+  { nafn: "Almar Guðmundsson", embaetti: "bæjarstjóri í Garðabæ", q1: "Hver er bæjarstjóri í Garðabæ?", q2: "Í hvaða sveitarfélagi er Almar Guðmundsson bæjarstjóri?", svar2: "Garðabær", logo: "myndir/sveitarfelog/gardabaer.png" },
+  { nafn: "Hilmar Gunnarsson", embaetti: "bæjarstjóri í Mosfellsbæ", q1: "Hver er bæjarstjóri í Mosfellsbæ?", q2: "Í hvaða sveitarfélagi er Hilmar Gunnarsson bæjarstjóri?", svar2: "Mosfellsbær", logo: "myndir/sveitarfelog/mosfellsbaer.png" },
+  { nafn: "Þór Sigurgeirsson", embaetti: "bæjarstjóri á Seltjarnarnesi", q1: "Hver er bæjarstjóri á Seltjarnarnesi?", q2: "Í hvaða sveitarfélagi er Þór Sigurgeirsson bæjarstjóri?", svar2: "Seltjarnarnes", logo: "myndir/sveitarfelog/seltjarnarnes.png" },
+  { nafn: "Vilhjálmur Árnason", embaetti: "bæjarstjóri í Reykjanesbæ", q1: "Hver er bæjarstjóri í Reykjanesbæ?", q2: "Í hvaða sveitarfélagi er Vilhjálmur Árnason bæjarstjóri?", svar2: "Reykjanesbær", logo: "myndir/sveitarfelog/reykjanesbaer.png" },
+  { nafn: "Berglind Ósk Guðmundsdóttir", embaetti: "bæjarstjóri á Akureyri", q1: "Hver er bæjarstjóri á Akureyri?", q2: "Í hvaða sveitarfélagi er Berglind Ósk Guðmundsdóttir bæjarstjóri?", svar2: "Akureyri", logo: "myndir/sveitarfelog/akureyri.png" },
+  { nafn: "Bragi Bjarnason", embaetti: "bæjarstjóri í Árborg", q1: "Hver er bæjarstjóri í Árborg?", q2: "Í hvaða sveitarfélagi er Bragi Bjarnason bæjarstjóri?", svar2: "Árborg", logo: "myndir/sveitarfelog/arborg.png" },
+  { nafn: "Sturlaugur Haraldsson", embaetti: "bæjarstjóri á Akranesi", q1: "Hver er bæjarstjóri á Akranesi?", q2: "Í hvaða sveitarfélagi er Sturlaugur Haraldsson bæjarstjóri?", svar2: "Akranes", logo: "myndir/sveitarfelog/akranes.png" },
+  { nafn: "Dagmar Ýr Stefánsdóttir", embaetti: "sveitarstjóri í Múlaþingi", q1: "Hver er sveitarstjóri í Múlaþingi?", q2: "Í hvaða sveitarfélagi er Dagmar Ýr Stefánsdóttir sveitarstjóri?", svar2: "Múlaþing", logo: "myndir/sveitarfelog/mulathing.png" },
+  { nafn: "Jóna Árný Þórðardóttir", embaetti: "bæjarstjóri í Fjarðabyggð", q1: "Hver er bæjarstjóri í Fjarðabyggð?", q2: "Í hvaða sveitarfélagi er Jóna Árný Þórðardóttir bæjarstjóri?", svar2: "Fjarðabyggð", logo: "myndir/sveitarfelog/fjardabyggd.png" }
 ];
 
 async function finnaEdaBuaTilVerkefni(titill) {
@@ -61,7 +61,7 @@ async function main() {
     const q1Ref = db.collection("questions").doc();
     const q2Ref = db.collection("questions").doc();
 
-    batch.set(q1Ref, { text: f.q1, verkefniId, active: false, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+    batch.set(q1Ref, { text: f.q1, verkefniId, active: false, createdAt: admin.firestore.FieldValue.serverTimestamp(), image: f.logo });
     // "merki" (t.d. 👑 hjá Hildi Björnsdóttur) er hreint skraut - bætt fremst
     // í correctAnswers svo það birtist í "Rétt svar: ..." textanum þegar
     // einhver svarar rangt (sjá rettSvor[0] í js/quiz.js), en teljandi svarið
@@ -77,7 +77,7 @@ async function main() {
       nafn: f.nafn,
       embaetti: f.embaetti,
       myndSlod: "",
-      logoSlod: "",
+      logoSlod: f.logo,
       verkefniId,
       q1Id: q1Ref.id,
       q2Id: q2Ref.id,
