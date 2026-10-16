@@ -1009,6 +1009,11 @@ td .smabtn + .smabtn {
   border-radius: 999px;
 }
 
+.stjorn-reikningur {
+  display: flex;
+  flex-direction: column;
+}
+
 .stjorn-hlid .utskra-hnappur {
   margin-top: 12px;
   padding: 11px 14px;
@@ -1262,28 +1267,56 @@ td .smabtn + .smabtn {
     height: auto;
     position: static;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
-    overflow-x: auto;
+    row-gap: 10px;
+    overflow-x: visible;
     padding: 14px 16px;
   }
 
   .stjorn-hlid .merki {
     margin-bottom: 0;
     margin-right: 10px;
+    flex-shrink: 0;
   }
 
   .stjorn-nav {
     flex-direction: row;
-    flex: none;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .stjorn-nav button {
+    width: auto;
+    flex-shrink: 0;
   }
 
   .stjorn-nav button span.texti {
     display: none;
   }
 
+  .stjorn-reikningur {
+    flex: 1 1 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .stjorn-reikningur .smabtn {
+    margin-bottom: 0 !important;
+  }
+
+  .stjorn-reikningur #notandaNafn {
+    padding: 0 !important;
+    order: 1;
+  }
+
   .stjorn-hlid .utskra-hnappur {
     margin-top: 0;
-    margin-left: 10px;
     white-space: nowrap;
   }
 
