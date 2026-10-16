@@ -28,12 +28,23 @@
     font-size: 0.9rem;
   }
   .spb-kort summary:hover { color: var(--litur-texti); }
-  .spb-svar {
+  .spb-svar-box {
     margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .spb-svar-box img.merki {
+    width: 50px;
+    height: auto;
+    flex: none;
+  }
+  .spb-svar {
     padding: 10px 14px;
     background: var(--litur-baksvid);
     border-radius: 10px;
     font-weight: 700;
+    flex: 1;
   }
   .spb-til-baka {
     display: inline-block;
@@ -51,32 +62,32 @@
   <p class="undirtitill-vinstri">Staða október 2026. Smelltu á "Svar" til að sjá rétt svar við hverja spurningu.</p>
 
   <h2>Hver er ... í ...?</h2>
-  <div class="spb-kort"><div class="spb-spurning">1. Hver er borgarstjóri í Reykjavík?</div><details><summary>Svar</summary><div class="spb-svar">Hildur Björnsdóttir 👑</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">2. Hver er bæjarstjóri í Kópavogi?</div><details><summary>Svar</summary><div class="spb-svar">Ásdís Kristjánsdóttir</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">3. Hver er bæjarstjóri í Hafnarfirði?</div><details><summary>Svar</summary><div class="spb-svar">Þórður Þórarinsson</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">4. Hver er bæjarstjóri í Garðabæ?</div><details><summary>Svar</summary><div class="spb-svar">Almar Guðmundsson</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">5. Hver er bæjarstjóri í Mosfellsbæ?</div><details><summary>Svar</summary><div class="spb-svar">Hilmar Gunnarsson</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">6. Hver er bæjarstjóri á Seltjarnarnesi?</div><details><summary>Svar</summary><div class="spb-svar">Þór Sigurgeirsson</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">7. Hver er bæjarstjóri í Reykjanesbæ?</div><details><summary>Svar</summary><div class="spb-svar">Vilhjálmur Árnason</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">8. Hver er bæjarstjóri á Akureyri?</div><details><summary>Svar</summary><div class="spb-svar">Berglind Ósk Guðmundsdóttir</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">9. Hver er bæjarstjóri í Árborg?</div><details><summary>Svar</summary><div class="spb-svar">Bragi Bjarnason</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">10. Hver er bæjarstjóri á Akranesi?</div><details><summary>Svar</summary><div class="spb-svar">Sturlaugur Haraldsson</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">11. Hver er sveitarstjóri í Múlaþingi?</div><details><summary>Svar</summary><div class="spb-svar">Dagmar Ýr Stefánsdóttir</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">12. Hver er bæjarstjóri í Fjarðabyggð?</div><details><summary>Svar</summary><div class="spb-svar">Jóna Árný Þórðardóttir</div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">1. Hver er borgarstjóri í Reykjavík?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Hildur Björnsdóttir 👑</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">2. Hver er bæjarstjóri í Kópavogi?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Ásdís Kristjánsdóttir</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">3. Hver er bæjarstjóri í Hafnarfirði?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Þórður Þórarinsson</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">4. Hver er bæjarstjóri í Garðabæ?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Almar Guðmundsson</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">5. Hver er bæjarstjóri í Mosfellsbæ?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Hilmar Gunnarsson</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">6. Hver er bæjarstjóri á Seltjarnarnesi?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Þór Sigurgeirsson</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">7. Hver er bæjarstjóri í Reykjanesbæ?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Vilhjálmur Árnason</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">8. Hver er bæjarstjóri á Akureyri?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Berglind Ósk Guðmundsdóttir</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">9. Hver er bæjarstjóri í Árborg?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Bragi Bjarnason</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">10. Hver er bæjarstjóri á Akranesi?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Sturlaugur Haraldsson</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">11. Hver er sveitarstjóri í Múlaþingi?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Dagmar Ýr Stefánsdóttir</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">12. Hver er bæjarstjóri í Fjarðabyggð?</div><details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Jóna Árný Þórðardóttir</div></div></details></div>
 
   <h2>Í hvaða sveitarfélagi fer ... með völd?</h2>
-  <div class="spb-kort"><div class="spb-spurning">13. Í hvaða sveitarfélagi er Hildur Björnsdóttir 👑 borgarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Reykjavík</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">14. Í hvaða sveitarfélagi er Ásdís Kristjánsdóttir bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Kópavogur</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">15. Í hvaða sveitarfélagi er Þórður Þórarinsson bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Hafnarfjörður</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">16. Í hvaða sveitarfélagi er Almar Guðmundsson bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Garðabær</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">17. Í hvaða sveitarfélagi er Hilmar Gunnarsson bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Mosfellsbær</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">18. Í hvaða sveitarfélagi er Þór Sigurgeirsson bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Seltjarnarnes</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">19. Í hvaða sveitarfélagi er Vilhjálmur Árnason bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Reykjanesbær</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">20. Í hvaða sveitarfélagi er Berglind Ósk Guðmundsdóttir bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Akureyri</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">21. Í hvaða sveitarfélagi er Bragi Bjarnason bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Árborg</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">22. Í hvaða sveitarfélagi er Sturlaugur Haraldsson bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Akranes</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">23. Í hvaða sveitarfélagi er Dagmar Ýr Stefánsdóttir sveitarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Múlaþing</div></details></div>
-  <div class="spb-kort"><div class="spb-spurning">24. Í hvaða sveitarfélagi er Jóna Árný Þórðardóttir bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar">Fjarðabyggð</div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">13. Í hvaða sveitarfélagi er Hildur Björnsdóttir 👑 borgarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/reykjavik.png" alt="Merki Reykjavíkur"><div class="spb-svar">Reykjavík</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">14. Í hvaða sveitarfélagi er Ásdís Kristjánsdóttir bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/kopavogur.png" alt="Merki Kópavogs"><div class="spb-svar">Kópavogur</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">15. Í hvaða sveitarfélagi er Þórður Þórarinsson bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/hafnarfjordur.png" alt="Merki Hafnarfjarðar"><div class="spb-svar">Hafnarfjörður</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">16. Í hvaða sveitarfélagi er Almar Guðmundsson bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/gardabaer.png" alt="Merki Garðabæjar"><div class="spb-svar">Garðabær</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">17. Í hvaða sveitarfélagi er Hilmar Gunnarsson bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/mosfellsbaer.png" alt="Merki Mosfellsbæjar"><div class="spb-svar">Mosfellsbær</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">18. Í hvaða sveitarfélagi er Þór Sigurgeirsson bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/seltjarnarnes.png" alt="Merki Seltjarnarness"><div class="spb-svar">Seltjarnarnes</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">19. Í hvaða sveitarfélagi er Vilhjálmur Árnason bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/reykjanesbaer.png" alt="Merki Reykjanesbæjar"><div class="spb-svar">Reykjanesbær</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">20. Í hvaða sveitarfélagi er Berglind Ósk Guðmundsdóttir bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/akureyri.png" alt="Merki Akureyrar"><div class="spb-svar">Akureyri</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">21. Í hvaða sveitarfélagi er Bragi Bjarnason bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/arborg.png" alt="Merki Árborgar"><div class="spb-svar">Árborg</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">22. Í hvaða sveitarfélagi er Sturlaugur Haraldsson bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/akranes.png" alt="Merki Akraness"><div class="spb-svar">Akranes</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">23. Í hvaða sveitarfélagi er Dagmar Ýr Stefánsdóttir sveitarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/mulathing.png" alt="Merki Múlaþings"><div class="spb-svar">Múlaþing</div></div></details></div>
+  <div class="spb-kort"><div class="spb-spurning">24. Í hvaða sveitarfélagi er Jóna Árný Þórðardóttir bæjarstjóri?</div><details><summary>Svar</summary><div class="spb-svar-box"><img class="merki" src="myndir/sveitarfelog/fjardabyggd.png" alt="Merki Fjarðabyggðar"><div class="spb-svar">Fjarðabyggð</div></div></details></div>
 </main>
 </body>
 </html>
