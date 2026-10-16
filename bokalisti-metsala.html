@@ -18,18 +18,7 @@
     box-shadow: var(--skuggi);
     padding: 16px 20px;
     margin-bottom: 12px;
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
   }
-  .spb-kort img.kapa {
-    width: 70px;
-    height: auto;
-    border-radius: 6px;
-    flex: none;
-    box-shadow: var(--skuggi);
-  }
-  .spb-kort-efni { flex: 1; }
   .spb-spurning { font-weight: 600; }
   .spb-kort details { margin-top: 8px; }
   .spb-kort summary {
@@ -39,12 +28,25 @@
     font-size: 0.9rem;
   }
   .spb-kort summary:hover { color: var(--litur-texti); }
-  .spb-svar {
+  .spb-svar-box {
     margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .spb-svar-box img.kapa {
+    width: 70px;
+    height: auto;
+    border-radius: 6px;
+    flex: none;
+    box-shadow: var(--skuggi);
+  }
+  .spb-svar {
     padding: 10px 14px;
     background: var(--litur-baksvid);
     border-radius: 10px;
     font-weight: 700;
+    flex: 1;
   }
   .spb-til-baka { display: inline-block; margin-bottom: 20px; }
   .spb-heimild { color: var(--litur-daufur); font-size: 0.85rem; }
@@ -63,65 +65,65 @@
   <h2>Hver skrifaði ...?</h2>
 
   <div class="spb-kort">
-    <img class="kapa" src="myndir/baekur/enginn-deyr-i-ikea.jpg" alt="Kápa: Enginn deyr í IKEA">
-    <div class="spb-kort-efni">
-      <div class="spb-spurning">1. Hver skrifaði "Enginn deyr í IKEA"?</div>
-      <details><summary>Svar</summary><div class="spb-svar">Hallgrímur Helgason</div></details>
-    </div>
+    <div class="spb-spurning">1. Hver skrifaði "Enginn deyr í IKEA"?</div>
+    <details><summary>Svar</summary>
+      <div class="spb-svar-box">
+        <img class="kapa" src="myndir/baekur/enginn-deyr-i-ikea.jpg" alt="Kápa: Enginn deyr í IKEA">
+        <div class="spb-svar">Hallgrímur Helgason</div>
+      </div>
+    </details>
   </div>
 
   <div class="spb-kort">
-    <img class="kapa" src="myndir/baekur/old-imyndunaraflsins.jpg" alt="Kápa: Öld ímyndunaraflsins">
-    <div class="spb-kort-efni">
-      <div class="spb-spurning">2. Hver skrifaði "Öld ímyndunaraflsins"?</div>
-      <details><summary>Svar</summary><div class="spb-svar">Bergur Ebbi Benediktsson</div></details>
-    </div>
+    <div class="spb-spurning">2. Hver skrifaði "Öld ímyndunaraflsins"?</div>
+    <details><summary>Svar</summary>
+      <div class="spb-svar-box">
+        <img class="kapa" src="myndir/baekur/old-imyndunaraflsins.jpg" alt="Kápa: Öld ímyndunaraflsins">
+        <div class="spb-svar">Bergur Ebbi Benediktsson</div>
+      </div>
+    </details>
   </div>
 
   <div class="spb-kort">
-    <img class="kapa" src="myndir/baekur/odur-til-lifsins.jpg" alt="Kápa: Óður til lífsins">
-    <div class="spb-kort-efni">
-      <div class="spb-spurning">3. Hver skrifaði "Óður til lífsins"?</div>
-      <details><summary>Svar</summary><div class="spb-svar">Gisèle Pelicot</div></details>
-    </div>
+    <div class="spb-spurning">3. Hver skrifaði "Óður til lífsins"?</div>
+    <details><summary>Svar</summary>
+      <div class="spb-svar-box">
+        <img class="kapa" src="myndir/baekur/odur-til-lifsins.jpg" alt="Kápa: Óður til lífsins">
+        <div class="spb-svar">Gisèle Pelicot</div>
+      </div>
+    </details>
   </div>
 
   <div class="spb-kort">
-    <img class="kapa" src="myndir/baekur/vegferd-um-veroldina.jpg" alt="Kápa: Vegferð um veröldina">
-    <div class="spb-kort-efni">
-      <div class="spb-spurning">4. Hver skrifaði "Vegferð um veröldina"?</div>
-      <details><summary>Svar</summary><div class="spb-svar">Ólafur Ragnar Grímsson</div></details>
-    </div>
+    <div class="spb-spurning">4. Hver skrifaði "Vegferð um veröldina"?</div>
+    <details><summary>Svar</summary>
+      <div class="spb-svar-box">
+        <img class="kapa" src="myndir/baekur/vegferd-um-veroldina.jpg" alt="Kápa: Vegferð um veröldina">
+        <div class="spb-svar">Ólafur Ragnar Grímsson</div>
+      </div>
+    </details>
   </div>
 
   <h2>Hvaða bók skrifaði ...?</h2>
 
   <div class="spb-kort">
-    <div class="spb-kort-efni">
-      <div class="spb-spurning">5. Hvaða bók skrifaði Hallgrímur Helgason?</div>
-      <details><summary>Svar</summary><div class="spb-svar">Enginn deyr í IKEA</div></details>
-    </div>
+    <div class="spb-spurning">5. Hvaða bók skrifaði Hallgrímur Helgason?</div>
+    <details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Enginn deyr í IKEA</div></div></details>
   </div>
 
   <div class="spb-kort">
-    <div class="spb-kort-efni">
-      <div class="spb-spurning">6. Hvaða bók skrifaði Bergur Ebbi Benediktsson?</div>
-      <details><summary>Svar</summary><div class="spb-svar">Öld ímyndunaraflsins</div></details>
-    </div>
+    <div class="spb-spurning">6. Hvaða bók skrifaði Bergur Ebbi Benediktsson?</div>
+    <details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Öld ímyndunaraflsins</div></div></details>
   </div>
 
   <div class="spb-kort">
-    <div class="spb-kort-efni">
-      <div class="spb-spurning">7. Hvaða bók skrifaði Gisèle Pelicot?</div>
-      <details><summary>Svar</summary><div class="spb-svar">Óður til lífsins</div></details>
-    </div>
+    <div class="spb-spurning">7. Hvaða bók skrifaði Gisèle Pelicot?</div>
+    <details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Óður til lífsins</div></div></details>
   </div>
 
   <div class="spb-kort">
-    <div class="spb-kort-efni">
-      <div class="spb-spurning">8. Hvaða bók skrifaði Ólafur Ragnar Grímsson?</div>
-      <details><summary>Svar</summary><div class="spb-svar">Vegferð um veröldina</div></details>
-    </div>
+    <div class="spb-spurning">8. Hvaða bók skrifaði Ólafur Ragnar Grímsson?</div>
+    <details><summary>Svar</summary><div class="spb-svar-box"><div class="spb-svar">Vegferð um veröldina</div></div></details>
   </div>
 </main>
 </body>
