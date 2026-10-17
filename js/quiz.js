@@ -202,10 +202,6 @@ function stodvaTimamaelingu() {
   }
 }
 
-// lastActive er skrifað í hverri lotu (sjá hér og vid innskráningu) svo
-// stjórnborðið geti sýnt grænan punkt hjá þeim sem eru "online" (virkir
-// síðustu 2 mín) - án þess að bæta við aukaskrifum, enda nýtir þetta sömu
-// Firestore-skrifin og skjátímamælingin notar nú þegar.
 function vistaSkjatima() {
   stodvaTimamaelingu();
   if (!notandi) {
@@ -214,14 +210,33 @@ function vistaSkjatima() {
   }
   const sekundur = Math.round(ovistadurSkjatimi);
   ovistadurSkjatimi = 0;
-  const breytingar = { lastActive: serverTimestamp() };
-  if (sekundur >= 1) breytingar.screenTimeSeconds = increment(sekundur);
-  updateDoc(doc(db, "users", notandi.uid), breytingar).catch((villa) => {
-    console.error(villa);
-    ovistadurSkjatimi += sekundur;
-  });
+  if (sekundur >= 1) {
+    updateDoc(doc(db, "users", notandi.uid), { screenTimeSeconds: increment(sekundur) }).catch((villa) => {
+      console.error(villa);
+      ovistadurSkjatimi += sekundur;
+    });
+  }
   hefjaTimamaelingu();
 }
+
+// lastActive er skrifað við innskráningu og svo í hvert sinn sem notandinn
+// gerir eitthvað raunverulegt (smellur, snertir skjáinn, slær á lykilborð) -
+// ekki bara meðan flipinn er opinn í bakgrunni, svo stjórnborðið geti sýnt
+// grænan punkt hjá þeim sem eru "online" (virkir síðustu 2 mín) án þess að
+// einhver sem gleymdi flipanum opnum virðist viðvarandi "online". Takmarkað
+// við eitt Firestore-skrif á mínútu svo tíðar smellir/áslættir skrifaflæði
+// ekki yfir kvótann.
+let sidastaVirkniSkrif = 0;
+function skraVirkni() {
+  if (!notandi) return;
+  const nuna = Date.now();
+  if (nuna - sidastaVirkniSkrif < 60000) return;
+  sidastaVirkniSkrif = nuna;
+  updateDoc(doc(db, "users", notandi.uid), { lastActive: serverTimestamp() }).catch(() => {});
+}
+["click", "touchstart", "keydown"].forEach((heiti) => {
+  document.addEventListener(heiti, skraVirkni, { passive: true });
+});
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
