@@ -309,9 +309,16 @@ function synaSvaedi(svaedi) {
   verkefnaSvaedi.hidden = svaedi !== "verkefni";
   glaeruSvaedi.hidden = svaedi !== "glaerur";
   spurningaSvaedi.hidden = svaedi !== "spurningar";
-  // Án þessa getur t.d. "Fara beint í spurningar" virst ekkert gera, ef
-  // notandinn var skrollaður niður þegar hann smellti.
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (svaedi === "spurningar") {
+    // Skrollar beint á sjálfan spurningalistann (ekki bara efst á síðu) svo
+    // "Byrja"/"Fara beint í spurningar" lendi á spurningunum sjálfum, í stað
+    // fyrirsagnar/takka fyrir ofan þær.
+    spurningaListi.scrollIntoView({ behavior: "smooth", block: "start" });
+  } else {
+    // Án þessa getur t.d. "Fara beint í spurningar" virst ekkert gera, ef
+    // notandinn var skrollaður niður þegar hann smellti.
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 }
 
 tilbakaFraGlaerum.addEventListener("click", () => synaSvaedi("verkefni"));
