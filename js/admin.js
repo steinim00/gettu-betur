@@ -484,6 +484,29 @@ function formatSkjatimi(sekundur) {
   return klst > 0 ? `${klst} klst ${min} mín` : `${min} mín`;
 }
 
+// "Online" = hefur skrifað lastActive (sjá vistaSkjatima/innskráning í
+// quiz.js) á síðustu 2 mínútum - sama glugga og skjátímamælingin flæðir á.
+const ONLINE_THOLMORK_MS = 2 * 60 * 1000;
+function erOnline(lastActive) {
+  return !!lastActive && Date.now() - lastActive < ONLINE_THOLMORK_MS;
+}
+
+function samaDagur(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function formatDagsStutt(ms) {
+  if (!ms) return "—";
+  const d = new Date(ms);
+  const nuna = new Date();
+  const timi = d.toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit" });
+  if (samaDagur(d, nuna)) return `í dag kl. ${timi}`;
+  const igaer = new Date(nuna);
+  igaer.setDate(igaer.getDate() - 1);
+  if (samaDagur(d, igaer)) return `í gær kl. ${timi}`;
+  return `${d.toLocaleDateString("is-IS", { day: "numeric", month: "numeric" })} kl. ${timi}`;
+}
+
 async function hladaNotendayfirlit() {
   notendaTafla.innerHTML = `<tr><td colspan="9">Sæki gögn…</td></tr>`;
 
@@ -562,6 +585,7 @@ async function hladaNotendayfirlit() {
       skjatimi: notandi.screenTimeSeconds || 0,
       nyskraning: notandi.createdAt?.toMillis?.() ?? null,
       sidastSvarad,
+      lastActive: notandi.lastActive?.toMillis?.() ?? null,
       verkefnaSundurlidun
     });
   }
@@ -578,7 +602,13 @@ async function hladaNotendayfirlit() {
     const tr = document.createElement("tr");
 
     const nafnTd = document.createElement("td");
-    nafnTd.textContent = r.nafn;
+    if (erOnline(r.lastActive)) {
+      const punktur = document.createElement("span");
+      punktur.className = "online-punktur";
+      punktur.title = "Online núna";
+      nafnTd.appendChild(punktur);
+    }
+    nafnTd.appendChild(document.createTextNode(r.nafn));
     const svaradTd = document.createElement("td");
     svaradTd.textContent = r.fjoldiSvarad;
     const passTd = document.createElement("td");
@@ -590,9 +620,9 @@ async function hladaNotendayfirlit() {
     const skjatimiTd = document.createElement("td");
     skjatimiTd.textContent = formatSkjatimi(r.skjatimi);
     const nyskraningTd = document.createElement("td");
-    nyskraningTd.textContent = r.nyskraning ? new Date(r.nyskraning).toLocaleString("is-IS") : "—";
+    nyskraningTd.textContent = formatDagsStutt(r.nyskraning);
     const sidastTd = document.createElement("td");
-    sidastTd.textContent = r.sidastSvarad ? new Date(r.sidastSvarad).toLocaleString("is-IS") : "—";
+    sidastTd.textContent = formatDagsStutt(r.sidastSvarad);
 
     const adgerdTd = document.createElement("td");
     const nanarBtn = document.createElement("button");

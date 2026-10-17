@@ -1416,3 +1416,13 @@ td .smabtn + .smabtn {
     gap: 12px;
   }
 }
+
+.online-punktur {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--litur-rett);
+  margin-right: 6px;
+  flex: none;
+}

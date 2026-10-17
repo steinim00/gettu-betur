@@ -200,15 +200,21 @@ function stodvaTimamaelingu() {
   }
 }
 
+// lastActive er skrifað í hverri lotu (sjá hér og vid innskráningu) svo
+// stjórnborðið geti sýnt grænan punkt hjá þeim sem eru "online" (virkir
+// síðustu 2 mín) - án þess að bæta við aukaskrifum, enda nýtir þetta sömu
+// Firestore-skrifin og skjátímamælingin notar nú þegar.
 function vistaSkjatima() {
   stodvaTimamaelingu();
-  if (!notandi || ovistadurSkjatimi < 1) {
+  if (!notandi) {
     hefjaTimamaelingu();
     return;
   }
   const sekundur = Math.round(ovistadurSkjatimi);
   ovistadurSkjatimi = 0;
-  updateDoc(doc(db, "users", notandi.uid), { screenTimeSeconds: increment(sekundur) }).catch((villa) => {
+  const breytingar = { lastActive: serverTimestamp() };
+  if (sekundur >= 1) breytingar.screenTimeSeconds = increment(sekundur);
+  updateDoc(doc(db, "users", notandi.uid), breytingar).catch((villa) => {
     console.error(villa);
     ovistadurSkjatimi += sekundur;
   });
@@ -248,6 +254,7 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
     minStadaBtn.hidden = false;
     glosurBtn.hidden = false;
     hefjaTimamaelingu();
+    updateDoc(doc(db, "users", user.uid), { lastActive: serverTimestamp() }).catch(() => {});
 
     // "Mín staða" er upphafspunktur innskráðra nemenda - þau sjá eigin
     // stöðu um leið og þau koma inn, frekar en að þurfa að smella á hnapp.
