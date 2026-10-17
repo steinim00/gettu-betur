@@ -602,7 +602,12 @@ async function hladaNotendayfirlit() {
       nakvaemni,
       skjatimi: notandi.screenTimeSeconds || 0,
       nyskraning: notandi.createdAt?.toMillis?.() ?? null,
-      sidastSvarad: notandi.sidastSvaradAt?.toMillis?.() ?? null,
+      // "Síðast virk/ur" á að þýða hvenær notandinn sást síðast á síðunni
+      // (lastActive-hjartslátturinn, skrifaður á 60 sek fresti á meðan
+      // flipinn er opinn - sjá vistaSkjatima í js/quiz.js), ekki hvenær
+      // hann svaraði síðustu spurningu - þær tvær stundir geta verið mjög
+      // ólíkar (einhver getur verið á síðunni lengi án þess að svara).
+      sidastSvarad: notandi.lastActive?.toMillis?.() ?? null,
       lastActive: notandi.lastActive?.toMillis?.() ?? null,
       verkefnaSundurlidun
     });
