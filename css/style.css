@@ -1445,3 +1445,59 @@ td .smabtn + .smabtn {
   margin-right: 6px;
   flex: none;
 }
+
+th.radanlegt {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+th.radanlegt:hover {
+  color: var(--litur-texti);
+}
+.rodunarord {
+  display: inline-block;
+  width: 1em;
+  margin-left: 2px;
+  font-size: 0.8em;
+  color: var(--litur-lime);
+}
+
+.adgerd-valmynd-vefja {
+  position: relative;
+  display: inline-block;
+}
+.adgerd-valmynd-takki {
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 6px 11px;
+}
+.adgerd-valmynd {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 10px;
+  box-shadow: var(--skuggi-stor);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 180px;
+  z-index: 20;
+}
+.adgerd-valmynd button {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 9px 11px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--litur-texti);
+  white-space: nowrap;
+}
+.adgerd-valmynd button:hover {
+  background: var(--litur-baksvid);
+}

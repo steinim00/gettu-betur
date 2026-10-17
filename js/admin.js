@@ -504,6 +504,42 @@ function formatDagsStutt(ms) {
   return `${d.toLocaleDateString("is-IS", { day: "numeric", month: "numeric" })} kl. ${timi}`;
 }
 
+// Litar röð hvers notanda eftir nafni - handvirkur listi sem bætt er við
+// eftir þörfum (byrjað á Hinrik í cyan), engin tengsl við gögnin sjálf.
+const NOTENDA_LITIR = {
+  "Hinrik Hugi Runarsson": "#cffafe"
+};
+
+// Hrá gildi (ekki birt strengi) fyrir hvern raðanlegan dálk, notað bæði til
+// að raða og til að varðveita röðunina þegar taflan er endurbyggð.
+const RODUNAR_LYKLAR = {
+  nafn: (r) => (r.nafn || "").toLowerCase(),
+  fjoldiSvarad: (r) => r.fjoldiSvarad,
+  fjoldiPass: (r) => r.fjoldiPass,
+  fjoldiRett: (r) => r.fjoldiRett,
+  nakvaemni: (r) => r.nakvaemni,
+  skjatimi: (r) => r.skjatimi,
+  nyskraning: (r) => r.nyskraning ?? -Infinity,
+  sidastSvarad: (r) => r.sidastSvarad ?? -Infinity
+};
+
+let notendaRadir = [];
+let notendaRodunarDalkur = "nakvaemni";
+let notendaRodunarStefna = -1; // 1 = vaxandi, -1 = minnkandi
+
+document.querySelectorAll("#notendaTafla thead th[data-rada]").forEach((th) => {
+  th.addEventListener("click", () => {
+    const dalkur = th.dataset.rada;
+    if (notendaRodunarDalkur === dalkur) {
+      notendaRodunarStefna *= -1;
+    } else {
+      notendaRodunarDalkur = dalkur;
+      notendaRodunarStefna = 1;
+    }
+    birtaNotendaRadir();
+  });
+});
+
 async function hladaNotendayfirlit() {
   notendaTafla.innerHTML = `<tr><td colspan="9">Sæki gögn…</td></tr>`;
 
@@ -571,7 +607,25 @@ async function hladaNotendayfirlit() {
     });
   }
 
-  rows.sort((a, b) => b.nakvaemni - a.nakvaemni || b.fjoldiSvarad - a.fjoldiSvarad);
+  notendaRadir = rows;
+  birtaNotendaRadir();
+}
+
+function birtaNotendaRadir() {
+  const lykill = RODUNAR_LYKLAR[notendaRodunarDalkur];
+  const rows = [...notendaRadir].sort((a, b) => {
+    const va = lykill(a);
+    const vb = lykill(b);
+    if (va < vb) return -1 * notendaRodunarStefna;
+    if (va > vb) return 1 * notendaRodunarStefna;
+    return 0;
+  });
+
+  document.querySelectorAll("#notendaTafla thead th[data-rada]").forEach((th) => {
+    const ord = th.querySelector(".rodunarord");
+    if (!ord) return;
+    ord.textContent = th.dataset.rada !== notendaRodunarDalkur ? "" : notendaRodunarStefna === 1 ? "▲" : "▼";
+  });
 
   notendaTafla.innerHTML = "";
   if (rows.length === 0) {
@@ -581,6 +635,7 @@ async function hladaNotendayfirlit() {
 
   for (const r of rows) {
     const tr = document.createElement("tr");
+    if (NOTENDA_LITIR[r.nafn]) tr.style.background = NOTENDA_LITIR[r.nafn];
 
     const nafnTd = document.createElement("td");
     if (erOnline(r.lastActive)) {
@@ -702,6 +757,53 @@ async function hladaNotendayfirlit() {
   }
 }
 
+// Setur margar aðgerðir saman í einn "..." hnapp með fellivalmynd í stað
+// þess að hrúga mörgum hnöppum í sama Aðgerð-reitinn. adgerdir: [{texti,
+// smella}]. Aðeins ein valmynd er opin í einu - smellur annars staðar lokar.
+function byggjaAdgerdaValmynd(adgerdir) {
+  const vefja = document.createElement("div");
+  vefja.className = "adgerd-valmynd-vefja";
+
+  const takki = document.createElement("button");
+  takki.type = "button";
+  takki.className = "smabtn adgerd-valmynd-takki";
+  takki.textContent = "⋮";
+  takki.setAttribute("aria-label", "Aðgerðir");
+
+  const valmynd = document.createElement("div");
+  valmynd.className = "adgerd-valmynd";
+  valmynd.hidden = true;
+
+  adgerdir.forEach(({ texti, smella }) => {
+    const hnappur = document.createElement("button");
+    hnappur.type = "button";
+    hnappur.textContent = texti;
+    hnappur.addEventListener("click", () => {
+      valmynd.hidden = true;
+      smella();
+    });
+    valmynd.appendChild(hnappur);
+  });
+
+  takki.addEventListener("click", (e) => {
+    e.stopPropagation();
+    document.querySelectorAll(".adgerd-valmynd").forEach((v) => {
+      if (v !== valmynd) v.hidden = true;
+    });
+    valmynd.hidden = !valmynd.hidden;
+  });
+
+  vefja.appendChild(takki);
+  vefja.appendChild(valmynd);
+  return vefja;
+}
+
+document.addEventListener("click", () => {
+  document.querySelectorAll(".adgerd-valmynd").forEach((v) => {
+    v.hidden = true;
+  });
+});
+
 async function hladaVerkefnayfirlit() {
   const [verkefnaSnap, spurningarSnap] = await Promise.all([
     getDocs(collection(db, "verkefni")),
@@ -731,54 +833,7 @@ async function hladaVerkefnayfirlit() {
   verkefnaSnap.forEach((vDoc) => {
     const verkefni = vDoc.data();
     const tr = document.createElement("tr");
-
-    const kveikjaKnappur = document.createElement("button");
-    kveikjaKnappur.type = "button";
-    kveikjaKnappur.className = "smabtn";
-    kveikjaKnappur.textContent = verkefni.active ? "Slökkva" : "Kveikja";
-    kveikjaKnappur.addEventListener("click", async () => {
-      await updateDoc(doc(db, "verkefni", vDoc.id), { active: !verkefni.active });
-      hladaVerkefnayfirlit();
-    });
-
-    const breytaTitliKnappur = document.createElement("button");
-    breytaTitliKnappur.type = "button";
-    breytaTitliKnappur.className = "smabtn";
-    breytaTitliKnappur.textContent = "Breyta titli";
-    breytaTitliKnappur.addEventListener("click", async () => {
-      const nyttNafn = prompt("Nýr titill:", verkefni.title);
-      if (!nyttNafn || !nyttNafn.trim() || nyttNafn.trim() === verkefni.title) return;
-      await updateDoc(doc(db, "verkefni", vDoc.id), { title: nyttNafn.trim() });
-      hladaVerkefnayfirlit();
-    });
-
-    const generaKnappur = document.createElement("button");
-    generaKnappur.type = "button";
-    generaKnappur.className = "smabtn";
-    generaKnappur.textContent = "Generera spurningar";
-    generaKnappur.title = "Velur þetta verkefni í AI-spurningagerðinni hér fyrir neðan";
-    generaKnappur.addEventListener("click", () => {
-      aiVerkefniValiö.value = vDoc.id;
-      generaSpurningarBtn.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
-
     const erProf = verkefni.tegund === "prof";
-    const tegundKnappur = document.createElement("button");
-    tegundKnappur.type = "button";
-    tegundKnappur.className = "smabtn";
-    tegundKnappur.textContent = erProf ? "Gera að verkefni" : "Gera að prófi";
-    tegundKnappur.title = "Próf fara beint í spurningar í minni bútum í stað glæruflæðis";
-    tegundKnappur.addEventListener("click", async () => {
-      await updateDoc(doc(db, "verkefni", vDoc.id), { tegund: erProf ? "verkefni" : "prof" });
-      hladaVerkefnayfirlit();
-    });
-
-    const syileikiKnappur = document.createElement("button");
-    syileikiKnappur.type = "button";
-    syileikiKnappur.className = "smabtn";
-    syileikiKnappur.textContent = "Velja notendur";
-    syileikiKnappur.title = "Takmarkaðu verkefnið við ákveðna notendur - ekkert valið þýðir að allir sjái það";
-    syileikiKnappur.addEventListener("click", () => opnaNotendaValPanell(vDoc.id, verkefni));
 
     const titillTd = document.createElement("td");
     titillTd.textContent = verkefni.title;
@@ -802,11 +857,44 @@ async function hladaVerkefnayfirlit() {
     syileikiTd.textContent = fjoldiLeyfdir > 0 ? `${fjoldiLeyfdir} valdir` : "Allir";
 
     const adgerdTd = document.createElement("td");
-    adgerdTd.appendChild(kveikjaKnappur);
-    adgerdTd.appendChild(breytaTitliKnappur);
-    adgerdTd.appendChild(tegundKnappur);
-    adgerdTd.appendChild(syileikiKnappur);
-    adgerdTd.appendChild(generaKnappur);
+    adgerdTd.appendChild(
+      byggjaAdgerdaValmynd([
+        {
+          texti: verkefni.active ? "Slökkva" : "Kveikja",
+          smella: async () => {
+            await updateDoc(doc(db, "verkefni", vDoc.id), { active: !verkefni.active });
+            hladaVerkefnayfirlit();
+          }
+        },
+        {
+          texti: "Breyta titli",
+          smella: async () => {
+            const nyttNafn = prompt("Nýr titill:", verkefni.title);
+            if (!nyttNafn || !nyttNafn.trim() || nyttNafn.trim() === verkefni.title) return;
+            await updateDoc(doc(db, "verkefni", vDoc.id), { title: nyttNafn.trim() });
+            hladaVerkefnayfirlit();
+          }
+        },
+        {
+          texti: erProf ? "Gera að verkefni" : "Gera að prófi",
+          smella: async () => {
+            await updateDoc(doc(db, "verkefni", vDoc.id), { tegund: erProf ? "verkefni" : "prof" });
+            hladaVerkefnayfirlit();
+          }
+        },
+        {
+          texti: "Velja notendur",
+          smella: () => opnaNotendaValPanell(vDoc.id, verkefni)
+        },
+        {
+          texti: "Generera spurningar",
+          smella: () => {
+            aiVerkefniValiö.value = vDoc.id;
+            generaSpurningarBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+      ])
+    );
 
     tr.appendChild(titillTd);
     tr.appendChild(tegundTd);
