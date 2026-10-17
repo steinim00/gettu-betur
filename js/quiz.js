@@ -156,14 +156,56 @@ function ritstjornarfjarlaegd(a, b) {
   return fyrriRod[n];
 }
 
+// Orðmyndir talnanna 1-20 (með kynjum þar sem þau eru til) svo "2", "tvö" og
+// "tveir" teljist öll sama svarið, hvort sem admin skráði réttu svörin sem
+// tölustaf eða orð og hvort sem nemandinn svarar með tölustaf eða orði.
+const TOLUORD_1_TIL_20 = {
+  1: ["einn", "ein", "eitt"],
+  2: ["tveir", "tvær", "tvö"],
+  3: ["þrír", "þrjár", "þrjú"],
+  4: ["fjórir", "fjórar", "fjögur"],
+  5: ["fimm"],
+  6: ["sex"],
+  7: ["sjö"],
+  8: ["átta"],
+  9: ["níu"],
+  10: ["tíu"],
+  11: ["ellefu"],
+  12: ["tólf"],
+  13: ["þrettán"],
+  14: ["fjórtán"],
+  15: ["fimmtán"],
+  16: ["sextán"],
+  17: ["sautján"],
+  18: ["átján"],
+  19: ["nítján"],
+  20: ["tuttugu"]
+};
+const ORD_TIL_TOLUGILDIS = new Map();
+for (const [tala, ordmyndir] of Object.entries(TOLUORD_1_TIL_20)) {
+  for (const ord of ordmyndir) ORD_TIL_TOLUGILDIS.set(ord, Number(tala));
+}
+
+// Skilar tölugildinu (1-20) sem "svar" vísar til - hvort sem það er skrifað
+// sem tölustafur eða orð - eða null ef það er hvorugt.
+function tolugildi1til20(svar) {
+  if (/^([1-9]|1[0-9]|20)$/.test(svar)) return Number(svar);
+  return ORD_TIL_TOLUGILDIS.get(svar) ?? null;
+}
+
 // Leyfir svari sem er mjög nálægt (fá stafsetningarvilla) einhverju af réttu
 // svörunum að teljast rétt, í stað þess að krefjast nákvæmrar stafsetningar.
 // Þolið vex með lengd svarsins - stutt svör þurfa áfram að vera nákvæm.
 // Tölugildi eru UNDANSKILIN - þau eiga alltaf að vera nákvæm (sveigjanleikinn
 // á eingöngu við stafsetningu, ekki tölur: "20000" á ekki að teljast sama og
-// "20001" þó ritstjórnarfjarlægðin sé lítil).
+// "20001" þó ritstjórnarfjarlægðin sé lítil) - nema töluorð 1-20 (sbr.
+// tolugildi1til20 hér fyrir ofan), sem eru jafngild tölustafnum sínum.
 function erSvarRett(svar, rettSvor) {
   if (rettSvor.includes(svar)) return true;
+
+  const svarTala = tolugildi1til20(svar);
+  if (svarTala !== null && rettSvor.some((r) => tolugildi1til20(r) === svarTala)) return true;
+
   if (/\d/.test(svar)) return false;
 
   return rettSvor.some((r) => {
