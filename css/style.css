@@ -1232,6 +1232,13 @@ td .smabtn + .smabtn {
   margin: 0 0 8px;
 }
 
+.svaralisti-svaedi {
+  margin-top: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+  border-radius: 12px;
+}
+
 .sundurlidun-kort {
   background: var(--litur-korti);
   border-radius: 14px;

@@ -9,6 +9,7 @@ import {
   getDocs,
   query,
   where,
+  documentId,
   updateDoc,
   arrayUnion,
   arrayRemove,
@@ -597,6 +598,7 @@ async function hladaNotendayfirlit() {
       .sort((a, b) => b.svarad - a.svarad);
 
     rows.push({
+      uid: notandiDoc.id,
       nafn: notandi.nafn || notandi.email,
       email: notandi.email,
       fjoldiSvarad,
@@ -755,6 +757,28 @@ function birtaNotendaRadir() {
       sundurlidunTd.appendChild(kortNet);
     }
 
+    const svaraListaBtn = document.createElement("button");
+    svaraListaBtn.type = "button";
+    svaraListaBtn.className = "smabtn";
+    svaraListaBtn.style.marginTop = "12px";
+    svaraListaBtn.textContent = "Sýna spurningar og svör";
+
+    const svaraListaSvaedi = document.createElement("div");
+    svaraListaSvaedi.className = "svaralisti-svaedi";
+    svaraListaSvaedi.hidden = true;
+
+    let svaralistiHladinn = false;
+    svaraListaBtn.addEventListener("click", async () => {
+      svaraListaSvaedi.hidden = !svaraListaSvaedi.hidden;
+      svaraListaBtn.textContent = svaraListaSvaedi.hidden ? "Sýna spurningar og svör" : "Loka spurningum og svörum";
+      if (svaraListaSvaedi.hidden || svaralistiHladinn) return;
+      svaralistiHladinn = true;
+      await hladaSvaralista(r.uid, svaraListaSvaedi);
+    });
+
+    sundurlidunTd.appendChild(svaraListaBtn);
+    sundurlidunTd.appendChild(svaraListaSvaedi);
+
     sundurlidunTr.appendChild(sundurlidunTd);
     notendaTafla.appendChild(sundurlidunTr);
 
@@ -763,6 +787,101 @@ function birtaNotendaRadir() {
       nanarBtn.textContent = sundurlidunTr.hidden ? "Nánar" : "Loka";
     });
   }
+}
+
+// Sækir attempts-undirsafn EINS notanda (ekki allra - sjá athugasemdina við
+// hladaNotendayfirlit um hvers vegna) og birtir hverja spurningu sem hann
+// hefur svarað ásamt svarinu hans, svo kennarinn sjái nákvæmlega hvað
+// nemandinn er að þreyta sig á núna, ekki bara samtölurnar. Sótt í fyrsta
+// skipti sem "Sýna spurningar og svör" er opnað fyrir þennan notanda -
+// ekki sjálfkrafa með restinni af yfirlitinu.
+async function hladaSvaralista(uid, svaedi) {
+  svaedi.innerHTML = "<p>Sæki gögn…</p>";
+
+  const [attemptsSnap, verkefnaSnap] = await Promise.all([
+    getDocs(collection(db, "users", uid, "attempts")),
+    getDocs(collection(db, "verkefni"))
+  ]);
+
+  if (attemptsSnap.empty) {
+    svaedi.innerHTML = "<p>Engar spurningar svaraðar ennþá.</p>";
+    return;
+  }
+
+  const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
+  const questionIds = attemptsSnap.docs.map((d) => d.id);
+
+  const spurningaKort = new Map();
+  const svaraKort = new Map();
+  for (let i = 0; i < questionIds.length; i += 30) {
+    const biti = questionIds.slice(i, i + 30);
+    const [spurningarBiti, svorBiti] = await Promise.all([
+      getDocs(query(collection(db, "questions"), where(documentId(), "in", biti))),
+      getDocs(query(collection(db, "answers"), where(documentId(), "in", biti)))
+    ]);
+    spurningarBiti.forEach((d) => spurningaKort.set(d.id, d.data()));
+    svorBiti.forEach((d) => svaraKort.set(d.id, d.data()));
+  }
+
+  const radir = attemptsSnap.docs
+    .map((d) => {
+      const { svar, answeredAt } = d.data();
+      const spurning = spurningaKort.get(d.id);
+      const rettSvor = svaraKort.get(d.id)?.correctAnswers || [];
+      return {
+        texti: spurning?.text || "(spurning fannst ekki - hefur verið eytt)",
+        verkefni: verkefnaTitlar.get(spurning?.verkefniId) || "Ótengdar spurningar",
+        svar,
+        pass: svar === SLEPPT_MERKI,
+        rett: svar !== SLEPPT_MERKI && erSvarRett(svar, rettSvor),
+        rettSvor,
+        hvenaer: answeredAt?.toMillis?.() ?? null
+      };
+    })
+    .sort((a, b) => (b.hvenaer ?? 0) - (a.hvenaer ?? 0));
+
+  const tafla = document.createElement("table");
+  tafla.className = "sundurlidun-tafla";
+  tafla.innerHTML = `<thead><tr><th>Spurning</th><th>Verkefni</th><th>Svar</th><th>Niðurstaða</th><th>Hvenær</th></tr></thead>`;
+  const biti = document.createElement("tbody");
+
+  radir.forEach((rad) => {
+    const tr = document.createElement("tr");
+
+    const spurningTd = document.createElement("td");
+    spurningTd.textContent = rad.texti;
+
+    const verkefniTd = document.createElement("td");
+    verkefniTd.textContent = rad.verkefni;
+
+    const svarTd = document.createElement("td");
+    svarTd.textContent = rad.pass ? "—" : rad.svar;
+
+    const nidurstadaTd = document.createElement("td");
+    if (rad.pass) {
+      nidurstadaTd.textContent = "Pass ⏭";
+    } else if (rad.rett) {
+      nidurstadaTd.textContent = "Rétt ✅";
+      nidurstadaTd.style.color = "var(--litur-rett)";
+    } else {
+      nidurstadaTd.textContent = `Rangt ❌ (rétt: ${rad.rettSvor.join(" / ") || "—"})`;
+      nidurstadaTd.style.color = "var(--litur-rangt)";
+    }
+
+    const hvenaerTd = document.createElement("td");
+    hvenaerTd.textContent = formatDagsStutt(rad.hvenaer);
+
+    tr.appendChild(spurningTd);
+    tr.appendChild(verkefniTd);
+    tr.appendChild(svarTd);
+    tr.appendChild(nidurstadaTd);
+    tr.appendChild(hvenaerTd);
+    biti.appendChild(tr);
+  });
+
+  tafla.appendChild(biti);
+  svaedi.innerHTML = "";
+  svaedi.appendChild(tafla);
 }
 
 // Setur margar aðgerðir saman í einn "..." hnapp með fellivalmynd í stað
@@ -1397,6 +1516,81 @@ function samraema(text) {
     .toLowerCase()
     .replace(/^[\s.,!?;:"'`´()]+|[\s.,!?;:"'`´()]+$/g, "")
     .replace(/\s+/g, " ");
+}
+
+const SLEPPT_MERKI = "__sleppt__";
+
+// Sömu reglur og erSvarRett í js/quiz.js (sjá þá skrá fyrir ítarlegri
+// skýringum) - endurtekið hér svo stjórnborðið geti sýnt rétt/rangt á
+// sama hátt og lifandi einkunnagjöfin gerir, fyrir "Spurningar og svör"
+// yfirlitið hjá hverjum notanda.
+function ritstjornarfjarlaegd(a, b) {
+  const m = a.length;
+  const n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+
+  let fyrriRod = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const nyRod = [i];
+    for (let j = 1; j <= n; j++) {
+      nyRod[j] =
+        a[i - 1] === b[j - 1]
+          ? fyrriRod[j - 1]
+          : 1 + Math.min(fyrriRod[j - 1], fyrriRod[j], nyRod[j - 1]);
+    }
+    fyrriRod = nyRod;
+  }
+  return fyrriRod[n];
+}
+
+const TOLUORD_1_TIL_20 = {
+  1: ["einn", "ein", "eitt"],
+  2: ["tveir", "tvær", "tvö"],
+  3: ["þrír", "þrjár", "þrjú"],
+  4: ["fjórir", "fjórar", "fjögur"],
+  5: ["fimm"],
+  6: ["sex"],
+  7: ["sjö"],
+  8: ["átta"],
+  9: ["níu"],
+  10: ["tíu"],
+  11: ["ellefu"],
+  12: ["tólf"],
+  13: ["þrettán"],
+  14: ["fjórtán"],
+  15: ["fimmtán"],
+  16: ["sextán"],
+  17: ["sautján"],
+  18: ["átján"],
+  19: ["nítján"],
+  20: ["tuttugu"]
+};
+const ORD_TIL_TOLUGILDIS = new Map();
+for (const [tala, ordmyndir] of Object.entries(TOLUORD_1_TIL_20)) {
+  for (const ord of ordmyndir) ORD_TIL_TOLUGILDIS.set(ord, Number(tala));
+}
+
+function tolugildi1til20(svar) {
+  if (/^([1-9]|1[0-9]|20)$/.test(svar)) return Number(svar);
+  return ORD_TIL_TOLUGILDIS.get(svar) ?? null;
+}
+
+function erSvarRett(svar, rettSvor) {
+  if (rettSvor.includes(svar)) return true;
+
+  const svarTala = tolugildi1til20(svar);
+  if (svarTala !== null && rettSvor.some((r) => tolugildi1til20(r) === svarTala)) return true;
+
+  if (/\d/.test(svar)) return false;
+
+  return rettSvor.some((r) => {
+    if (/\d/.test(r)) return false;
+    const thol = r.length <= 4 ? 0 : r.length <= 8 ? 1 : 2;
+    if (thol === 0) return false;
+    if (Math.abs(r.length - svar.length) > thol) return false;
+    return ritstjornarfjarlaegd(svar, r) <= thol;
+  });
 }
 
 // entries: [{ text, correctAnswers: string[], verkefniId? }]. Skrifar questions+answers
