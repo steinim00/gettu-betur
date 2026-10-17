@@ -1142,8 +1142,31 @@ async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada, aefi
 
   korti.classList.add("svarad");
   svaradIdSett.add(questionId);
-  await synaNidurstodu(questionId, korti, nidurstada, svar, aefingaSvaedi, spurning);
+  const nidurstodur = await synaNidurstodu(questionId, korti, nidurstada, svar, aefingaSvaedi, spurning);
+  uppfaeraSamtoluStodu(spurning?.verkefniId, nidurstodur);
   hladaMinumStodum();
+}
+
+// Heldur fjoldiSvarad/fjoldiRett/fjoldiPass/verkefnaStada/sidastSvaradAt á
+// users/{uid} réttum jafnóðum þegar svarað er - stjórnborðið les þessar tölur
+// beint í stað þess að endurreikna úr öllum attempts-skjölum hvers notanda í
+// hvert sinn sem stjórnborðið hleður (sjá hladaNotendayfirlit í js/admin.js),
+// sem var að klára daglega Firestore-lestrarkvótann.
+function uppfaeraSamtoluStodu(verkefniId, nidurstodur) {
+  if (!notandi || !nidurstodur) return;
+  const { pass, rett } = nidurstodur;
+  const breytingar = {
+    fjoldiSvarad: increment(1),
+    sidastSvaradAt: serverTimestamp()
+  };
+  if (pass) breytingar.fjoldiPass = increment(1);
+  else if (rett) breytingar.fjoldiRett = increment(1);
+  if (verkefniId) {
+    breytingar[`verkefnaStada.${verkefniId}.svarad`] = increment(1);
+    if (pass) breytingar[`verkefnaStada.${verkefniId}.pass`] = increment(1);
+    else if (rett) breytingar[`verkefnaStada.${verkefniId}.rett`] = increment(1);
+  }
+  updateDoc(doc(db, "users", notandi.uid), breytingar).catch((villa) => console.error(villa));
 }
 
 // Birtir mynd sem lýsir svarinu við spurningunni, þegar hún er til (sjá
@@ -1175,15 +1198,16 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaS
   if (mittSvar === SLEPPT_MERKI) {
     nidurstada.textContent = "Pass ⏭";
     nidurstada.classList.add("sleppt");
-    return;
+    return { pass: true, rett: false };
   }
 
   const svarSnap = await getDoc(doc(db, "answers", questionId));
-  if (!svarSnap.exists()) return;
+  if (!svarSnap.exists()) return { pass: false, rett: false };
 
   const rettSvor = svarSnap.data().correctAnswers || [];
+  const rett = erSvarRett(mittSvar, rettSvor);
 
-  if (erSvarRett(mittSvar, rettSvor)) {
+  if (rett) {
     nidurstada.textContent = "Rétt svar! 🎉";
     nidurstada.classList.add("rett");
   } else if (aefingaSvaedi) {
@@ -1198,6 +1222,7 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaS
     nidurstada.classList.add("rangt");
   }
   birtaSpurningamynd(korti, spurning);
+  return { pass: false, rett };
 }
 
 async function hladaMinumStodum() {

@@ -87,9 +87,6 @@ const notendaValGatlisti = document.getElementById("notendaValGatlisti");
 const vistaNotendaValBtn = document.getElementById("vistaNotendaValBtn");
 const hættaVidNotendaValBtn = document.getElementById("hættaVidNotendaValBtn");
 
-// Sama merki og í js/quiz.js - geymt í "svar" reitnum þegar notandi ýtir á Pass.
-const SLEPPT_MERKI = "__sleppt__";
-
 // Breyttu þessu ef repoið er einhvern tímann flutt/endurnefnt.
 const GITHUB_REPO = "steinim00/gettu-betur";
 const GITHUB_TEIKN_LYKILL = "gettubetur_github_token";
@@ -510,15 +507,12 @@ function formatDagsStutt(ms) {
 async function hladaNotendayfirlit() {
   notendaTafla.innerHTML = `<tr><td colspan="9">Sæki gögn…</td></tr>`;
 
-  const [notendurSnap, svorSnap, spurningarSnap, verkefnaSnap] = await Promise.all([
+  const [notendurSnap, spurningarSnap, verkefnaSnap] = await Promise.all([
     getDocs(collection(db, "users")),
-    getDocs(collection(db, "answers")),
     getDocs(collection(db, "questions")),
     getDocs(collection(db, "verkefni"))
   ]);
 
-  const rettSvor = new Map(svorSnap.docs.map((d) => [d.id, d.data().correctAnswers || []]));
-  const verkefniPerSpurningu = new Map(spurningarSnap.docs.map((d) => [d.id, d.data().verkefniId || ""]));
   const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
 
   // Yfirlits-tölukortin eru fyllt út frá sömu gögnum og þegar voru sótt hér
@@ -528,49 +522,36 @@ async function hladaNotendayfirlit() {
   yfirlitVirkar.textContent = spurningarSnap.docs.filter((d) => d.data().active).length;
   yfirlitNotendur.textContent = notendurSnap.docs.filter((d) => d.data().role !== "admin").length;
 
+  // Tölfræði hvers notanda er lesin beint af users/{uid} (fjoldiSvarad,
+  // fjoldiRett, fjoldiPass, verkefnaStada, sidastSvaradAt) í stað þess að
+  // endursækja og endurreikna úr attempts-undirsafni hvers notanda í hvert
+  // sinn sem stjórnborðið hleður - sjá uppfaeraSamtoluStodu í js/quiz.js,
+  // sem heldur þessum tölum réttum jafnóðum þegar spurningu er svarað. Þetta
+  // breytir lestrarkostnaði þessarar aðgerðar úr O(fjöldi svaraðra spurninga
+  // samanlagt) í O(fjöldi notenda) - var að klára daglega Firestore-kvótann.
   const rows = [];
   for (const notandiDoc of notendurSnap.docs) {
     const notandi = notandiDoc.data();
     if (notandi.role === "admin") continue;
 
-    const attemptsSnap = await getDocs(collection(db, "users", notandiDoc.id, "attempts"));
-    let fjoldiRett = 0;
-    let fjoldiPass = 0;
-    let sidastSvarad = null;
-    const perVerkefni = new Map();
-
-    attemptsSnap.forEach((a) => {
-      const gogn = a.data();
-      const verkefniId = verkefniPerSpurningu.get(a.id) || "";
-      if (!perVerkefni.has(verkefniId)) perVerkefni.set(verkefniId, { svarad: 0, pass: 0, rett: 0 });
-      const b = perVerkefni.get(verkefniId);
-      b.svarad++;
-
-      if (gogn.svar === SLEPPT_MERKI) {
-        fjoldiPass++;
-        b.pass++;
-      } else if (erSvarRett(gogn.svar, rettSvor.get(a.id) || [])) {
-        fjoldiRett++;
-        b.rett++;
-      }
-
-      const timi = gogn.answeredAt?.toMillis?.() ?? 0;
-      if (!sidastSvarad || timi > sidastSvarad) sidastSvarad = timi;
-    });
-
-    const fjoldiSvarad = attemptsSnap.size;
+    const fjoldiSvarad = notandi.fjoldiSvarad || 0;
+    const fjoldiPass = notandi.fjoldiPass || 0;
+    const fjoldiRett = notandi.fjoldiRett || 0;
     const fjoldiMetin = fjoldiSvarad - fjoldiPass;
     const nakvaemni = fjoldiMetin ? Math.round((fjoldiRett / fjoldiMetin) * 100) : 0;
 
-    const verkefnaSundurlidun = [...perVerkefni.entries()]
+    const verkefnaSundurlidun = Object.entries(notandi.verkefnaStada || {})
       .map(([verkefniId, b]) => {
-        const metin = b.svarad - b.pass;
+        const svarad = b.svarad || 0;
+        const pass = b.pass || 0;
+        const rett = b.rett || 0;
+        const metin = svarad - pass;
         return {
           titill: verkefnaTitlar.get(verkefniId) || "Ótengdar spurningar",
-          svarad: b.svarad,
-          pass: b.pass,
-          rett: b.rett,
-          nakvaemni: metin ? Math.round((b.rett / metin) * 100) : 0
+          svarad,
+          pass,
+          rett,
+          nakvaemni: metin ? Math.round((rett / metin) * 100) : 0
         };
       })
       .sort((a, b) => b.svarad - a.svarad);
@@ -584,7 +565,7 @@ async function hladaNotendayfirlit() {
       nakvaemni,
       skjatimi: notandi.screenTimeSeconds || 0,
       nyskraning: notandi.createdAt?.toMillis?.() ?? null,
-      sidastSvarad,
+      sidastSvarad: notandi.sidastSvaradAt?.toMillis?.() ?? null,
       lastActive: notandi.lastActive?.toMillis?.() ?? null,
       verkefnaSundurlidun
     });
@@ -1307,42 +1288,6 @@ function samraema(text) {
     .toLowerCase()
     .replace(/^[\s.,!?;:"'`´()]+|[\s.,!?;:"'`´()]+$/g, "")
     .replace(/\s+/g, " ");
-}
-
-// Sama ritstjórnarfjarlægðar-rökfræði og í js/quiz.js - leyfir smávægilegar
-// stafsetningarvillur í svörum þegar frammistaða notenda er reiknuð, svo
-// tölfræðin hér stemmi við það sem nemandinn sá sjálfur (sjá líka erSvarRett).
-function ritstjornarfjarlaegd(a, b) {
-  const m = a.length;
-  const n = b.length;
-  if (m === 0) return n;
-  if (n === 0) return m;
-
-  let fyrriRod = Array.from({ length: n + 1 }, (_, j) => j);
-  for (let i = 1; i <= m; i++) {
-    const nyRod = [i];
-    for (let j = 1; j <= n; j++) {
-      nyRod[j] =
-        a[i - 1] === b[j - 1]
-          ? fyrriRod[j - 1]
-          : 1 + Math.min(fyrriRod[j - 1], fyrriRod[j], nyRod[j - 1]);
-    }
-    fyrriRod = nyRod;
-  }
-  return fyrriRod[n];
-}
-
-function erSvarRett(svar, rettSvor) {
-  if (rettSvor.includes(svar)) return true;
-  if (/\d/.test(svar)) return false;
-
-  return rettSvor.some((r) => {
-    if (/\d/.test(r)) return false;
-    const thol = r.length <= 4 ? 0 : r.length <= 8 ? 1 : 2;
-    if (thol === 0) return false;
-    if (Math.abs(r.length - svar.length) > thol) return false;
-    return ritstjornarfjarlaegd(svar, r) <= thol;
-  });
 }
 
 // entries: [{ text, correctAnswers: string[], verkefniId? }]. Skrifar questions+answers
