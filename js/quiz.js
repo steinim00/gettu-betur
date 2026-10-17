@@ -210,22 +210,24 @@ function vistaSkjatima() {
   }
   const sekundur = Math.round(ovistadurSkjatimi);
   ovistadurSkjatimi = 0;
-  if (sekundur >= 1) {
-    updateDoc(doc(db, "users", notandi.uid), { screenTimeSeconds: increment(sekundur) }).catch((villa) => {
-      console.error(villa);
-      ovistadurSkjatimi += sekundur;
-    });
-  }
+  // lastActive fylgir alltaf með hér, sama skrif og skjátíminn - óháð því
+  // hvort einhver sekúnda safnaðist upp (t.d. strax eftir að flipinn var
+  // opnaður), svo þetta nái líka tilvikum sem skraVirkni ein og sér myndi
+  // missa af.
+  const breytingar = { lastActive: serverTimestamp() };
+  if (sekundur >= 1) breytingar.screenTimeSeconds = increment(sekundur);
+  updateDoc(doc(db, "users", notandi.uid), breytingar).catch((villa) => {
+    console.error(villa);
+    ovistadurSkjatimi += sekundur;
+  });
   hefjaTimamaelingu();
 }
 
-// lastActive er skrifað við innskráningu og svo í hvert sinn sem notandinn
-// gerir eitthvað raunverulegt (smellur, snertir skjáinn, slær á lykilborð) -
-// ekki bara meðan flipinn er opinn í bakgrunni, svo stjórnborðið geti sýnt
-// grænan punkt hjá þeim sem eru "online" (virkir síðustu 2 mín) án þess að
-// einhver sem gleymdi flipanum opnum virðist viðvarandi "online". Takmarkað
-// við eitt Firestore-skrif á mínútu svo tíðar smellir/áslættir skrifaflæði
-// ekki yfir kvótann.
+// Auka lastActive-skrif um leið og notandinn gerir eitthvað raunverulegt
+// (smellur, snertir skjáinn, slær á lykilborð) - til viðbótar við skrifið í
+// vistaSkjatima að ofan, svo "síðast virk/ur" uppfærist samstundis í stað
+// þess að bíða eftir næstu 60 sek flautun. Takmarkað við eitt Firestore-skrif
+// á mínútu svo tíðar smellir/áslættir skrifaflæði ekki yfir kvótann.
 let sidastaVirkniSkrif = 0;
 function skraVirkni() {
   if (!notandi) return;
