@@ -1035,7 +1035,7 @@ embaettismadurForm.addEventListener("submit", async (e) => {
     });
 
     embaettismadurForm.reset();
-    embStada.textContent = `Bætti við "${nafn}" - tvær spurningar búnar til (óvirkar, kveiktu á þeim í Spurningar-flipanum).`;
+    embStada.textContent = `Bætti við "${nafn}" - tvær spurningar búnar til (óvirkar, kveiktu á þeim í Verkefni-flipanum).`;
     hladaSerflokkar();
     hladaVerkefnayfirlit();
     hladaSpurningayfirlit();
@@ -1091,7 +1091,7 @@ bokForm.addEventListener("submit", async (e) => {
     });
 
     bokForm.reset();
-    bokStada.textContent = `Bætti við "${titill}" - tvær spurningar búnar til (óvirkar, kveiktu á þeim í Spurningar-flipanum).`;
+    bokStada.textContent = `Bætti við "${titill}" - tvær spurningar búnar til (óvirkar, kveiktu á þeim í Verkefni-flipanum).`;
     hladaSerflokkar();
     hladaVerkefnayfirlit();
     hladaSpurningayfirlit();

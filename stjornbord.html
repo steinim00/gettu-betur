@@ -21,7 +21,6 @@
     <nav class="stjorn-nav" id="stjornNav">
       <button type="button" class="virkur" data-malsvaedi="yfirlit"><span class="takn">📊</span><span class="texti">Yfirlit</span></button>
       <button type="button" data-malsvaedi="verkefni"><span class="takn">📁</span><span class="texti">Verkefni</span></button>
-      <button type="button" data-malsvaedi="spurningar"><span class="takn">❓</span><span class="texti">Spurningar</span></button>
       <button type="button" data-malsvaedi="serflokkar"><span class="takn">🏛️</span><span class="texti">Sérflokkar</span></button>
       <button type="button" data-malsvaedi="notendur"><span class="takn">👥</span><span class="texti">Notendur</span></button>
       <button type="button" data-malsvaedi="graenadeildin"><span class="takn">🏃</span><span class="texti">Grænadeildin</span></button>
@@ -49,11 +48,11 @@
           <div class="tolu-kort-haus"><span class="tolu-kort-takn">📁</span> Verkefni</div>
           <div class="tolu-kort-gildi"><span class="tala" id="yfirlitVerkefni">—</span></div>
         </button>
-        <button type="button" class="tolu-kort" data-malsvaedi="spurningar">
+        <button type="button" class="tolu-kort" data-malsvaedi="verkefni">
           <div class="tolu-kort-haus"><span class="tolu-kort-takn">❓</span> Spurningar samtals</div>
           <div class="tolu-kort-gildi"><span class="tala" id="yfirlitSpurningar">—</span></div>
         </button>
-        <button type="button" class="tolu-kort" data-malsvaedi="spurningar">
+        <button type="button" class="tolu-kort" data-malsvaedi="verkefni">
           <div class="tolu-kort-haus"><span class="tolu-kort-takn">✅</span> Virkar spurningar</div>
           <div class="tolu-kort-gildi"><span class="tala" id="yfirlitVirkar">—</span></div>
         </button>
@@ -133,47 +132,7 @@
         </div>
       </div>
 
-      <h3>Búa til spurningar með gervigreind</h3>
-      <p class="undirtitill-vinstri">
-        Veldu verkefni sem þegar hefur glærur/efni — Claude les efnið og semur
-        spurningar-svör pör í sama uppkasts-viðmóti og skjalainnflutningurinn, til
-        yfirferðar áður en neitt er vistað. Krefst Anthropic API-lykils í Stillingum.
-      </p>
-      <div class="innflutnings-form">
-        <select id="aiVerkefniValiö">
-          <option value="">Veldu verkefni…</option>
-        </select>
-        <input type="number" id="aiFjoldiInnsl" value="50" min="1" max="100" style="max-width:100px">
-        <button type="button" class="smabtn" id="generaSpurningarBtn">Generera spurningar</button>
-      </div>
-      <p id="generaStada"></p>
-      <div class="innflutnings-form" id="aiGatlistaHnappar" hidden>
-        <button type="button" class="smabtn" id="aiVeljaAllarBtn">Velja allar</button>
-        <button type="button" class="smabtn" id="aiAfveljaAllarBtn">Afvelja allar</button>
-      </div>
-      <div id="aiDrafListi"></div>
-      <button type="button" class="aðal-hnappur" id="aiVistaValdarBtn" hidden>Vista valdar spurningar</button>
-
-      <h3>Búa til verkefni handvirkt</h3>
-      <p class="undirtitill-vinstri">
-        Fyrir efni sem tengist ekki endilega neinum spurningum - t.d. listi yfir
-        embættismenn, bókalisti eða annað lesefni sem nemandi á bara að skoða.
-        Hver efnisgrein (aðskilin með auðri línu) verður sín glæra; fyrsta línan í
-        hverri efnisgrein er fyrirsögn hennar.
-      </p>
-      <form id="nyttVerkefniForm" class="ny-spurning-form">
-        <label for="handVerkefniTitill">Titill</label>
-        <input type="text" id="handVerkefniTitill" name="titill" required>
-
-        <label for="handVerkefniEfni">Efni</label>
-        <textarea id="handVerkefniEfni" name="efni" rows="8" required placeholder="Embættismaður 1&#10;Lýsing hans/hennar...&#10;&#10;Embættismaður 2&#10;Lýsing hans/hennar..."></textarea>
-
-        <button type="submit" class="aðal-hnappur">Búa til verkefni</button>
-      </form>
-    </div>
-
-    <div class="stjorn-sida" id="sida-spurningar">
-      <div class="hluti-titill" style="margin-top:0;">
+      <div class="hluti-titill">
         <h2>Spurningar</h2>
       </div>
       <p class="undirtitill-vinstri">
@@ -224,6 +183,44 @@
       </div>
       <div id="drafListi"></div>
       <button type="button" class="aðal-hnappur" id="vistaValdarBtn" hidden>Vista valdar spurningar</button>
+
+      <h3>Búa til spurningar með gervigreind</h3>
+      <p class="undirtitill-vinstri">
+        Veldu verkefni sem þegar hefur glærur/efni — Claude les efnið og semur
+        spurningar-svör pör í sama uppkasts-viðmóti og skjalainnflutningurinn, til
+        yfirferðar áður en neitt er vistað. Krefst Anthropic API-lykils í Stillingum.
+      </p>
+      <div class="innflutnings-form">
+        <select id="aiVerkefniValiö">
+          <option value="">Veldu verkefni…</option>
+        </select>
+        <input type="number" id="aiFjoldiInnsl" value="50" min="1" max="100" style="max-width:100px">
+        <button type="button" class="smabtn" id="generaSpurningarBtn">Generera spurningar</button>
+      </div>
+      <p id="generaStada"></p>
+      <div class="innflutnings-form" id="aiGatlistaHnappar" hidden>
+        <button type="button" class="smabtn" id="aiVeljaAllarBtn">Velja allar</button>
+        <button type="button" class="smabtn" id="aiAfveljaAllarBtn">Afvelja allar</button>
+      </div>
+      <div id="aiDrafListi"></div>
+      <button type="button" class="aðal-hnappur" id="aiVistaValdarBtn" hidden>Vista valdar spurningar</button>
+
+      <h3>Búa til verkefni handvirkt</h3>
+      <p class="undirtitill-vinstri">
+        Fyrir efni sem tengist ekki endilega neinum spurningum - t.d. listi yfir
+        embættismenn, bókalisti eða annað lesefni sem nemandi á bara að skoða.
+        Hver efnisgrein (aðskilin með auðri línu) verður sín glæra; fyrsta línan í
+        hverri efnisgrein er fyrirsögn hennar.
+      </p>
+      <form id="nyttVerkefniForm" class="ny-spurning-form">
+        <label for="handVerkefniTitill">Titill</label>
+        <input type="text" id="handVerkefniTitill" name="titill" required>
+
+        <label for="handVerkefniEfni">Efni</label>
+        <textarea id="handVerkefniEfni" name="efni" rows="8" required placeholder="Embættismaður 1&#10;Lýsing hans/hennar...&#10;&#10;Embættismaður 2&#10;Lýsing hans/hennar..."></textarea>
+
+        <button type="submit" class="aðal-hnappur">Búa til verkefni</button>
+      </form>
     </div>
 
     <div class="stjorn-sida" id="sida-serflokkar">
@@ -233,7 +230,7 @@
       <p class="undirtitill-vinstri">
         Hver færsla býr sjálfkrafa til tvær spurningar - "Hver er [embætti]?" og
         "Hvaða embætti gegnir [nafn]?" - sem bætast óvirkar við "Embættismannalisti"
-        verkefnið (kveiktu á þeim í Spurningar-flipanum þegar þú hefur farið yfir þær).
+        verkefnið (kveiktu á þeim í Verkefni-flipanum þegar þú hefur farið yfir þær).
       </p>
       <form id="embaettismadurForm" class="ny-spurning-form">
         <label for="embNafn">Nafn</label>
@@ -333,11 +330,10 @@
 <script type="module" src="js/admin.js"></script>
 <script>
   (function () {
-    var SIDUR = ["yfirlit", "verkefni", "spurningar", "serflokkar", "notendur", "graenadeildin", "stillingar"];
+    var SIDUR = ["yfirlit", "verkefni", "serflokkar", "notendur", "graenadeildin", "stillingar"];
     var FYRIRSAGNIR = {
       yfirlit: ["Yfirlit", "Staðan á Gettu Betur í hnotskurn."],
-      verkefni: ["Verkefni", "Búa til, skoða og stjórna verkefnum."],
-      spurningar: ["Spurningar", "Flokkað eftir verkefni - flytja inn, búa til eða fara yfir."],
+      verkefni: ["Verkefni og spurningar", "Búa til, skoða og stjórna verkefnum og spurningum þeirra."],
       serflokkar: ["Sérflokkar", "Embættismannalisti og bókalisti - tvíátta spurningar."],
       notendur: ["Notendur", "Frammistaða hvers og eins nemanda."],
       graenadeildin: ["Grænadeildin", "Æfingaskráning fyrir liðið."],
