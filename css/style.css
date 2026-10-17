@@ -1415,6 +1415,25 @@ td .smabtn + .smabtn {
   .siduflettingar {
     gap: 12px;
   }
+
+  #minStadaSvaedi .tolu-kort-net {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  #minStadaSvaedi .tolu-kort {
+    padding: 14px 16px;
+  }
+
+  #minStadaSvaedi .tolu-kort-gildi .tala {
+    font-size: 1.5rem;
+  }
+}
+
+.spurningar-adgerdir {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
 .online-punktur {

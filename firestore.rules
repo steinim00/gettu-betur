@@ -32,7 +32,11 @@ service cloud.firestore {
                                 && erAdminNetfang(resource.data.email))));
       allow delete: if erAdmin();
 
-      // Tilraunir (svör) notandans. Óbreytanlegar eftir að þær eru skráðar.
+      // Tilraunir (svör) notandans. Óbreytanlegar eftir að þær eru skráðar - en
+      // notandinn má eyða sinni eigin til að "byrja verkefni aftur" (sjá
+      // byrjaVerkefniAftur í js/quiz.js, sem eyðir öllum tilraunum fyrir eitt
+      // verkefni í einu, ekki bara einu röngu svari til að reyna aftur - það
+      // heldur upprunalega tilganginum með óbreytanleikanum).
       // Skjal-ID = spurningarID, svo hver notandi getur aðeins svarað hverri spurningu einu sinni.
       // "svar" er hráa textasvarið sem notandinn skrifaði (lágstafað/trimmað í js/quiz.js).
       // Réttmæti er ALDREI treyst frá biðlaranum - það er reiknað eftir á með því að
@@ -45,7 +49,8 @@ service cloud.firestore {
                       && request.resource.data.svar.size() > 0
                       && request.resource.data.svar.size() < 200
                       && exists(/databases/$(database)/documents/questions/$(questionId));
-        allow update, delete: if false;
+        allow update: if false;
+        allow delete: if innskradur() && request.auth.uid == userId;
       }
 
       // Glósur notandans um verkefni - hreinir einkaminnispunktar, ólíkt

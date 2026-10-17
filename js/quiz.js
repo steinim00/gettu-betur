@@ -11,6 +11,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  writeBatch,
   increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
@@ -24,7 +25,6 @@ const tilbakaFraMinniStodu = document.getElementById("tilbakaFraMinniStodu");
 const minarStodurSvarad = document.getElementById("minarStodurSvarad");
 const minarStodurRett = document.getElementById("minarStodurRett");
 const minarStodurNakvaemni = document.getElementById("minarStodurNakvaemni");
-const minarStodurPass = document.getElementById("minarStodurPass");
 const minarStodurSkjatimi = document.getElementById("minarStodurSkjatimi");
 const minarStodurListi = document.getElementById("minarStodurListi");
 const rangarSpurningarBtn = document.getElementById("rangarSpurningarBtn");
@@ -56,6 +56,8 @@ const spurningaTitill = document.getElementById("spurningaTitill");
 const spurningaListi = document.getElementById("spurningaListi");
 const stodurNiðurstada = document.getElementById("stodurNiðurstada");
 const tilbakaFraSpurningum = document.getElementById("tilbakaFraSpurningum");
+const stokkaSpurningarBtn = document.getElementById("stokkaSpurningarBtn");
+const byrjaAfturBtn = document.getElementById("byrjaAfturBtn");
 
 const siduflettingarEfri = document.getElementById("siduflettingarEfri");
 const fyrriSidaBtnEfri = document.getElementById("fyrriSidaBtnEfri");
@@ -406,6 +408,10 @@ async function hladaGlosur() {
   });
 }
 
+// Les tölfræðina beint af users/{uid} (fjoldiSvarad/fjoldiRett/fjoldiPass/
+// verkefnaStada) í stað þess að endurreikna úr öllum attempts- og
+// answers-skjölum í hvert sinn - sjá uppfaeraSamtoluStodu, sem heldur þessu
+// réttu jafnóðum (sama mynstur og admin.js notar fyrir stjórnborðið).
 async function hladaMinaStodu() {
   if (!notandi) return;
 
@@ -413,70 +419,49 @@ async function hladaMinaStodu() {
   minarStodurSvarad.textContent = "—";
   minarStodurRett.textContent = "—";
   minarStodurNakvaemni.textContent = "—";
-  minarStodurPass.textContent = "—";
   minarStodurSkjatimi.textContent = "—";
 
-  const [verkefnaSnap, spurningarSnap, attemptsSnap, notandiSnap] = await Promise.all([
+  const [verkefnaSnap, notandiSnap] = await Promise.all([
     getDocs(collection(db, "verkefni")),
-    getDocs(collection(db, "questions")),
-    getDocs(collection(db, "users", notandi.uid, "attempts")),
     getDoc(doc(db, "users", notandi.uid))
   ]);
 
   const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
-  const verkefniPerSpurningu = new Map(spurningarSnap.docs.map((d) => [d.id, d.data().verkefniId || ""]));
+  const notandaGogn = notandiSnap.data() || {};
 
   birtaVikuAherslu(verkefnaSnap);
 
   // Núverandi óvistaður skjátími (síðan á síðustu skrifum) talinn með svo talan sé lifandi.
-  const grunnSkjatimi = notandiSnap.data()?.screenTimeSeconds || 0;
+  const grunnSkjatimi = notandaGogn.screenTimeSeconds || 0;
   const birturSkjatimi = grunnSkjatimi + Math.round(ovistadurSkjatimi);
   minarStodurSkjatimi.textContent = formatSkjatimi(birturSkjatimi);
 
-  let fjoldiRett = 0;
-  let fjoldiPass = 0;
-  const perVerkefni = new Map();
-
-  for (const a of attemptsSnap.docs) {
-    const svar = a.data().svar;
-    const verkefniId = verkefniPerSpurningu.get(a.id) || "";
-    if (!perVerkefni.has(verkefniId)) perVerkefni.set(verkefniId, { svarad: 0, pass: 0, rett: 0 });
-    const b = perVerkefni.get(verkefniId);
-    b.svarad++;
-
-    if (svar === SLEPPT_MERKI) {
-      fjoldiPass++;
-      b.pass++;
-      continue;
-    }
-
-    const svarSnap = await getDoc(doc(db, "answers", a.id));
-    const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
-    if (erSvarRett(svar, rettSvor)) {
-      fjoldiRett++;
-      b.rett++;
-    }
-  }
-
-  const fjoldiSvarad = attemptsSnap.size;
+  const fjoldiSvarad = notandaGogn.fjoldiSvarad || 0;
+  const fjoldiPass = notandaGogn.fjoldiPass || 0;
+  const fjoldiRett = notandaGogn.fjoldiRett || 0;
   const fjoldiMetin = fjoldiSvarad - fjoldiPass;
   const nakvaemni = fjoldiMetin ? Math.round((fjoldiRett / fjoldiMetin) * 100) : 0;
 
   minarStodurSvarad.textContent = fjoldiSvarad;
   minarStodurRett.textContent = fjoldiRett;
   minarStodurNakvaemni.textContent = `${nakvaemni}%`;
-  minarStodurPass.textContent = fjoldiPass;
 
   minarStodurListi.innerHTML = "";
 
-  if (perVerkefni.size === 0) {
+  const perVerkefni = notandaGogn.verkefnaStada || {};
+  const verkefniIds = Object.keys(perVerkefni);
+
+  if (verkefniIds.length === 0) {
     minarStodurListi.innerHTML = "<p>Þú hefur ekki svarað neinum spurningum ennþá.</p>";
     return;
   }
 
-  const rodud = [...perVerkefni.entries()].sort((a, b) => b[1].svarad - a[1].svarad);
+  const rodud = verkefniIds
+    .map((id) => [id, perVerkefni[id]])
+    .sort((a, b) => (b[1].svarad || 0) - (a[1].svarad || 0));
 
-  rodud.forEach(([verkefniId, b]) => {
+  rodud.forEach(([verkefniId, bHra]) => {
+    const b = { svarad: bHra.svarad || 0, pass: bHra.pass || 0, rett: bHra.rett || 0 };
     const metin = b.svarad - b.pass;
     const hlutfall = metin ? Math.round((b.rett / metin) * 100) : 0;
 
@@ -537,6 +522,7 @@ async function hladaRangarSpurningar() {
   siduflettingarEfri.hidden = true;
   siduflettingar.hidden = true;
   stodurNiðurstada.textContent = "";
+  byrjaAfturBtn.hidden = true;
 
   const attemptsSnap = await getDocs(collection(db, "users", notandi.uid, "attempts"));
   const rangarIds = [];
@@ -930,6 +916,10 @@ async function hladaSpurningum() {
     ? new Set((await getDocs(collection(db, "users", notandi.uid, "attempts"))).docs.map((d) => d.id))
     : new Set();
 
+  // Aðeins hægt að "byrja aftur" innan eins verkefnis - ekki á rangar-spurningar
+  // yfirlitinu (valdVerkefniId er þá null) og ekki fyrir gesti.
+  byrjaAfturBtn.hidden = !notandi || valdVerkefniId === null;
+
   if (spurningarSnap.empty) {
     allarSpurningaskjol = [];
     spurningaListi.innerHTML = "<p>Engar virkar spurningar í þessu verkefni eins og er.</p>";
@@ -992,6 +982,78 @@ fyrriSidaBtnEfri.addEventListener("click", () => faraASidu(-1));
 naestaSidaBtnEfri.addEventListener("click", () => faraASidu(1));
 fyrriSidaBtn.addEventListener("click", () => faraASidu(-1));
 naestaSidaBtn.addEventListener("click", () => faraASidu(1));
+
+// Stokkar röð spurninganna af handahófi (Fisher-Yates) og byrjar á fyrstu síðu
+// aftur - hrein staðbundin umröðun, engin Firestore-skrif.
+function stokkaSpurningar() {
+  for (let i = allarSpurningaskjol.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allarSpurningaskjol[i], allarSpurningaskjol[j]] = [allarSpurningaskjol[j], allarSpurningaskjol[i]];
+  }
+  spurningaSida = 0;
+  synaSpurningaSidu();
+}
+stokkaSpurningarBtn.addEventListener("click", stokkaSpurningar);
+
+// Eyðir öllum tilraunum notandans fyrir spurningarnar í núverandi verkefni
+// (öllum í einu, ekki bara stökum röngum svörum - heldur upphaflega
+// tilganginum með að svör séu óbreytanleg eftir á) svo hægt sé að svara
+// þeim aftur, og dregur frá samtölunum á users/{uid} til samræmis.
+async function byrjaVerkefniAftur() {
+  if (!notandi || valdVerkefniId === null) return;
+  if (
+    !confirm(
+      "Byrja þetta verkefni aftur? Þetta eyðir svarasögu þinni fyrir allar spurningarnar hér og þú getur svarað þeim aftur."
+    )
+  ) {
+    return;
+  }
+
+  const spurningaIdSett = new Set(allarSpurningaskjol.map((d) => d.id));
+  const attemptsSnap = await getDocs(collection(db, "users", notandi.uid, "attempts"));
+  const tilEydingar = attemptsSnap.docs.filter((a) => spurningaIdSett.has(a.id));
+  if (tilEydingar.length === 0) return;
+
+  let svaradBreyting = 0;
+  let passBreyting = 0;
+  let rettBreyting = 0;
+
+  const batch = writeBatch(db);
+  for (const attemptDoc of tilEydingar) {
+    const svar = attemptDoc.data().svar;
+    svaradBreyting--;
+    if (svar === SLEPPT_MERKI) {
+      passBreyting--;
+    } else {
+      const svarSnap = await getDoc(doc(db, "answers", attemptDoc.id));
+      const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
+      if (erSvarRett(svar, rettSvor)) rettBreyting--;
+    }
+    batch.delete(attemptDoc.ref);
+  }
+
+  const breytingar = {
+    fjoldiSvarad: increment(svaradBreyting),
+    [`verkefnaStada.${valdVerkefniId}.svarad`]: increment(svaradBreyting)
+  };
+  if (passBreyting) {
+    breytingar.fjoldiPass = increment(passBreyting);
+    breytingar[`verkefnaStada.${valdVerkefniId}.pass`] = increment(passBreyting);
+  }
+  if (rettBreyting) {
+    breytingar.fjoldiRett = increment(rettBreyting);
+    breytingar[`verkefnaStada.${valdVerkefniId}.rett`] = increment(rettBreyting);
+  }
+  batch.update(doc(db, "users", notandi.uid), breytingar);
+
+  await batch.commit();
+
+  svaradIdSett.clear();
+  spurningaSida = 0;
+  synaSpurningaSidu();
+  hladaMinumStodum();
+}
+byrjaAfturBtn.addEventListener("click", byrjaVerkefniAftur);
 
 function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
   const korti = document.createElement("article");
@@ -1234,28 +1296,13 @@ async function hladaMinumStodum() {
   // mörgum verkefnum) - þar setur hladaRangarSpurningar sinn eigin stöðutexta.
   if (valdVerkefniId === null) return;
 
-  const spurningarSnap = await getDocs(
-    query(collection(db, "questions"), where("verkefniId", "==", valdVerkefniId))
-  );
-  const spurningaIds = new Set(spurningarSnap.docs.map((d) => d.id));
-
-  const attemptsSnap = await getDocs(collection(db, "users", notandi.uid, "attempts"));
-  const minarTilraunir = attemptsSnap.docs.filter((a) => spurningaIds.has(a.id));
-
-  let fjoldiRett = 0;
-  let fjoldiSleppt = 0;
-  for (const attemptDoc of minarTilraunir) {
-    const svar = attemptDoc.data().svar;
-    if (svar === SLEPPT_MERKI) {
-      fjoldiSleppt++;
-      continue;
-    }
-    const svarSnap = await getDoc(doc(db, "answers", attemptDoc.id));
-    const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
-    if (erSvarRett(svar, rettSvor)) fjoldiRett++;
-  }
-
-  const fjoldiSvarad = minarTilraunir.length;
+  // Les beint af users/{uid}.verkefnaStada í stað þess að endursækja spurningar
+  // + attempts + hvert answers-skjal í hvert sinn sem spurningu er svarað.
+  const notandiSnap = await getDoc(doc(db, "users", notandi.uid));
+  const b = notandiSnap.data()?.verkefnaStada?.[valdVerkefniId] || { svarad: 0, pass: 0, rett: 0 };
+  const fjoldiSvarad = b.svarad || 0;
+  const fjoldiSleppt = b.pass || 0;
+  const fjoldiRett = b.rett || 0;
   const fjoldiMetin = fjoldiSvarad - fjoldiSleppt;
   const nakvaemni = fjoldiMetin ? Math.round((fjoldiRett / fjoldiMetin) * 100) : 0;
   const sleppTexti = fjoldiSleppt ? `, ${fjoldiSleppt} pass` : "";
