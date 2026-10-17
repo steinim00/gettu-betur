@@ -1,6 +1,6 @@
 // Einskiptis skrifta: býr til verkefnið "Eðlis- og efnafræði" og hleður inn
 // þremur efnisflokkum - SI-grunneiningum, fyrstu 10 frumefnum lotukerfisins
-// (bæði nafn->tákn og tákn->nafn átt) og E=MC²-jöfnunni - allt sem venjulegar
+// (bæði nafn->númer og númer->nafn átt) og E=MC²-jöfnunni - allt sem venjulegar
 // spurningar+svör, óvirkt (active: false) þar til kveikt er á í stjórnborðinu.
 const path = require("path");
 const admin = require("firebase-admin");
@@ -30,27 +30,27 @@ const SPURNINGAR = [
   ["Hvaða SI-eining er notuð til að mæla efnismagn?", ["Mól"]],
   ["Hvaða SI-eining er notuð til að mæla ljósstyrk?", ["Kandela"]],
 
-  // --- Fyrstu 10 frumefni lotukerfisins (nafn + efnatákn, báðar áttir) ---
+  // --- Fyrstu 10 frumefni lotukerfisins (nafn <-> númer, báðar áttir) ---
   ["Hvaða frumefni er númer 1 í lotukerfinu?", ["Vetni"]],
-  ["Hvert er efnatákn vetnis?", ["H"]],
+  ["Hvaða númer er Vetni í lotukerfinu?", ["1"]],
   ["Hvaða frumefni er númer 2 í lotukerfinu?", ["Helín", "Helíum"]],
-  ["Hvert er efnatákn helíns?", ["He"]],
+  ["Hvaða númer er Helín í lotukerfinu?", ["2"]],
   ["Hvaða frumefni er númer 3 í lotukerfinu?", ["Litín", "Litíum"]],
-  ["Hvert er efnatákn litíns?", ["Li"]],
+  ["Hvaða númer er Litín í lotukerfinu?", ["3"]],
   ["Hvaða frumefni er númer 4 í lotukerfinu?", ["Beryllín", "Beryllíum"]],
-  ["Hvert er efnatákn beryllíns?", ["Be"]],
+  ["Hvaða númer er Beryllín í lotukerfinu?", ["4"]],
   ["Hvaða frumefni er númer 5 í lotukerfinu?", ["Bór"]],
-  ["Hvert er efnatákn bórs?", ["B"]],
+  ["Hvaða númer er Bór í lotukerfinu?", ["5"]],
   ["Hvaða frumefni er númer 6 í lotukerfinu?", ["Kolefni"]],
-  ["Hvert er efnatákn kolefnis?", ["C"]],
+  ["Hvaða númer er Kolefni í lotukerfinu?", ["6"]],
   ["Hvaða frumefni er númer 7 í lotukerfinu?", ["Köfnunarefni"]],
-  ["Hvert er efnatákn köfnunarefnis?", ["N"]],
+  ["Hvaða númer er Köfnunarefni í lotukerfinu?", ["7"]],
   ["Hvaða frumefni er númer 8 í lotukerfinu?", ["Súrefni"]],
-  ["Hvert er efnatákn súrefnis?", ["O"]],
+  ["Hvaða númer er Súrefni í lotukerfinu?", ["8"]],
   ["Hvaða frumefni er númer 9 í lotukerfinu?", ["Flúor"]],
-  ["Hvert er efnatákn flúors?", ["F"]],
+  ["Hvaða númer er Flúor í lotukerfinu?", ["9"]],
   ["Hvaða frumefni er númer 10 í lotukerfinu?", ["Neon"]],
-  ["Hvert er efnatákn neons?", ["Ne"]],
+  ["Hvaða númer er Neon í lotukerfinu?", ["10"]],
 
   // --- E = MC² ---
   ["Hvað táknar E í jöfnunni E = MC²?", ["Orka"]],
