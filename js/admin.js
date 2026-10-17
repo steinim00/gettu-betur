@@ -504,11 +504,14 @@ function formatDagsStutt(ms) {
   return `${d.toLocaleDateString("is-IS", { day: "numeric", month: "numeric" })} kl. ${timi}`;
 }
 
-// Litar röð hvers notanda eftir nafni - handvirkur listi sem bætt er við
-// eftir þörfum (byrjað á Hinrik í cyan), engin tengsl við gögnin sjálf.
+// Litar röð verkefnis í Verkefni-töflunni þegar það er takmarkað við AÐEINS
+// einn notanda (leyfdirNotendur, sjá "Velja notendur") - svo sjáist í fljótu
+// bragði hvers "einkaverkefni" hvert er. Handvirkur listi sem bætt er við
+// eftir þörfum, engin tengsl við gögnin sjálf.
 const NOTENDA_LITIR = {
-  "Hinrik Hugi Runarsson": "#cffafe",
-  "Hekla Kristin Bjornsdottir": "#fae8ff"
+  "Hekla Kristin Bjornsdottir": "#cffafe",
+  "Hinrik Hugi Runarsson": "#dcfce7",
+  "julia sigurdard": "#fae8ff"
 };
 
 // Hrá gildi (ekki birt strengi) fyrir hvern raðanlegan dálk, notað bæði til
@@ -641,7 +644,6 @@ function birtaNotendaRadir() {
 
   for (const r of rows) {
     const tr = document.createElement("tr");
-    if (NOTENDA_LITIR[r.nafn]) tr.style.background = NOTENDA_LITIR[r.nafn];
 
     const nafnTd = document.createElement("td");
     if (erOnline(r.lastActive)) {
@@ -811,9 +813,10 @@ document.addEventListener("click", () => {
 });
 
 async function hladaVerkefnayfirlit() {
-  const [verkefnaSnap, spurningarSnap] = await Promise.all([
+  const [verkefnaSnap, spurningarSnap, notendaLitaSnap] = await Promise.all([
     getDocs(collection(db, "verkefni")),
-    getDocs(collection(db, "questions"))
+    getDocs(collection(db, "questions")),
+    getDocs(collection(db, "users"))
   ]);
 
   const fjoldiSpurningaPerVerkefni = new Map();
@@ -828,6 +831,14 @@ async function hladaVerkefnayfirlit() {
     }
   });
 
+  // uid -> litur, fyrir notendurna sem eru í NOTENDA_LITIR - notað til að
+  // lita verkefni sem eru takmörkuð við nákvæmlega einn þeirra.
+  const litirPerUid = new Map();
+  notendaLitaSnap.forEach((d) => {
+    const litur = NOTENDA_LITIR[d.data().nafn];
+    if (litur) litirPerUid.set(d.id, litur);
+  });
+
   hladaVerkefniSelect(verkefnaSnap);
 
   verkefnaTafla.innerHTML = "";
@@ -840,6 +851,11 @@ async function hladaVerkefnayfirlit() {
     const verkefni = vDoc.data();
     const tr = document.createElement("tr");
     const erProf = verkefni.tegund === "prof";
+
+    const leyfdir = verkefni.leyfdirNotendur || [];
+    if (leyfdir.length === 1 && litirPerUid.has(leyfdir[0])) {
+      tr.style.background = litirPerUid.get(leyfdir[0]);
+    }
 
     const titillTd = document.createElement("td");
     titillTd.textContent = verkefni.title;
@@ -858,9 +874,8 @@ async function hladaVerkefnayfirlit() {
     const stodaTd = document.createElement("td");
     stodaTd.textContent = verkefni.active ? "Virkt" : "Óvirkt";
 
-    const fjoldiLeyfdir = (verkefni.leyfdirNotendur || []).length;
     const syileikiTd = document.createElement("td");
-    syileikiTd.textContent = fjoldiLeyfdir > 0 ? `${fjoldiLeyfdir} valdir` : "Allir";
+    syileikiTd.textContent = leyfdir.length > 0 ? `${leyfdir.length} valdir` : "Allir";
 
     const adgerdTd = document.createElement("td");
     adgerdTd.appendChild(
