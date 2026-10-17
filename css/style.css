@@ -1486,6 +1486,16 @@ th.radanlegt:hover {
   min-width: 180px;
   z-index: 20;
 }
+
+/* Sama sérhæfni og ".adgerd-valmynd" ein og sér (0,0,1,0), en kemur á eftir
+   í stílblaðinu - vinnur því cascade-slaginn og tryggir að [hidden] slökkvi
+   raunverulega á valmyndinni í stað þess að "display: flex" að ofan yfirtaki
+   það (sama mynstur og ".heilskja[hidden]" notar). Án þessa birtast allar
+   valmyndir allra raða samtímis, staflaðar ofan í hverja aðra. */
+.adgerd-valmynd[hidden] {
+  display: none;
+}
+
 .adgerd-valmynd button {
   background: none;
   border: none;

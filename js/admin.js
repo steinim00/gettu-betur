@@ -507,7 +507,8 @@ function formatDagsStutt(ms) {
 // Litar röð hvers notanda eftir nafni - handvirkur listi sem bætt er við
 // eftir þörfum (byrjað á Hinrik í cyan), engin tengsl við gögnin sjálf.
 const NOTENDA_LITIR = {
-  "Hinrik Hugi Runarsson": "#cffafe"
+  "Hinrik Hugi Runarsson": "#cffafe",
+  "Hekla Kristin Bjornsdottir": "#fae8ff"
 };
 
 // Hrá gildi (ekki birt strengi) fyrir hvern raðanlegan dálk, notað bæði til
