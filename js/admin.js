@@ -1610,23 +1610,26 @@ const SLEPPT_MERKI = "__sleppt__";
 // sama hátt og lifandi einkunnagjöfin gerir, fyrir "Spurningar og svör"
 // yfirlitið hjá hverjum notanda.
 function ritstjornarfjarlaegd(a, b) {
+  // Optimal string alignment: eins og venjuleg ritstjórnarfjarlægð en tveir
+  // aðliggjandi stafir sem víxlast (t.d. "noble" fyrir "nobel") teljast ein villa.
   const m = a.length;
   const n = b.length;
   if (m === 0) return n;
   if (n === 0) return m;
 
-  let fyrriRod = Array.from({ length: n + 1 }, (_, j) => j);
+  const d = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) d[i][0] = i;
+  for (let j = 0; j <= n; j++) d[0][j] = j;
   for (let i = 1; i <= m; i++) {
-    const nyRod = [i];
     for (let j = 1; j <= n; j++) {
-      nyRod[j] =
-        a[i - 1] === b[j - 1]
-          ? fyrriRod[j - 1]
-          : 1 + Math.min(fyrriRod[j - 1], fyrriRod[j], nyRod[j - 1]);
+      const kostnadur = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + kostnadur);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      }
     }
-    fyrriRod = nyRod;
   }
-  return fyrriRod[n];
+  return d[m][n];
 }
 
 const TOLUORD_1_TIL_20 = {
@@ -1680,12 +1683,19 @@ const AKVEDINN_GREINIR_VIDSKEYTI = [
   "in",
   "an",
   "na",
+  "nu",
+  "ina",
+  "inu",
+  "ana",
+  "una",
   "son",
   "dóttir"
 ];
 function samiStofnMedGreini(a, b) {
-  if (a.includes(" ") || b.includes(" ")) return false;
-  return AKVEDINN_GREINIR_VIDSKEYTI.some((vidskeyti) => a + vidskeyti === b);
+  if (a.includes(" ") || b.includes(" ") || a.length < 3) return false;
+  if (AKVEDINN_GREINIR_VIDSKEYTI.some((vidskeyti) => a + vidskeyti === b)) return true;
+  // Kvenkynsorð á -a fá -u í aukaföllum (kúba/kúbu, elba/elbu, belgía/belgíu).
+  return a.length >= 4 && a.endsWith("a") && b === a.slice(0, -1) + "u";
 }
 
 // "14. febrúar" og "14 febrúar" eiga að teljast sama svarið - punkturinn sem
@@ -1703,22 +1713,49 @@ function fjarlaegjaAherslumerki(str) {
   return str.normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
+// Svar sem inniheldur rétta svarið ORÐRÉTT ásamt í mesta lagi tveimur aukaorðum
+// ("hannibal barca" fyrir "hannibal", "14. nóvember 1963" fyrir "1963",
+// "gabríel erkiengill" fyrir "gabríel") er rétt - nema nemandinn hafi gefið
+// upp tvo kosti ("x eða y") eða neitað ("ekki x").
+function innihaldiRettOrd(svar, r) {
+  if (r.length < 4) return false;
+  const sv = fjarlaegjaAherslumerki(svar).split(" ").filter(Boolean);
+  const rv = fjarlaegjaAherslumerki(r).split(" ").filter(Boolean);
+  if (rv.length === 0 || sv.length <= rv.length || sv.length > rv.length + 2) return false;
+  if (sv.includes("eða") || sv.includes("eda") || sv.includes("ekki")) return false;
+  for (let i = 0; i + rv.length <= sv.length; i++) {
+    if (rv.every((ord, j) => sv[i + j] === ord)) return true;
+  }
+  return false;
+}
+
 function erSvarRett(svar, rettSvor) {
   if (rettSvor.includes(svar)) return true;
 
   const svarTala = tolugildi1til20(svar);
   if (svarTala !== null && rettSvor.some((r) => tolugildi1til20(r) === svarTala)) return true;
 
-  if (rettSvor.some((r) => samiStofnMedGreini(svar, r) || samiStofnMedGreini(r, svar))) return true;
+  if (
+    rettSvor.some(
+      (r) =>
+        samiStofnMedGreini(svar, r) ||
+        samiStofnMedGreini(r, svar) ||
+        samiStofnMedGreini(fjarlaegjaAherslumerki(svar), fjarlaegjaAherslumerki(r)) ||
+        samiStofnMedGreini(fjarlaegjaAherslumerki(r), fjarlaegjaAherslumerki(svar))
+    )
+  )
+    return true;
 
   if (rettSvor.some((r) => fjarlaegjaRadtolupunkt(svar) === fjarlaegjaRadtolupunkt(r))) return true;
 
   if (rettSvor.some((r) => fjarlaegjaAherslumerki(svar) === fjarlaegjaAherslumerki(r))) return true;
 
-  if (/\d/.test(svar)) return false;
+  if (rettSvor.some((r) => innihaldiRettOrd(svar, r))) return true;
 
   return rettSvor.some((r) => {
-    if (/\d/.test(r)) return false;
+    // Tölugildi eiga að vera nákvæm: sveigjanleikinn nær bara til bókstafanna.
+    // "appóllo 11" má vera nálægt "apollo 11" en "20001" er aldrei "20000".
+    if (svar.replace(/\D/g, "") !== r.replace(/\D/g, "")) return false;
     const svarFolded = fjarlaegjaAherslumerki(svar);
     const rFolded = fjarlaegjaAherslumerki(r);
     const thol = rFolded.length <= 4 ? 0 : rFolded.length <= 8 ? 1 : 2;
