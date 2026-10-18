@@ -1665,7 +1665,24 @@ function tolugildi1til20(svar) {
 // "vog" -> "vogin", "naut" -> "nautið") - nemendur sleppa oft greininum þó
 // svarið sjálft sé rétt. Bara stök orð (ekki orðasambönd) til að lágmarka
 // hættu á fölskum jákvæðum - sjá erSvarRett.
-const AKVEDINN_GREINIR_VIDSKEYTI = ["num", "unum", "anna", "nar", "nn", "inn", "ið", "in", "an", "na"];
+// Kenninöfn ("hvers son/dóttir var X" -> "[faðir í eignarfalli]" + "son"/
+// "dóttir", t.d. "hámundar" -> "hámundarson") eru nákvæmlega sama mynstur og
+// greinisviðskeyti hér - stofn + fast viðskeyti = annað orð - svo þau fá sama
+// sanngildisfall.
+const AKVEDINN_GREINIR_VIDSKEYTI = [
+  "num",
+  "unum",
+  "anna",
+  "nar",
+  "nn",
+  "inn",
+  "ið",
+  "in",
+  "an",
+  "na",
+  "son",
+  "dóttir"
+];
 function samiStofnMedGreini(a, b) {
   if (a.includes(" ") || b.includes(" ")) return false;
   return AKVEDINN_GREINIR_VIDSKEYTI.some((vidskeyti) => a + vidskeyti === b);
