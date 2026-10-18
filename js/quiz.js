@@ -80,6 +80,10 @@ const heilskjaAframBtn = document.getElementById("heilskjaAframBtn");
 const lokaHeilskjaBtn = document.getElementById("lokaHeilskjaBtn");
 
 let notandi = null;
+// Admin sér óvirk (lokuð) verkefni/spurningar líka - sjá hladaVerkefnaListi
+// og hladaSpurningum - svo hægt sé að forskoða t.d. próf nákvæmlega eins og
+// nemandi myndi sjá það, án þess að kveikja á því fyrir alla.
+let erAdminNotandi = false;
 let valdVerkefniId = null;
 let heilskjaGlaerur = [];
 let heilskjaIndex = 0;
@@ -311,6 +315,7 @@ setInterval(vistaSkjatima, 60000);
 // verkefni/questions í firestore.rules.
 vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
   notandi = user;
+  erAdminNotandi = gogn?.role === "admin";
 
   if (user) {
     notandaNafn.textContent = gogn.nafn || user.email;
@@ -671,6 +676,15 @@ function byggjaVerkefniKort(vDoc, verkefni, spurningaIds, svaradIds) {
   titill.textContent = verkefni.title;
   kort.appendChild(titill);
 
+  // Bara þú (admin) sérð þetta kort yfir höfuð - nemendur sjá ekki óvirk
+  // verkefni (sjá hladaVerkefnaListi). Minnir á að slökkt er á því fyrir þau.
+  if (!verkefni.active && erAdminNotandi) {
+    const ovirktMerki = document.createElement("p");
+    ovirktMerki.className = "forskodun-ovirkt-merki";
+    ovirktMerki.textContent = "Lokað fyrir nemendur - bara þú sérð þetta";
+    kort.appendChild(ovirktMerki);
+  }
+
   const lysing = document.createElement("p");
   lysing.className = "verkefni-lysing";
   lysing.textContent = `${fjoldiGlaera} ${fjoldiGlaera === 1 ? "glæra" : "glærur"} · ${spurningaIds.length} spurningar`;
@@ -759,6 +773,13 @@ function byggjaHradaspurningarKort(vDoc, verkefni, spurningaIds, svaradIds) {
   titill.textContent = verkefni.title;
   kort.appendChild(titill);
 
+  if (!verkefni.active && erAdminNotandi) {
+    const ovirktMerki = document.createElement("p");
+    ovirktMerki.className = "forskodun-ovirkt-merki";
+    ovirktMerki.textContent = "Lokað fyrir nemendur - bara þú sérð þetta";
+    kort.appendChild(ovirktMerki);
+  }
+
   const lysing = document.createElement("p");
   lysing.className = "verkefni-lysing";
   lysing.textContent = `${spurningaIds.length} spurningar`;
@@ -782,7 +803,10 @@ async function hladaVerkefnaListi() {
   verkefnaListi.innerHTML = skeletonKort(3);
   hradaspurningarSvaedi.hidden = true;
 
-  const snap = await getDocs(query(collection(db, "verkefni"), where("active", "==", true)));
+  // Admin sér líka óvirk verkefni (forskoðun) - allir aðrir bara virk.
+  const snap = await getDocs(
+    erAdminNotandi ? collection(db, "verkefni") : query(collection(db, "verkefni"), where("active", "==", true))
+  );
 
   if (snap.empty) {
     verkefnaListi.innerHTML = "<p>Engin verkefni eru virk eins og er.</p>";
@@ -791,7 +815,9 @@ async function hladaVerkefnaListi() {
 
   // Ein fyrirspurn fyrir allar virkar spurningar, flokkuð eftir verkefni í JS -
   // mun ódýrara en að spyrja Firestore einu sinni fyrir hvert verkefni.
-  const spurningarSnap = await getDocs(query(collection(db, "questions"), where("active", "==", true)));
+  const spurningarSnap = await getDocs(
+    erAdminNotandi ? collection(db, "questions") : query(collection(db, "questions"), where("active", "==", true))
+  );
   const spurningaIdEftirVerkefni = new Map();
   spurningarSnap.forEach((qDoc) => {
     const vid = qDoc.data().verkefniId;
@@ -973,12 +999,15 @@ async function hladaSpurningum() {
   siduflettingarEfri.hidden = true;
   siduflettingar.hidden = true;
 
+  // Admin sér líka óvirkar spurningar (forskoðun) - allir aðrir bara virkar.
   const spurningarSnap = await getDocs(
-    query(
-      collection(db, "questions"),
-      where("verkefniId", "==", valdVerkefniId),
-      where("active", "==", true)
-    )
+    erAdminNotandi
+      ? query(collection(db, "questions"), where("verkefniId", "==", valdVerkefniId))
+      : query(
+          collection(db, "questions"),
+          where("verkefniId", "==", valdVerkefniId),
+          where("active", "==", true)
+        )
   );
 
   svaradIdSett = notandi
