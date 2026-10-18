@@ -13,6 +13,7 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
+  deleteField,
   serverTimestamp,
   writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
@@ -1526,6 +1527,19 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
       hladaSpurningayfirlit();
     });
 
+    const myndKnappur = document.createElement("button");
+    myndKnappur.type = "button";
+    myndKnappur.className = "smabtn";
+    myndKnappur.textContent = spurning.image ? "Breyta mynd" : "Setja mynd";
+    myndKnappur.title = "Vefslóð á mynd sem birtist með spurningunni þegar nemandi svarar - sama eiginleiki og sumar spurningar í '50 áhrifamiklir einstaklingar' hafa. Tómt fjarlægir myndina.";
+    myndKnappur.addEventListener("click", async () => {
+      const nyMyndaslod = prompt("Vefslóð á mynd (tómt til að fjarlægja):", spurning.image || "");
+      if (nyMyndaslod === null) return;
+      const hreinsud = nyMyndaslod.trim();
+      await updateDoc(doc(db, "questions", qDoc.id), hreinsud ? { image: hreinsud } : { image: deleteField() });
+      hladaSpurningayfirlit();
+    });
+
     const textTd = document.createElement("td");
     textTd.textContent = spurning.text;
 
@@ -1539,6 +1553,7 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
     adgerdTd.appendChild(kveikjaKnappur);
     adgerdTd.appendChild(bataSvariKnappur);
     adgerdTd.appendChild(fjarlaegjaSvarKnappur);
+    adgerdTd.appendChild(myndKnappur);
 
     tr.appendChild(textTd);
     tr.appendChild(svarTd);
@@ -1696,7 +1711,8 @@ async function vistaSpurningar(entries, { active }) {
       text: entry.text,
       verkefniId: entry.verkefniId || "",
       active,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      ...(entry.image ? { image: entry.image } : {})
     });
     batch.set(doc(db, "answers", questionRef.id), { correctAnswers: entry.correctAnswers });
     fjoldiIBatch += 2;
@@ -1722,6 +1738,7 @@ nySpurningForm.addEventListener("submit", async (e) => {
     .map(samraema)
     .filter(Boolean);
   const verkefniId = gogn.get("verkefniValiö") || "";
+  const image = (gogn.get("spurningMynd") || "").trim();
 
   if (!text || !rettSvar) {
     alert("Skráðu spurningatexta og rétt svar.");
@@ -1729,7 +1746,7 @@ nySpurningForm.addEventListener("submit", async (e) => {
   }
 
   await vistaSpurningar(
-    [{ text, correctAnswers: [...new Set([rettSvar, ...onnurSvor])], verkefniId }],
+    [{ text, correctAnswers: [...new Set([rettSvar, ...onnurSvor])], verkefniId, image }],
     { active: true }
   );
 
@@ -1948,6 +1965,12 @@ function renderDraftRows(draftir, targetListi = drafListi) {
       svarSvaedi.appendChild(heimildP);
     }
 
+    const myndInput = document.createElement("input");
+    myndInput.type = "text";
+    myndInput.value = draft.image || "";
+    myndInput.placeholder = "Mynd (slóð, valfrjálst)";
+    svarSvaedi.appendChild(myndInput);
+
     rad.appendChild(gatlisti);
     rad.appendChild(spurningInput);
     rad.appendChild(svarSvaedi);
@@ -1955,7 +1978,8 @@ function renderDraftRows(draftir, targetListi = drafListi) {
     rad._faSpurningu = () => ({
       tokinMed: gatlisti.checked,
       text: spurningInput.value.trim(),
-      correctAnswers: [...new Set(svarInput.value.split("/").map(samraema).filter(Boolean))]
+      correctAnswers: [...new Set(svarInput.value.split("/").map(samraema).filter(Boolean))],
+      image: myndInput.value.trim()
     });
 
     targetListi.appendChild(rad);
