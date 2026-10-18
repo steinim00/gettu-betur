@@ -1,6 +1,5 @@
 import { auth, db } from "./firebase-config.js";
 import {
-  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
@@ -23,21 +22,6 @@ function erAdminNetfang(email) {
   return ADMIN_NETFONG.includes((email || "").toLowerCase());
 }
 
-export async function skra(email, password, nafn) {
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-  await setDoc(doc(db, "users", cred.user.uid), {
-    nafn,
-    email,
-    role: erAdminNetfang(email) ? "admin" : "user",
-    // "MS" = alvöru nemandi, á meðan "aðrir" (t.d. prufuaðgangar) er sleppt
-    // úr skjáskotssniði á stjórnborðinu - sjá birtaNotendaRadir í js/admin.js.
-    // Nýskráningar eru sjálfgefið "MS".
-    flokkur: "MS",
-    createdAt: serverTimestamp()
-  });
-  return cred.user;
-}
-
 export async function skraInn(email, password) {
   const cred = await signInWithEmailAndPassword(auth, email, password);
   return cred.user;
@@ -53,6 +37,10 @@ export async function skraInnMedGoogle() {
       nafn: cred.user.displayName || cred.user.email,
       email: cred.user.email,
       role: erAdminNetfang(cred.user.email) ? "admin" : "user",
+      // "MS" = alvöru nemandi, á meðan "aðrir" (t.d. prufuaðgangar) er sleppt
+      // úr skjáskotssniði á stjórnborðinu - sjá birtaNotendaRadir í js/admin.js.
+      // Nýskráningar eru sjálfgefið "MS".
+      flokkur: "MS",
       createdAt: serverTimestamp()
     });
   }
@@ -86,13 +74,14 @@ export function vaktaInnskraningu({ requireAuth = true, requireAdmin = false } =
       notandagogn = snap.data();
     } else {
       // Sjálfheilun: notandaskjalið vantar, líklega vegna þess að síðan
-      // endurvísaði burt (sjá index.html) áður en setDoc-ið í skra()/
+      // endurvísaði burt (sjá index.html) áður en setDoc-ið í
       // skraInnMedGoogle() náði að klárast. Búum það til núna svo
       // notandinn hætti ekki að vera "ósýnilegur" í stjórnborðinu.
       notandagogn = {
         nafn: user.displayName || user.email,
         email: user.email,
         role: erAdminNetfang(user.email) ? "admin" : "user",
+        flokkur: "MS",
         createdAt: serverTimestamp()
       };
       await setDoc(notandaRef, notandagogn);

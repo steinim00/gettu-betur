@@ -20,27 +20,12 @@
     </div>
     <p class="undirtitill">Skráðu þig inn til að taka þátt</p>
 
-    <div class="flipar">
-      <button type="button" id="flipInn" class="virkur">Innskráning</button>
-      <button type="button" id="flipSkra">Nýskráning</button>
-    </div>
-
     <form id="innskraningForm">
       <label for="innEmail">Netfang</label>
       <input type="email" id="innEmail" required autocomplete="email">
       <label for="innPassword">Lykilorð</label>
       <input type="password" id="innPassword" required autocomplete="current-password">
       <button type="submit" class="aðal-hnappur">Skrá inn</button>
-    </form>
-
-    <form id="skraningForm" hidden>
-      <label for="skraNafn">Nafn / liðsheiti</label>
-      <input type="text" id="skraNafn" required autocomplete="name">
-      <label for="skraEmail">Netfang</label>
-      <input type="email" id="skraEmail" required autocomplete="email">
-      <label for="skraPassword">Lykilorð</label>
-      <input type="password" id="skraPassword" required minlength="6" autocomplete="new-password">
-      <button type="submit" class="aðal-hnappur">Nýskrá</button>
     </form>
 
     <div class="eda-skil"><span>eða</span></div>
@@ -54,16 +39,15 @@
 </main>
 
 <script type="module">
-  import { skraInn, skra, skraInnMedGoogle, vaktaInnskraningu } from "./js/auth.js";
+  import { skraInn, skraInnMedGoogle, vaktaInnskraningu } from "./js/auth.js";
 
   const innskraningBox = document.getElementById("innskraningBox");
 
-  // true á meðan eitt af formunum hér fyrir neðan er að skrá/skrá inn
-  // notanda. Án þessa getur vaktaInnskraningu endurvísað um leið og
-  // Firebase Auth skráir notandann inn (gerist strax við nýskráningu),
-  // áður en setDoc-ið í skra() í js/auth.js nær að klára að skrifa
-  // notandaskjalið - sem skildi notandann eftir "ósýnilegan" í
-  // stjórnborðinu þó hann gæti svarað spurningum eðlilega.
+  // true á meðan innskráning er í gangi. Án þessa getur vaktaInnskraningu
+  // endurvísað um leið og Firebase Auth skráir notandann inn, áður en
+  // setDoc-ið í skraInnMedGoogle() í js/auth.js nær að klára að skrifa
+  // notandaskjalið (fyrsta innskráning með Google) - sem skildi notandann
+  // eftir "ósýnilegan" í stjórnborðinu þó hann gæti svarað spurningum eðlilega.
   let formAfgreidsla = false;
 
   vaktaInnskraningu({ requireAuth: false }, (user) => {
@@ -78,27 +62,8 @@
     }
   });
 
-  const flipInn = document.getElementById("flipInn");
-  const flipSkra = document.getElementById("flipSkra");
   const innskraningForm = document.getElementById("innskraningForm");
-  const skraningForm = document.getElementById("skraningForm");
   const villuskilabod = document.getElementById("villuskilabod");
-
-  flipInn.addEventListener("click", () => {
-    flipInn.classList.add("virkur");
-    flipSkra.classList.remove("virkur");
-    innskraningForm.hidden = false;
-    skraningForm.hidden = true;
-    villuskilabod.textContent = "";
-  });
-
-  flipSkra.addEventListener("click", () => {
-    flipSkra.classList.add("virkur");
-    flipInn.classList.remove("virkur");
-    skraningForm.hidden = false;
-    innskraningForm.hidden = true;
-    villuskilabod.textContent = "";
-  });
 
   innskraningForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -108,23 +73,6 @@
       await skraInn(
         document.getElementById("innEmail").value,
         document.getElementById("innPassword").value
-      );
-      window.location.href = "leikur.html";
-    } catch (villa) {
-      formAfgreidsla = false;
-      villuskilabod.textContent = thydaVillu(villa.code);
-    }
-  });
-
-  skraningForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    villuskilabod.textContent = "";
-    formAfgreidsla = true;
-    try {
-      await skra(
-        document.getElementById("skraEmail").value,
-        document.getElementById("skraPassword").value,
-        document.getElementById("skraNafn").value
       );
       window.location.href = "leikur.html";
     } catch (villa) {
