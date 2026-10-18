@@ -1531,9 +1531,9 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
     myndKnappur.type = "button";
     myndKnappur.className = "smabtn";
     myndKnappur.textContent = spurning.image ? "Breyta mynd" : "Setja mynd";
-    myndKnappur.title = "Vefslóð á mynd sem birtist með spurningunni þegar nemandi svarar - sama eiginleiki og sumar spurningar í '50 áhrifamiklir einstaklingar' hafa. Tómt fjarlægir myndina.";
+    myndKnappur.title = "Vefslóð á mynd af Wikimedia Commons sem birtist með spurningunni þegar nemandi svarar (ekki AI-generað) - sama eiginleiki og sumar spurningar í '50 áhrifamiklir einstaklingar' hafa. Tómt fjarlægir myndina.";
     myndKnappur.addEventListener("click", async () => {
-      const nyMyndaslod = prompt("Vefslóð á mynd (tómt til að fjarlægja):", spurning.image || "");
+      const nyMyndaslod = prompt("Vefslóð á mynd af Wikimedia Commons (ekki AI-generað - tómt til að fjarlægja):", spurning.image || "");
       if (nyMyndaslod === null) return;
       const hreinsud = nyMyndaslod.trim();
       await updateDoc(doc(db, "questions", qDoc.id), hreinsud ? { image: hreinsud } : { image: deleteField() });
@@ -1968,7 +1968,7 @@ function renderDraftRows(draftir, targetListi = drafListi) {
     const myndInput = document.createElement("input");
     myndInput.type = "text";
     myndInput.value = draft.image || "";
-    myndInput.placeholder = "Mynd (slóð, valfrjálst)";
+    myndInput.placeholder = "Mynd af Wikimedia Commons (slóð, valfrjálst - ekki AI-generað)";
     svarSvaedi.appendChild(myndInput);
 
     rad.appendChild(gatlisti);
