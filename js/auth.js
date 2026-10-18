@@ -29,6 +29,10 @@ export async function skra(email, password, nafn) {
     nafn,
     email,
     role: erAdminNetfang(email) ? "admin" : "user",
+    // "MS" = alvöru nemandi, á meðan "aðrir" (t.d. prufuaðgangar) er sleppt
+    // úr skjáskotssniði á stjórnborðinu - sjá birtaNotendaRadir í js/admin.js.
+    // Nýskráningar eru sjálfgefið "MS".
+    flokkur: "MS",
     createdAt: serverTimestamp()
   });
   return cred.user;

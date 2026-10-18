@@ -532,6 +532,21 @@ let notendaRadir = [];
 let notendaRodunarDalkur = "nakvaemni";
 let notendaRodunarStefna = -1; // 1 = vaxandi, -1 = minnkandi
 
+// Skjáskotssnið: falið nöfn (í staðinn "Nemandi N"), engin Aðgerð-dálkur og
+// sleppir notendum í flokki "aðrir" (t.d. prufuaðgangar, ekki alvöru
+// nemendur) - svo kennarinn geti tekið skjáskot af töflunni og deilt án
+// þess að persónugreina neinn eða sýna stjórnunarhnappa.
+let skjaskotsSnid = false;
+const skjaskotsSnidBtn = document.getElementById("skjaskotsSnidBtn");
+const adgerdHaus = document.getElementById("adgerdHaus");
+skjaskotsSnidBtn.addEventListener("click", () => {
+  skjaskotsSnid = !skjaskotsSnid;
+  skjaskotsSnidBtn.textContent = skjaskotsSnid ? "Birta aftur" : "Skjáskotssnið";
+  skjaskotsSnidBtn.classList.toggle("virkur", skjaskotsSnid);
+  adgerdHaus.hidden = skjaskotsSnid;
+  birtaNotendaRadir();
+});
+
 document.querySelectorAll("#notendaTafla thead th[data-rada]").forEach((th) => {
   th.addEventListener("click", () => {
     const dalkur = th.dataset.rada;
@@ -601,6 +616,10 @@ async function hladaNotendayfirlit() {
       uid: notandiDoc.id,
       nafn: notandi.nafn || notandi.email,
       email: notandi.email,
+      // "aðrir" = ekki alvöru nemandi (t.d. prufuaðgangur) - sleppt úr
+      // skjáskotssniði. Vantar reitinn -> gengið út frá "MS" (sjá
+      // scripts/flokka-notendur.js fyrir upprunalegu flokkunina).
+      flokkur: notandi.flokkur || "MS",
       fjoldiSvarad,
       fjoldiPass,
       fjoldiRett,
@@ -624,7 +643,7 @@ async function hladaNotendayfirlit() {
 
 function birtaNotendaRadir() {
   const lykill = RODUNAR_LYKLAR[notendaRodunarDalkur];
-  const rows = [...notendaRadir].sort((a, b) => {
+  const rows = (skjaskotsSnid ? notendaRadir.filter((r) => r.flokkur !== "aðrir") : [...notendaRadir]).sort((a, b) => {
     const va = lykill(a);
     const vb = lykill(b);
     if (va < vb) return -1 * notendaRodunarStefna;
@@ -644,7 +663,7 @@ function birtaNotendaRadir() {
     return;
   }
 
-  for (const r of rows) {
+  rows.forEach((r, vIndex) => {
     const tr = document.createElement("tr");
 
     const nafnTd = document.createElement("td");
@@ -654,7 +673,7 @@ function birtaNotendaRadir() {
       punktur.title = "Online núna";
       nafnTd.appendChild(punktur);
     }
-    nafnTd.appendChild(document.createTextNode(r.nafn));
+    nafnTd.appendChild(document.createTextNode(skjaskotsSnid ? `Nemandi ${vIndex + 1}` : r.nafn));
     const svaradTd = document.createElement("td");
     svaradTd.textContent = r.fjoldiSvarad;
     const passTd = document.createElement("td");
@@ -670,13 +689,6 @@ function birtaNotendaRadir() {
     const sidastTd = document.createElement("td");
     sidastTd.textContent = formatDagsStutt(r.sidastSvarad);
 
-    const adgerdTd = document.createElement("td");
-    const nanarBtn = document.createElement("button");
-    nanarBtn.type = "button";
-    nanarBtn.className = "smabtn";
-    nanarBtn.textContent = "Nánar";
-    adgerdTd.appendChild(nanarBtn);
-
     tr.appendChild(nafnTd);
     tr.appendChild(svaradTd);
     tr.appendChild(passTd);
@@ -685,6 +697,20 @@ function birtaNotendaRadir() {
     tr.appendChild(skjatimiTd);
     tr.appendChild(nyskraningTd);
     tr.appendChild(sidastTd);
+
+    // Skjáskotssnið: engin Aðgerð-dálkur, og þar með ekkert "Nánar"-spjald
+    // (það er bara opnað gegnum þann hnapp) - sleppa restinni af þessari röð.
+    if (skjaskotsSnid) {
+      notendaTafla.appendChild(tr);
+      return;
+    }
+
+    const adgerdTd = document.createElement("td");
+    const nanarBtn = document.createElement("button");
+    nanarBtn.type = "button";
+    nanarBtn.className = "smabtn";
+    nanarBtn.textContent = "Nánar";
+    adgerdTd.appendChild(nanarBtn);
     tr.appendChild(adgerdTd);
     notendaTafla.appendChild(tr);
 
@@ -786,7 +812,7 @@ function birtaNotendaRadir() {
       sundurlidunTr.hidden = !sundurlidunTr.hidden;
       nanarBtn.textContent = sundurlidunTr.hidden ? "Nánar" : "Loka";
     });
-  }
+  });
 }
 
 // Sækir attempts-undirsafn EINS notanda (ekki allra - sjá athugasemdina við

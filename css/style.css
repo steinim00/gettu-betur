@@ -666,6 +666,12 @@ th {
   background: var(--litur-jadar);
 }
 
+.smabtn.virkur {
+  background: var(--litur-svart);
+  color: #ffffff;
+  border-color: var(--litur-svart);
+}
+
 td .smabtn + .smabtn {
   margin-left: 6px;
 }

@@ -98,7 +98,10 @@
     <div class="stjorn-sida" id="sida-notendur">
       <div class="hluti-titill" style="margin-top:0;">
         <h2>Frammistaða notenda</h2>
-        <button class="smabtn" id="endurhladaBtn">Endurhlaða</button>
+        <div style="display:flex; gap:8px;">
+          <button class="smabtn" id="skjaskotsSnidBtn" title="Felur nöfn og aðgerðir, sleppir þeim í flokki 'aðrir' - tilbúið til að taka skjáskot af">Skjáskotssnið</button>
+          <button class="smabtn" id="endurhladaBtn">Endurhlaða</button>
+        </div>
       </div>
       <table id="notendaTafla">
         <thead>
@@ -111,7 +114,7 @@
             <th class="radanlegt" data-rada="skjatimi">Skjátími<span class="rodunarord"></span></th>
             <th class="radanlegt" data-rada="nyskraning">Nýskráð/ur<span class="rodunarord"></span></th>
             <th class="radanlegt" data-rada="sidastSvarad">Síðast virk/ur<span class="rodunarord"></span></th>
-            <th>Aðgerð</th>
+            <th id="adgerdHaus">Aðgerð</th>
           </tr>
         </thead>
         <tbody></tbody>
