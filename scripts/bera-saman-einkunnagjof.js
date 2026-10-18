@@ -48,7 +48,7 @@ async function main() {
       const svar = a.data().svar;
       if (svar === SLEPPT_MERKI) return;
       const rs = rett.get(a.id) || [];
-      const g = gamli(svar, fyrir.get(a.id) || []);
+      const g = gamli(svar, process.env.GOMUL_GOGN ? fyrir.get(a.id) || [] : rs);
       const nn = nyi(svar, rs);
       if (g !== nn) {
         const lykill = `${a.id}|${svar}`;

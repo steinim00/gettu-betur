@@ -277,6 +277,39 @@ function innihaldiRettOrd(svar, r) {
   return false;
 }
 
+// Svarið má vera í hvaða falli sem er, með eða án ákveðins greinis: orð teljast
+// sama orðið ef þau eiga sameiginlegan stofn (>= 3 stafir) og það sem eftir
+// stendur af hvoru þeirra er dæmigerð beygingar-/greinisending (eða ekkert).
+// Hljóðvarp (a/ö, ó/æ) er jafnað út svo "bók"/"bækur" og "land"/"lönd" teljist
+// sama orðið. Svör með tölustöfum verða áfram að vera nákvæm.
+const BEYGINGARENDINGAR = new Set([
+  "", "a", "i", "u", "s", "r", "n", "ar", "ir", "ur", "um", "ja", "ju", "jum", "na", "nn", "in", "ið",
+  "inn", "ins", "inu", "ina", "num", "nu", "ni", "nna", "ana", "anna", "anum", "unum", "inum", "nir",
+  "nar", "nnar", "una", "unni", "inni"
+]);
+function ordastofn(ord) {
+  return fjarlaegjaAherslumerki(ord).replace(/[æo]/g, "a");
+}
+function sammaOrdIOdruFalli(a, b) {
+  const x = ordastofn(a);
+  const y = ordastofn(b);
+  if (x === y) return true;
+  let p = 0;
+  while (p < x.length && p < y.length && x[p] === y[p]) p++;
+  // Sameiginlegi forhlutinn getur náð inn í endinguna ("bakur"/"bakum"), svo
+  // allar mögulegar skiptingar stofns og endingar eru reyndar.
+  for (let i = p; i >= 3; i--) {
+    if (BEYGINGARENDINGAR.has(x.slice(i)) && BEYGINGARENDINGAR.has(y.slice(i))) return true;
+  }
+  return false;
+}
+function samaSvarIOdruFalli(svar, r) {
+  const sv = svar.split(" ").filter(Boolean);
+  const rv = r.split(" ").filter(Boolean);
+  if (sv.length === 0 || sv.length !== rv.length) return false;
+  return sv.every((o, i) => (/\d/.test(o) || /\d/.test(rv[i]) ? o === rv[i] : sammaOrdIOdruFalli(o, rv[i])));
+}
+
 // Leyfir svari sem er mjög nálægt (fá stafsetningarvilla) einhverju af réttu
 // svörunum að teljast rétt, í stað þess að krefjast nákvæmrar stafsetningar.
 // Þolið vex með lengd svarsins - stutt svör þurfa áfram að vera nákvæm.
@@ -304,6 +337,8 @@ function erSvarRett(svar, rettSvor) {
   if (rettSvor.some((r) => fjarlaegjaRadtolupunkt(svar) === fjarlaegjaRadtolupunkt(r))) return true;
 
   if (rettSvor.some((r) => fjarlaegjaAherslumerki(svar) === fjarlaegjaAherslumerki(r))) return true;
+
+  if (rettSvor.some((r) => samaSvarIOdruFalli(svar, r))) return true;
 
   if (rettSvor.some((r) => innihaldiRettOrd(svar, r))) return true;
 
