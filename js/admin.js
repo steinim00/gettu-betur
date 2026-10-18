@@ -540,6 +540,7 @@ let skjaskotsSnid = false;
 const skjaskotsSnidBtn = document.getElementById("skjaskotsSnidBtn");
 const takaSkjaskotBtn = document.getElementById("takaSkjaskotBtn");
 const adgerdHaus = document.getElementById("adgerdHaus");
+const nyskraningHaus = document.getElementById("nyskraningHaus");
 skjaskotsSnidBtn.addEventListener("click", () => {
   skjaskotsSnid = !skjaskotsSnid;
   skjaskotsSnidBtn.textContent = skjaskotsSnid ? "Birta aftur" : "Skjáskotssnið";
@@ -683,6 +684,15 @@ function birtaNotendaRadir() {
     ord.textContent = th.dataset.rada !== notendaRodunarDalkur ? "" : notendaRodunarStefna === 1 ? "▲" : "▼";
   });
 
+  // "Nýskráð/ur" er bara áhugavert fyrsta sólarhringinn eftir nýskráningu -
+  // ef enginn MS-nemandi hefur skráð sig á þeim tíma er dálkurinn bara
+  // ómerkilegt skraut, svo við sleppum honum alveg.
+  const SOLARHRINGUR_MS = 24 * 60 * 60 * 1000;
+  const nyskradurNylega = notendaRadir.some(
+    (r) => r.flokkur === "MS" && r.nyskraning && Date.now() - r.nyskraning < SOLARHRINGUR_MS
+  );
+  nyskraningHaus.hidden = !nyskradurNylega;
+
   notendaTafla.innerHTML = "";
   if (rows.length === 0) {
     notendaTafla.innerHTML = `<tr><td colspan="9">Engir notendur skráðir ennþá.</td></tr>`;
@@ -711,8 +721,6 @@ function birtaNotendaRadir() {
     nakvaemniTd.textContent = `${r.nakvaemni}%`;
     const skjatimiTd = document.createElement("td");
     skjatimiTd.textContent = formatSkjatimi(r.skjatimi);
-    const nyskraningTd = document.createElement("td");
-    nyskraningTd.textContent = formatDagsStutt(r.nyskraning);
     const sidastTd = document.createElement("td");
     sidastTd.textContent = formatDagsStutt(r.sidastSvarad);
 
@@ -722,7 +730,11 @@ function birtaNotendaRadir() {
     tr.appendChild(rettTd);
     tr.appendChild(nakvaemniTd);
     tr.appendChild(skjatimiTd);
-    tr.appendChild(nyskraningTd);
+    if (nyskradurNylega) {
+      const nyskraningTd = document.createElement("td");
+      nyskraningTd.textContent = formatDagsStutt(r.nyskraning);
+      tr.appendChild(nyskraningTd);
+    }
     tr.appendChild(sidastTd);
 
     // Skjáskotssnið: engin Aðgerð-dálkur, og þar með ekkert "Nánar"-spjald
