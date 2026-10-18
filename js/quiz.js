@@ -838,10 +838,21 @@ function byggjaHradaspurningarKort(vDoc, verkefni, spurningaIds, svaradIds) {
   hnappur.type = "button";
   hnappur.className = "aðal-hnappur";
   hnappur.textContent = "Byrja";
-  // Próf opnast í sérstökum flipa (sjá líka "?prof="-vöktunina neðar í
-  // skránni) - svo auðveldara sé að einbeita sér að því, og svo
-  // beforeunload-viðvörunin eigi bara við þann eina flipa.
-  hnappur.addEventListener("click", () => window.open(`leikur.html?prof=${encodeURIComponent(vDoc.id)}`, "_blank"));
+  hnappur.addEventListener("click", () => {
+    if (verkefni.tegund === "prof") {
+      // Alvöru próf (tegund: "prof" - t.d. "Mannkynssöguprófið") opnast í
+      // sérstökum flipa (sjá líka "?prof="-vöktunina neðar í skránni) með
+      // viðvörun við að fara út. Fastanafn á flipanum ("gettu-betur-prof")
+      // þýðir að endurteknir smellir opna EKKI nýjan flipa í hvert sinn -
+      // sami flipinn er bara endurnýttur/færður í forgrunn.
+      window.open(`leikur.html?prof=${encodeURIComponent(vDoc.id)}`, "gettu-betur-prof");
+    } else {
+      // Venjulegir spurningabankar (Hraðaspurningar, Höfuðborgir heimsins
+      // o.fl. - ekkert alvöru "próf" þó þau birtist eins hér) opnast
+      // áfram í sama flipa, engin "fara út?" viðvörun.
+      opnaVerkefni(vDoc.id, verkefni);
+    }
+  });
   kort.appendChild(hnappur);
 
   return kort;
@@ -913,7 +924,10 @@ function opnaVerkefni(verkefniId, verkefni) {
 
   if (erProfVerkefni(verkefni)) {
     // Ekkert alvöru glæruefni til að skoða - farið beint í spurningarnar.
-    profIVinnslu = true;
+    // beforeunload-viðvörunin á bara við alvöru próf (tegund: "prof"), ekki
+    // hvern sem er spurningabanka sem vantar bara glærur (sjá "Byrja" í
+    // byggjaHradaspurningarKort hér fyrir ofan).
+    if (verkefni.tegund === "prof") profIVinnslu = true;
     spurningaTitill.textContent = verkefni.title;
     synaSvaedi("spurningar");
     hladaSpurningum();
