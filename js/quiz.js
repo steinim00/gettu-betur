@@ -219,8 +219,11 @@ function erSvarRett(svar, rettSvor) {
 
 function formatSkjatimi(sekundur) {
   if (!sekundur) return "0 mín";
-  const klst = Math.floor(sekundur / 3600);
-  const min = Math.round((sekundur % 3600) / 60);
+  // Sjá athugasemdina við sömu fall í js/admin.js: heildarmínútur eru
+  // rúnnaðar einu sinni svo úrkoman getur aldrei orðið "X klst 60 mín".
+  const heildarMin = Math.round(sekundur / 60);
+  const klst = Math.floor(heildarMin / 60);
+  const min = heildarMin % 60;
   return klst > 0 ? `${klst} klst ${min} mín` : `${min} mín`;
 }
 
