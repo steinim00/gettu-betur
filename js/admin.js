@@ -536,7 +536,7 @@ const RODUNAR_LYKLAR = {
 };
 
 let notendaRadir = [];
-let notendaRodunarDalkur = "nakvaemni";
+let notendaRodunarDalkur = "sidastSvarad"; // nývirkasti notandinn efst
 let notendaRodunarStefna = -1; // 1 = vaxandi, -1 = minnkandi
 
 // Skjáskotssnið: falið nöfn (í staðinn "Nemandi N"), engin Aðgerð-dálkur og

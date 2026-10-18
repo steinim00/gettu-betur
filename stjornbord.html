@@ -362,7 +362,7 @@
     var fyrirsognEl = document.getElementById("sidaFyrirsogn");
     var undirtitillEl = document.getElementById("sidaUndirtitill");
 
-    function synaSidu(nafn) {
+    function synaSidu(nafn, fyrstaHledsla) {
       SIDUR.forEach(function (s) {
         var el = document.getElementById("sida-" + s);
         if (el) el.classList.toggle("virk", s === nafn);
@@ -375,7 +375,10 @@
         fyrirsognEl.textContent = upplysingar[0];
         undirtitillEl.textContent = upplysingar[1];
       }
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      // Munum síðuna í slóðinni svo endurhleðsla (F5) haldist á sömu síðu.
+      if (history.replaceState) history.replaceState(null, "", "#" + nafn);
+      else location.hash = nafn;
+      if (!fyrstaHledsla) window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     nav.addEventListener("click", function (e) {
@@ -383,6 +386,9 @@
       if (!btn) return;
       synaSidu(btn.dataset.malsvaedi);
     });
+
+    var vistudSida = location.hash.replace("#", "");
+    if (SIDUR.indexOf(vistudSida) !== -1) synaSidu(vistudSida, true);
 
     var kortNet = document.getElementById("yfirlitKortNet");
     if (kortNet) {
