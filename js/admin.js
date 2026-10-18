@@ -1665,7 +1665,7 @@ function tolugildi1til20(svar) {
 // "vog" -> "vogin", "naut" -> "nautið") - nemendur sleppa oft greininum þó
 // svarið sjálft sé rétt. Bara stök orð (ekki orðasambönd) til að lágmarka
 // hættu á fölskum jákvæðum - sjá erSvarRett.
-const AKVEDINN_GREINIR_VIDSKEYTI = ["num", "unum", "anna", "nar", "inn", "ið", "in", "an", "na"];
+const AKVEDINN_GREINIR_VIDSKEYTI = ["num", "unum", "anna", "nar", "nn", "inn", "ið", "in", "an", "na"];
 function samiStofnMedGreini(a, b) {
   if (a.includes(" ") || b.includes(" ")) return false;
   return AKVEDINN_GREINIR_VIDSKEYTI.some((vidskeyti) => a + vidskeyti === b);
@@ -1678,6 +1678,14 @@ function fjarlaegjaRadtolupunkt(str) {
   return str.replace(/(\d)\.\s/g, "$1 ");
 }
 
+// Fjarlægir íslenska/erlenda áherslustafi (á,é,í,ó,ú,ý,ö -> a,e,i,o,u,y,o) svo
+// "nikósía"/"nikosia" eða "katmandú"/"kathmandu" teljist sama svarið - fólk
+// vélritar oft erlend sérnöfn án áherslumerkja, eða með öðrum ritham en er í
+// svargögnunum.
+function fjarlaegjaAherslumerki(str) {
+  return str.normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
 function erSvarRett(svar, rettSvor) {
   if (rettSvor.includes(svar)) return true;
 
@@ -1688,14 +1696,18 @@ function erSvarRett(svar, rettSvor) {
 
   if (rettSvor.some((r) => fjarlaegjaRadtolupunkt(svar) === fjarlaegjaRadtolupunkt(r))) return true;
 
+  if (rettSvor.some((r) => fjarlaegjaAherslumerki(svar) === fjarlaegjaAherslumerki(r))) return true;
+
   if (/\d/.test(svar)) return false;
 
   return rettSvor.some((r) => {
     if (/\d/.test(r)) return false;
-    const thol = r.length <= 4 ? 0 : r.length <= 8 ? 1 : 2;
+    const svarFolded = fjarlaegjaAherslumerki(svar);
+    const rFolded = fjarlaegjaAherslumerki(r);
+    const thol = rFolded.length <= 4 ? 0 : rFolded.length <= 8 ? 1 : 2;
     if (thol === 0) return false;
-    if (Math.abs(r.length - svar.length) > thol) return false;
-    return ritstjornarfjarlaegd(svar, r) <= thol;
+    if (Math.abs(rFolded.length - svarFolded.length) > thol) return false;
+    return ritstjornarfjarlaegd(svarFolded, rFolded) <= thol;
   });
 }
 
