@@ -80,6 +80,18 @@ const heilskjaAframBtn = document.getElementById("heilskjaAframBtn");
 const lokaHeilskjaBtn = document.getElementById("lokaHeilskjaBtn");
 
 let notandi = null;
+// Satt á meðan nemandi er að þreyta próf (sjá opnaVerkefni og svaraSpurningu) -
+// stýrir viðvöruninni í beforeunload hér fyrir neðan sem reynir að letja fólk
+// frá því að loka flipanum/fara af síðunni í miðju prófi. Vafrar leyfa EKKI
+// sérsniðinn viðvörunartexta lengur (öryggisráðstöfun í þeirra hendi, ekki
+// okkar) - þetta kveikir bara á stöðluðu "viltu fara af síðunni?" glugganum.
+let profIVinnslu = false;
+window.addEventListener("beforeunload", (e) => {
+  if (!profIVinnslu) return;
+  e.preventDefault();
+  e.returnValue = "";
+});
+
 // Admin sér óvirk (lokuð) verkefni/spurningar líka - sjá hladaVerkefnaListi
 // og hladaSpurningum - svo hægt sé að forskoða t.d. próf nákvæmlega eins og
 // nemandi myndi sjá það, án þess að kveikja á því fyrir alla.
@@ -207,6 +219,13 @@ function samiStofnMedGreini(a, b) {
   return AKVEDINN_GREINIR_VIDSKEYTI.some((vidskeyti) => a + vidskeyti === b);
 }
 
+// "14. febrúar" og "14 febrúar" eiga að teljast sama svarið - punkturinn sem
+// táknar raðtölu (1., 2., 3. ...) í dagsetningum er oft sleppt þegar fólk
+// vélritar hratt.
+function fjarlaegjaRadtolupunkt(str) {
+  return str.replace(/(\d)\.\s/g, "$1 ");
+}
+
 // Leyfir svari sem er mjög nálægt (fá stafsetningarvilla) einhverju af réttu
 // svörunum að teljast rétt, í stað þess að krefjast nákvæmrar stafsetningar.
 // Þolið vex með lengd svarsins - stutt svör þurfa áfram að vera nákvæm.
@@ -221,6 +240,8 @@ function erSvarRett(svar, rettSvor) {
   if (svarTala !== null && rettSvor.some((r) => tolugildi1til20(r) === svarTala)) return true;
 
   if (rettSvor.some((r) => samiStofnMedGreini(svar, r) || samiStofnMedGreini(r, svar))) return true;
+
+  if (rettSvor.some((r) => fjarlaegjaRadtolupunkt(svar) === fjarlaegjaRadtolupunkt(r))) return true;
 
   if (/\d/.test(svar)) return false;
 
@@ -361,7 +382,19 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
   }
 
   hladaVerkefnaListi();
+
+  // "?prof=<id>" (sjá "Byrja" hnappinn í byggjaHradaspurningarKort, sem opnar
+  // próf í nýjum flipa) - hoppar beint í spurningar þess prófs í stað
+  // venjulega upphafsskjásins.
+  const profIdUrSlod = new URLSearchParams(window.location.search).get("prof");
+  if (profIdUrSlod) opnaProfUrSlod(profIdUrSlod);
 });
+
+async function opnaProfUrSlod(profId) {
+  const snap = await getDoc(doc(db, "verkefni", profId));
+  if (!snap.exists()) return;
+  opnaVerkefni(snap.id, snap.data());
+}
 
 utskraBtn.addEventListener("click", () => skraUt());
 
@@ -805,7 +838,10 @@ function byggjaHradaspurningarKort(vDoc, verkefni, spurningaIds, svaradIds) {
   hnappur.type = "button";
   hnappur.className = "aðal-hnappur";
   hnappur.textContent = "Byrja";
-  hnappur.addEventListener("click", () => opnaVerkefni(vDoc.id, verkefni));
+  // Próf opnast í sérstökum flipa (sjá líka "?prof="-vöktunina neðar í
+  // skránni) - svo auðveldara sé að einbeita sér að því, og svo
+  // beforeunload-viðvörunin eigi bara við þann eina flipa.
+  hnappur.addEventListener("click", () => window.open(`leikur.html?prof=${encodeURIComponent(vDoc.id)}`, "_blank"));
   kort.appendChild(hnappur);
 
   return kort;
@@ -877,6 +913,7 @@ function opnaVerkefni(verkefniId, verkefni) {
 
   if (erProfVerkefni(verkefni)) {
     // Ekkert alvöru glæruefni til að skoða - farið beint í spurningarnar.
+    profIVinnslu = true;
     spurningaTitill.textContent = verkefni.title;
     synaSvaedi("spurningar");
     hladaSpurningum();
@@ -1314,6 +1351,13 @@ async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada, aefi
 
   korti.classList.add("svarad");
   svaradIdSett.add(questionId);
+
+  // Allar spurningar prófsins svaraðar - viðvörunin í beforeunload á ekki
+  // lengur við, prófinu er lokið.
+  if (profIVinnslu && allarSpurningaskjol.length > 0 && allarSpurningaskjol.every((d) => svaradIdSett.has(d.id))) {
+    profIVinnslu = false;
+  }
+
   const nidurstodur = await synaNidurstodu(questionId, korti, nidurstada, svar, aefingaSvaedi, spurning);
   uppfaeraSamtoluStodu(spurning?.verkefniId, nidurstodur);
   hladaMinumStodum();

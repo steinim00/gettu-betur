@@ -1656,6 +1656,13 @@ function samiStofnMedGreini(a, b) {
   return AKVEDINN_GREINIR_VIDSKEYTI.some((vidskeyti) => a + vidskeyti === b);
 }
 
+// "14. febrúar" og "14 febrúar" eiga að teljast sama svarið - punkturinn sem
+// táknar raðtölu (1., 2., 3. ...) í dagsetningum er oft sleppt þegar fólk
+// vélritar hratt.
+function fjarlaegjaRadtolupunkt(str) {
+  return str.replace(/(\d)\.\s/g, "$1 ");
+}
+
 function erSvarRett(svar, rettSvor) {
   if (rettSvor.includes(svar)) return true;
 
@@ -1663,6 +1670,8 @@ function erSvarRett(svar, rettSvor) {
   if (svarTala !== null && rettSvor.some((r) => tolugildi1til20(r) === svarTala)) return true;
 
   if (rettSvor.some((r) => samiStofnMedGreini(svar, r) || samiStofnMedGreini(r, svar))) return true;
+
+  if (rettSvor.some((r) => fjarlaegjaRadtolupunkt(svar) === fjarlaegjaRadtolupunkt(r))) return true;
 
   if (/\d/.test(svar)) return false;
 
