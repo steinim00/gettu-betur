@@ -538,13 +538,39 @@ let notendaRodunarStefna = -1; // 1 = vaxandi, -1 = minnkandi
 // þess að persónugreina neinn eða sýna stjórnunarhnappa.
 let skjaskotsSnid = false;
 const skjaskotsSnidBtn = document.getElementById("skjaskotsSnidBtn");
+const takaSkjaskotBtn = document.getElementById("takaSkjaskotBtn");
 const adgerdHaus = document.getElementById("adgerdHaus");
 skjaskotsSnidBtn.addEventListener("click", () => {
   skjaskotsSnid = !skjaskotsSnid;
   skjaskotsSnidBtn.textContent = skjaskotsSnid ? "Birta aftur" : "Skjáskotssnið";
   skjaskotsSnidBtn.classList.toggle("virkur", skjaskotsSnid);
   adgerdHaus.hidden = skjaskotsSnid;
+  takaSkjaskotBtn.hidden = !skjaskotsSnid;
   birtaNotendaRadir();
+});
+
+// html2canvas (sjá script-merki í stjornbord.html) teiknar #notendaTafla
+// upp í myndflöt og vistar hann sem PNG - svo kennarinn þurfi ekki að taka
+// skjáskot handvirkt með stýrikerfinu sínu.
+takaSkjaskotBtn.addEventListener("click", async () => {
+  takaSkjaskotBtn.disabled = true;
+  takaSkjaskotBtn.textContent = "Tek skjáskot…";
+  try {
+    const myndflotur = await html2canvas(notendaTafla.closest("table"), {
+      backgroundColor: "#ffffff",
+      scale: 2
+    });
+    const tengill = document.createElement("a");
+    tengill.href = myndflotur.toDataURL("image/png");
+    tengill.download = `frammistada-nemenda-${new Date().toISOString().slice(0, 10)}.png`;
+    tengill.click();
+  } catch (villa) {
+    console.error(villa);
+    alert("Tókst ekki að taka skjáskot. Reyndu aftur.");
+  } finally {
+    takaSkjaskotBtn.disabled = false;
+    takaSkjaskotBtn.textContent = "Taka skjáskot";
+  }
 });
 
 document.querySelectorAll("#notendaTafla thead th[data-rada]").forEach((th) => {
