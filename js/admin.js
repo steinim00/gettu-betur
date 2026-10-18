@@ -1646,11 +1646,23 @@ function tolugildi1til20(svar) {
   return ORD_TIL_TOLUGILDIS.get(svar) ?? null;
 }
 
+// Algeng viðskeyti ákveðins greinis í íslensku (t.d. "ljón" -> "ljónið",
+// "vog" -> "vogin", "naut" -> "nautið") - nemendur sleppa oft greininum þó
+// svarið sjálft sé rétt. Bara stök orð (ekki orðasambönd) til að lágmarka
+// hættu á fölskum jákvæðum - sjá erSvarRett.
+const AKVEDINN_GREINIR_VIDSKEYTI = ["num", "unum", "anna", "nar", "inn", "ið", "in", "an", "na"];
+function samiStofnMedGreini(a, b) {
+  if (a.includes(" ") || b.includes(" ")) return false;
+  return AKVEDINN_GREINIR_VIDSKEYTI.some((vidskeyti) => a + vidskeyti === b);
+}
+
 function erSvarRett(svar, rettSvor) {
   if (rettSvor.includes(svar)) return true;
 
   const svarTala = tolugildi1til20(svar);
   if (svarTala !== null && rettSvor.some((r) => tolugildi1til20(r) === svarTala)) return true;
+
+  if (rettSvor.some((r) => samiStofnMedGreini(svar, r) || samiStofnMedGreini(r, svar))) return true;
 
   if (/\d/.test(svar)) return false;
 
