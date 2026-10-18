@@ -1535,3 +1535,26 @@ th.radanlegt:hover {
 .adgerd-valmynd button:hover {
   background: var(--litur-baksvid);
 }
+
+.svaralisti-siur {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.svaralisti-siur select,
+.svaralisti-siur input {
+  width: auto;
+  flex: 1 1 160px;
+  max-width: 260px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+.svaralisti-fjoldi {
+  color: var(--litur-daufur);
+  font-size: 0.8rem;
+  margin-left: auto;
+}

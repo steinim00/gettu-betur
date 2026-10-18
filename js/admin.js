@@ -14,6 +14,7 @@ import {
   arrayUnion,
   arrayRemove,
   deleteField,
+  increment,
   serverTimestamp,
   writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
@@ -898,8 +899,10 @@ async function hladaSvaralista(uid, svaedi) {
     .map((d) => {
       const { svar, answeredAt } = d.data();
       const spurning = spurningaKort.get(d.id);
-      const rettSvor = svaraKort.get(d.id)?.correctAnswers || [];
+      const rettSvor = [...(svaraKort.get(d.id)?.correctAnswers || [])];
       return {
+        qid: d.id,
+        verkefniId: spurning?.verkefniId || null,
         texti: spurning?.text || "(spurning fannst ekki - hefur verið eytt)",
         verkefni: verkefnaTitlar.get(spurning?.verkefniId) || "Ótengdar spurningar",
         svar,
@@ -911,48 +914,163 @@ async function hladaSvaralista(uid, svaedi) {
     })
     .sort((a, b) => (b.hvenaer ?? 0) - (a.hvenaer ?? 0));
 
+  // --- Síur: niðurstaða (rétt/rangt/pass), flokkur (verkefni) og leit ---
+  const sia = { nidurstada: "allt", verkefni: "allt", leit: "" };
+
+  const siaVefja = document.createElement("div");
+  siaVefja.className = "svaralisti-siur";
+
+  const nidurstadaVal = document.createElement("select");
+  nidurstadaVal.setAttribute("aria-label", "Sía eftir niðurstöðu");
+  [
+    ["allt", "Öll svör"],
+    ["rett", "Rétt ✅"],
+    ["rangt", "Rangt ❌"],
+    ["pass", "Pass ⏭"]
+  ].forEach(([gildi, texti]) => nidurstadaVal.appendChild(new Option(texti, gildi)));
+
+  const verkefniVal = document.createElement("select");
+  verkefniVal.setAttribute("aria-label", "Sía eftir flokki");
+  verkefniVal.appendChild(new Option("Allir flokkar", "allt"));
+  [...new Set(radir.map((r) => r.verkefni))]
+    .sort((a, b) => a.localeCompare(b, "is"))
+    .forEach((titill) => verkefniVal.appendChild(new Option(titill, titill)));
+
+  const leitInntak = document.createElement("input");
+  leitInntak.type = "search";
+  leitInntak.placeholder = "Leita í spurningum og svörum";
+  leitInntak.setAttribute("aria-label", "Leita");
+
+  const fjoldiSpan = document.createElement("span");
+  fjoldiSpan.className = "svaralisti-fjoldi";
+
+  siaVefja.append(nidurstadaVal, verkefniVal, leitInntak, fjoldiSpan);
+
   const tafla = document.createElement("table");
   tafla.className = "sundurlidun-tafla";
-  tafla.innerHTML = `<thead><tr><th>Spurning</th><th>Verkefni</th><th>Svar</th><th>Niðurstaða</th><th>Hvenær</th></tr></thead>`;
+  tafla.innerHTML = `<thead><tr><th>Spurning</th><th>Verkefni</th><th>Svar</th><th>Niðurstaða</th><th>Hvenær</th><th>Aðgerð</th></tr></thead>`;
   const biti = document.createElement("tbody");
+  tafla.appendChild(biti);
 
-  radir.forEach((rad) => {
-    const tr = document.createElement("tr");
-
-    const spurningTd = document.createElement("td");
-    spurningTd.textContent = rad.texti;
-
-    const verkefniTd = document.createElement("td");
-    verkefniTd.textContent = rad.verkefni;
-
-    const svarTd = document.createElement("td");
-    svarTd.textContent = rad.pass ? "—" : rad.svar;
-
-    const nidurstadaTd = document.createElement("td");
-    if (rad.pass) {
-      nidurstadaTd.textContent = "Pass ⏭";
-    } else if (rad.rett) {
-      nidurstadaTd.textContent = "Rétt ✅";
-      nidurstadaTd.style.color = "var(--litur-rett)";
-    } else {
-      nidurstadaTd.textContent = `Rangt ❌ (rétt: ${rad.rettSvor.join(" / ") || "—"})`;
-      nidurstadaTd.style.color = "var(--litur-rangt)";
+  function erSynileg(rad) {
+    if (sia.nidurstada === "rett" && !(rad.rett && !rad.pass)) return false;
+    if (sia.nidurstada === "rangt" && (rad.rett || rad.pass)) return false;
+    if (sia.nidurstada === "pass" && !rad.pass) return false;
+    if (sia.verkefni !== "allt" && rad.verkefni !== sia.verkefni) return false;
+    if (sia.leit) {
+      const heystakkur = `${rad.texti} ${rad.pass ? "" : rad.svar} ${rad.rettSvor.join(" ")}`.toLowerCase();
+      if (!heystakkur.includes(sia.leit)) return false;
     }
+    return true;
+  }
 
-    const hvenaerTd = document.createElement("td");
-    hvenaerTd.textContent = formatDagsStutt(rad.hvenaer);
+  function teikna() {
+    biti.innerHTML = "";
+    let synd = 0;
+    radir.forEach((rad) => {
+      if (!erSynileg(rad)) return;
+      synd++;
+      const tr = document.createElement("tr");
 
-    tr.appendChild(spurningTd);
-    tr.appendChild(verkefniTd);
-    tr.appendChild(svarTd);
-    tr.appendChild(nidurstadaTd);
-    tr.appendChild(hvenaerTd);
-    biti.appendChild(tr);
+      const spurningTd = document.createElement("td");
+      spurningTd.textContent = rad.texti;
+
+      const verkefniTd = document.createElement("td");
+      verkefniTd.textContent = rad.verkefni;
+
+      const svarTd = document.createElement("td");
+      svarTd.textContent = rad.pass ? "—" : rad.svar;
+
+      const nidurstadaTd = document.createElement("td");
+      if (rad.pass) {
+        nidurstadaTd.textContent = "Pass ⏭";
+      } else if (rad.rett) {
+        nidurstadaTd.textContent = "Rétt ✅";
+        nidurstadaTd.style.color = "var(--litur-rett)";
+      } else {
+        nidurstadaTd.textContent = `Rangt ❌ (rétt: ${rad.rettSvor.join(" / ") || "—"})`;
+        nidurstadaTd.style.color = "var(--litur-rangt)";
+      }
+
+      const hvenaerTd = document.createElement("td");
+      hvenaerTd.textContent = formatDagsStutt(rad.hvenaer);
+
+      const adgerdTd = document.createElement("td");
+      if (!rad.pass && !rad.rett) {
+        const gefaRettBtn = document.createElement("button");
+        gefaRettBtn.type = "button";
+        gefaRettBtn.className = "smabtn";
+        gefaRettBtn.textContent = "Gefa rétt";
+        gefaRettBtn.title = "Bæta þessu svari við sem réttu svari fyrir alla nemendur";
+        gefaRettBtn.addEventListener("click", async () => {
+          if (!confirm(`Telja „${rad.svar}“ rétt svar við spurningunni?\n\n${rad.texti}\n\nÞetta gildir fyrir alla nemendur sem svöruðu eins.`)) return;
+          gefaRettBtn.disabled = true;
+          try {
+            const fjoldiNemenda = await gefaSvariRett(rad);
+            teikna();
+            alert(
+              `„${rad.svar}“ er nú rétt svar. ${fjoldiNemenda} nemandi/nemendur fengu stig. Smelltu á Endurhlaða til að sjá nýjar heildartölur.`
+            );
+          } catch (villa) {
+            console.error(villa);
+            alert("Tókst ekki að vista. Reyndu aftur.");
+            gefaRettBtn.disabled = false;
+          }
+        });
+        adgerdTd.appendChild(gefaRettBtn);
+      }
+
+      tr.append(spurningTd, verkefniTd, svarTd, nidurstadaTd, hvenaerTd, adgerdTd);
+      biti.appendChild(tr);
+    });
+    fjoldiSpan.textContent = `${synd} af ${radir.length} svörum`;
+  }
+
+  nidurstadaVal.addEventListener("change", () => {
+    sia.nidurstada = nidurstadaVal.value;
+    teikna();
+  });
+  verkefniVal.addEventListener("change", () => {
+    sia.verkefni = verkefniVal.value;
+    teikna();
+  });
+  leitInntak.addEventListener("input", () => {
+    sia.leit = leitInntak.value.trim().toLowerCase();
+    teikna();
   });
 
-  tafla.appendChild(biti);
+  teikna();
   svaedi.innerHTML = "";
-  svaedi.appendChild(tafla);
+  svaedi.append(siaVefja, tafla);
+}
+
+// Bætir svari nemanda við sem réttu svari spurningarinnar (gildir fyrir alla)
+// og hækkar teljara þeirra nemenda sem gáfu nákvæmlega þetta svar og fá nú rétt.
+// Teljararnir (fjoldiRett, verkefnaStada) eru geymdir á notandanum og
+// uppfærðir jafnóðum - þess vegna þarf að leiðrétta þá hér líka.
+async function gefaSvariRett(rad) {
+  const gamlirRettir = [...rad.rettSvor];
+  const nyirRettir = [...gamlirRettir, rad.svar];
+  await updateDoc(doc(db, "answers", rad.qid), { correctAnswers: arrayUnion(rad.svar) });
+
+  const notendurSnap = await getDocs(collection(db, "users"));
+  let fjoldi = 0;
+  for (const n of notendurSnap.docs) {
+    if (n.data().role === "admin") continue;
+    const tilraunSnap = await getDoc(doc(db, "users", n.id, "attempts", rad.qid));
+    if (!tilraunSnap.exists()) continue;
+    const svar = tilraunSnap.data().svar;
+    if (svar === SLEPPT_MERKI) continue;
+    if (erSvarRett(svar, gamlirRettir) || !erSvarRett(svar, nyirRettir)) continue;
+    const uppfaersla = { fjoldiRett: increment(1) };
+    if (rad.verkefniId) uppfaersla[`verkefnaStada.${rad.verkefniId}.rett`] = increment(1);
+    await updateDoc(n.ref, uppfaersla);
+    fjoldi++;
+  }
+
+  rad.rettSvor.push(rad.svar);
+  rad.rett = true;
+  return fjoldi;
 }
 
 // Setur margar aðgerðir saman í einn "..." hnapp með fellivalmynd í stað
