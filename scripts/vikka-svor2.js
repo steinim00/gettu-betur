@@ -118,7 +118,6 @@ const VIDBAETUR = {
   lcwFOEb6NKNr1HV4shKI: ["karakas", "caracas"],
   ltvN8TKKQrxIKNUk8cMK: ["merkúr"],
   AkifO4rrlq5B1UbM2LUz: ["streymoy", "straumoy"],
-  D1B6Aq4GOVHAdY9Cv0Yg: ["haförn", "haförninn", "örn"],
   qNToimWA7KSomSpZwD8i: ["robert catesby", "catesby"],
   U2GWVtnBSBhdz0eTA94n: ["gandalf", "grái pílagrímurinn", "gandalf grái", "gandálfur grái"],
   a3CKEbk88qge65OtOtWQ: ["edda björgvins", "edda"],
@@ -146,12 +145,11 @@ const VIDBAETUR = {
   ],
   JOl04lrxez9vMgyNUf68: ["kepler", "johannes kepler"],
   CrwXlxv0fMKjmD0DBEee: ["sygin", "sígyn"],
-  z4N4oxrFB7JmorX6wfBw: ["hannes hafstein"], // fyrsti Íslandsráðherra, oft talinn fyrsti forsætisráðherra
   "6oU2mXMnMwaI7ihuuqSa": ["nikulás", "nikulás ii", "nikuláus", "nikolaj ii", "nikolaj", "nikolai ii"],
   L6FvhiK5ert59A0P3oLl: ["ribbentrop", "joachim von ribbentrop", "von ribbentrop"],
   G3o7qAx7VgoXVvttULqJ: ["marat", "jean paul marat"],
   "1c3JhtVd8ZzRZoiY1kFp": ["með fallöxi", "fallöxi", "fallöxinni", "með fallöxinni", "guillotine"],
-  B8hnV0g3LW1IyTXE1rms: ["aztekar", "astekar", "aztekakeisari", "mexíkó", "mexíkóskur", "mexico", "mexiko"],
+  B8hnV0g3LW1IyTXE1rms: ["aztekar", "astekar", "aztekakeisari"],
   y4cJFpu0g8tpuWaN686L: ["montecchi", "montague", "montagu"],
   "0RDSKSnhkxI3j0kNCvri": [
     "köngulóarmaðurinn",
@@ -196,8 +194,7 @@ const VIDBAETUR = {
   "1rmxKirRKndE56RLPrhE": ["akureyrarbæ", "akureyrarbær", "akureyrarbæjar"],
   ySbwO0oHYDDJtCedtVVf: ["rúbíkónfljótið", "rúbíkon", "rúbíkonfljótið"],
   uRnwjCQhxJ0llSADB9GD: ["ríó", "rio", "ríó de janeiro", "rio de janeiro"],
-  Dy41TYTJuqsTwvbAR4GE: ["63"],
-  EC75OOgQKe04ZM4Ib6WV: ["enginn"] // Múhameð er síðasti spámaðurinn í Íslam
+  Dy41TYTJuqsTwvbAR4GE: ["63"]
 };
 
 // Svarlykillinn sjálfur var rangur eða samsettur í einn streng - listinn endurskrifaður.
