@@ -667,7 +667,8 @@ function birtaNotendaRadir() {
     const tr = document.createElement("tr");
 
     const nafnTd = document.createElement("td");
-    if (erOnline(r.lastActive)) {
+    // Skjáskotssnið felur nöfnin - segir ekkert hver er virkur hverju sinni.
+    if (!skjaskotsSnid && erOnline(r.lastActive)) {
       const punktur = document.createElement("span");
       punktur.className = "online-punktur";
       punktur.title = "Online núna";
