@@ -1,4 +1,4 @@
-// Einskiptis skrifta: bætir 10 forstjórum/embættismönnum stórra ríkisstofnana
+// Einskiptis skrifta: bætir forstjórum/embættismönnum stórra ríkisstofnana
 // við Embættismannalistann - sama form og bæjarstjórarnir
 // (leggja-inn-baejarstjora.js): tvær spurningar á mann (óvirkar), færsla í
 // "embaettismenn" safnið svo þær birtast og eru ritstýranlegar í Sérflokkum.
@@ -34,6 +34,7 @@ const FAERSLUR = [
   { nafn: "Halla Bergþóra Björnsdóttir", nafnaafbrigdi: ["Halla Bergþóra"], embaetti: "ríkislögreglustjóri", q1: "Hver er ríkislögreglustjóri?", q2: "Hvaða embætti gegnir Halla Bergþóra Björnsdóttir?", svar2: ["Ríkislögreglustjóri"], mynd: "myndir/forstjorar/halla_bergthora_bjornsdottir.jpg" },
   { nafn: "Kristín Benediktsdóttir", embaetti: "umboðsmaður Alþingis", q1: "Hver er umboðsmaður Alþingis?", q2: "Hvaða embætti gegnir Kristín Benediktsdóttir?", svar2: ["Umboðsmaður Alþingis"], logo: "myndir/forstjorar/umbodsmadur_althingis.svg", mynd: "myndir/forstjorar/kristin_benediktsdottir.jpeg" },
   { nafn: "Páll Gunnar Pálsson", embaetti: "forstjóri Samkeppniseftirlitsins", q1: "Hver er forstjóri Samkeppniseftirlitsins?", q2: "Hjá hvaða stofnun er Páll Gunnar Pálsson forstjóri?", svar2: ["Samkeppniseftirlitið", "Samkeppniseftirlit"], logo: "myndir/forstjorar/samkeppniseftirlitid.svg" },
+  { nafn: "Sigríður J. Friðjónsdóttir", nafnaafbrigdi: ["Sigríður Friðjónsdóttir"], embaetti: "ríkissaksóknari", q1: "Hver er ríkissaksóknari?", q2: "Hvaða embætti gegnir Sigríður J. Friðjónsdóttir?", svar2: ["Ríkissaksóknari"] },
   { nafn: "Ásgeir Jónsson", embaetti: "seðlabankastjóri", q1: "Hver er seðlabankastjóri?", q2: "Hvaða embætti gegnir Ásgeir Jónsson?", svar2: ["Seðlabankastjóri"], mynd: "myndir/forstjorar/asgeir_jonsson.jpg" }
 ];
 
