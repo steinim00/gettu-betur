@@ -127,6 +127,9 @@ function erProfVerkefni(verkefni) {
 // innskráðir sjái verkefnið, sem er sjálfgefna hegðunin fyrir öll eldri
 // verkefni.
 function synilegtNotanda(verkefni) {
+  // Admin sér öll verkefni (líka þau sem eru takmörkuð við ákveðna nemendur) -
+  // annars vantar flokka í "Sjá eins og nemandi".
+  if (erAdminNotandi) return true;
   const leyfdir = verkefni.leyfdirNotendur;
   if (!leyfdir || leyfdir.length === 0) return true;
   return !!notandi && leyfdir.includes(notandi.uid);
