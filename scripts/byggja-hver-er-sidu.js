@@ -45,7 +45,7 @@ ${stil}
 <header class="sida-haus">
   <a class="merki" href="leikur.html"><img class="merki-icon" src="favicon.svg" alt=""><span>Gettu</span> Betur</a>
 </header>
-<main class="spb-efni" id="efni" hidden>
+<main class="spb-efni">
   <a class="smabtn spb-til-baka" href="leikur.html">← Til baka í leikinn</a>
   <h1>Hver er?</h1>
 
@@ -54,20 +54,6 @@ ${hlutiEitt.join("\n")}
   <h2>Hjá hvaða stofnun? Hvaða embætti?</h2>
 ${hlutiTvo.join("\n")}
 </main>
-<script type="module">
-  // Aðeins Hinrik (og admin) sjá þessa síðu - sama takmörkun og á verkefninu
-  // "Embættismannalisti" í leiknum (leyfdirNotendur). Athugið: þetta er
-  // takmörkun í vafranum, ekki á efni skrárinnar sjálfrar.
-  import { vaktaInnskraningu } from "./js/auth.js";
-  const LEYFDIR_UID = ["5TkIf8dyi7T3EoAE10na2eR2xLl1"];
-  vaktaInnskraningu({ requireAuth: true }, (user, gogn) => {
-    if (user && (gogn?.role === "admin" || LEYFDIR_UID.includes(user.uid))) {
-      document.getElementById("efni").hidden = false;
-    } else {
-      window.location.href = "leikur.html";
-    }
-  });
-</script>
 </body>
 </html>
 `;
