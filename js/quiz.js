@@ -385,6 +385,23 @@ function stodvaTimamaelingu() {
   }
 }
 
+// Tæki notandans ("simi" eða "tolva") og reitur í virknikortinu (vikudagur 0-6
+// með mánudag = 0, klukkustund 0-23, í UTC = íslenskur tími). Skjátíminn er
+// talinn í sekúndum á hvern reit og birtist sem heatmap á Tölfræði-síðu
+// stjórnborðsins (users/{uid}.virkni.{tæki}.d{dagur}h{klst}).
+function taekiTegund() {
+  const erSimi =
+    /Android.+Mobile|iPhone|iPod|Mobile|Windows Phone/i.test(navigator.userAgent) ||
+    (window.matchMedia("(pointer: coarse)").matches && !window.matchMedia("(hover: hover)").matches && window.innerWidth < 900);
+  return erSimi ? "simi" : "tolva";
+}
+
+function virkniReitur(sekundur) {
+  const nuna = new Date();
+  const dagur = (nuna.getUTCDay() + 6) % 7;
+  return { [`virkni.${taekiTegund()}.d${dagur}h${nuna.getUTCHours()}`]: increment(sekundur) };
+}
+
 function vistaSkjatima() {
   stodvaTimamaelingu();
   if (!notandi) {
@@ -398,7 +415,10 @@ function vistaSkjatima() {
   // opnaður), svo þetta nái líka tilvikum sem skraVirkni ein og sér myndi
   // missa af.
   const breytingar = { lastActive: serverTimestamp() };
-  if (sekundur >= 1) breytingar.screenTimeSeconds = increment(sekundur);
+  if (sekundur >= 1) {
+    breytingar.screenTimeSeconds = increment(sekundur);
+    Object.assign(breytingar, virkniReitur(sekundur));
+  }
   updateDoc(doc(db, "users", notandi.uid), breytingar).catch((villa) => {
     console.error(villa);
     ovistadurSkjatimi += sekundur;
@@ -434,8 +454,10 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("beforeunload", () => {
   stodvaTimamaelingu();
   if (notandi && ovistadurSkjatimi >= 1) {
+    const sekundur = Math.round(ovistadurSkjatimi);
     updateDoc(doc(db, "users", notandi.uid), {
-      screenTimeSeconds: increment(Math.round(ovistadurSkjatimi))
+      screenTimeSeconds: increment(sekundur),
+      ...virkniReitur(sekundur)
     }).catch(() => {});
   }
 });

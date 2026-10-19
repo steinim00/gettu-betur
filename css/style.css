@@ -1558,3 +1558,99 @@ th.radanlegt:hover {
   font-size: 0.8rem;
   margin-left: auto;
 }
+
+/* --- Tölfræði-síða: nemendakort og heatmap --- */
+.tolfraedi-stada {
+  color: var(--litur-daufur);
+  font-size: 0.9rem;
+  margin: 6px 0 12px;
+}
+.tolfraedi-kort-net {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.tolfraedi-kort {
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: var(--skuggi);
+}
+.tolfraedi-kort h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+.tolfraedi-kort dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  font-size: 0.88rem;
+}
+.tolfraedi-kort dt {
+  color: var(--litur-daufur);
+}
+.tolfraedi-kort dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+}
+.heatmap-net {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 14px;
+}
+.heatmap-kort {
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 12px;
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+.heatmap-haus {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.heatmap-haus h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.heatmap {
+  display: grid;
+  grid-template-columns: 34px repeat(24, minmax(11px, 1fr));
+  gap: 2px;
+  align-items: center;
+  min-width: 330px;
+  font-size: 0.7rem;
+  color: var(--litur-daufur);
+}
+.heatmap .hm-reitur {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: #ecece6;
+}
+.heatmap .hm-klst {
+  text-align: center;
+  font-size: 0.62rem;
+}
+.heatmap-skyring {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.heatmap-skyring .hm-kvardi {
+  flex: 0 0 90px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #ecece6, #5d8f1f);
+}
+#heatmapNemandi {
+  width: auto;
+  min-width: 200px;
+  padding: 8px 12px;
+}

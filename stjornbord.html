@@ -24,6 +24,7 @@
       <button type="button" data-malsvaedi="verkefni"><span class="takn">📁</span><span class="texti">Verkefni</span></button>
       <button type="button" data-malsvaedi="serflokkar"><span class="takn">🏛️</span><span class="texti">Sérflokkar</span></button>
       <button type="button" data-malsvaedi="notendur"><span class="takn">👥</span><span class="texti">Notendur</span></button>
+      <button type="button" data-malsvaedi="tolfraedi"><span class="takn">📈</span><span class="texti">Tölfræði</span></button>
       <button type="button" data-malsvaedi="graenadeildin"><span class="takn">🏃</span><span class="texti">Grænadeildin</span></button>
       <button type="button" data-malsvaedi="stillingar"><span class="takn">⚙️</span><span class="texti">Stillingar</span></button>
     </nav>
@@ -121,6 +122,33 @@
         </thead>
         <tbody></tbody>
       </table>
+    </div>
+
+    <div class="stjorn-sida" id="sida-tolfraedi">
+      <div class="hluti-titill" style="margin-top:0;">
+        <h2>Tölfræði nemenda</h2>
+        <div style="display:flex; gap:8px;">
+          <button class="smabtn" id="tolfraediEndurhladaBtn">Endurhlaða</button>
+        </div>
+      </div>
+      <p id="tolfraediStada" class="tolfraedi-stada">Opnaðu síðuna til að sækja gögn.</p>
+      <div id="tolfraediKort" class="tolfraedi-kort-net"></div>
+
+      <div class="hluti-titill">
+        <h2>Hvenær eru þau á síðunni?</h2>
+        <select id="heatmapNemandi" aria-label="Velja nemanda"></select>
+      </div>
+      <p class="tolfraedi-stada">Skjátími eftir vikudegi og klukkustund (íslenskur tími). Tækjaskiptingin er skráð frá og með 19. október 2026, svo myndirnar fyllast smám saman.</p>
+      <div class="heatmap-net">
+        <div class="heatmap-kort" id="heatmapTolvaKort">
+          <div class="heatmap-haus"><h3>💻 Tölva</h3><button class="smabtn" data-skjaskot="heatmapTolvaKort">Taka skjáskot</button></div>
+          <div class="heatmap" id="heatmapTolva"></div>
+        </div>
+        <div class="heatmap-kort" id="heatmapSimiKort">
+          <div class="heatmap-haus"><h3>📱 Sími</h3><button class="smabtn" data-skjaskot="heatmapSimiKort">Taka skjáskot</button></div>
+          <div class="heatmap" id="heatmapSimi"></div>
+        </div>
+      </div>
     </div>
 
     <div class="stjorn-sida" id="sida-verkefni">
@@ -348,12 +376,13 @@
 <script type="module" src="js/admin.js"></script>
 <script>
   (function () {
-    var SIDUR = ["yfirlit", "verkefni", "serflokkar", "notendur", "graenadeildin", "stillingar"];
+    var SIDUR = ["yfirlit", "verkefni", "serflokkar", "notendur", "tolfraedi", "graenadeildin", "stillingar"];
     var FYRIRSAGNIR = {
       yfirlit: ["Yfirlit", "Staðan á Gettu Betur í hnotskurn."],
       verkefni: ["Verkefni og spurningar", "Búa til, skoða og stjórna verkefnum og spurningum þeirra."],
       serflokkar: ["Sérflokkar", "Embættismannalisti og bókalisti - tvíátta spurningar."],
       notendur: ["Notendur", "Frammistaða hvers og eins nemanda."],
+      tolfraedi: ["Tölfræði", "Nánari tölfræði um nemendurna og hvenær þeir eru á síðunni."],
       graenadeildin: ["Grænadeildin", "Æfingaskráning fyrir liðið."],
       stillingar: ["Stillingar", "GitHub og Anthropic tengingar fyrir þennan vafra."]
     };
