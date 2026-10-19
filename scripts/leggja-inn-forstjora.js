@@ -26,7 +26,7 @@ function samraema(text) {
 
 const FAERSLUR = [
   { nafn: "Runólfur Pálsson", embaetti: "forstjóri Landspítala", q1: "Hver er forstjóri Landspítala?", q2: "Hjá hvaða stofnun er Runólfur Pálsson forstjóri?", svar2: ["Landspítali", "Landspítali háskólasjúkrahús"], logo: "myndir/forstjorar/landspitali.png" },
-  { nafn: "Snorri Olsen", embaetti: "ríkisskattstjóri", q1: "Hver er ríkisskattstjóri?", q2: "Hjá hvaða stofnun er Snorri Olsen ríkisskattstjóri?", svar2: ["Skatturinn", "Ríkisskattstjóri"], logo: "myndir/forstjorar/skatturinn.svg" },
+  { nafn: "Snorri Olsen", embaetti: "ríkisskattstjóri", q1: "Hver er ríkisskattstjóri?", q2: "Hjá hvaða stofnun er Snorri Olsen ríkisskattstjóri?", svar2: ["Skatturinn", "Ríkisskattstjóri"], logo: "myndir/forstjorar/skatturinn.svg", mynd: "myndir/forstjorar/snorri_olsen.jpg" },
   { nafn: "Georg Kr. Lárusson", nafnaafbrigdi: ["Georg Lárusson"], embaetti: "forstjóri Landhelgisgæslu Íslands", q1: "Hver er forstjóri Landhelgisgæslu Íslands?", q2: "Hjá hvaða stofnun er Georg Kr. Lárusson forstjóri?", svar2: ["Landhelgisgæsla Íslands", "Landhelgisgæslan"], logo: "myndir/forstjorar/landhelgisgaesla.png", mynd: "myndir/forstjorar/georg_larusson.jpg" },
   { nafn: "Stefán Eiríksson", embaetti: "útvarpsstjóri RÚV", q1: "Hver er útvarpsstjóri?", q2: "Hjá hvaða stofnun er Stefán Eiríksson útvarpsstjóri?", svar2: ["RÚV", "Ríkisútvarpið"], logo: "myndir/forstjorar/ruv.png", mynd: "myndir/forstjorar/stefan_eiriksson_ruv.jpg" },
   { nafn: "Salvör Nordal", embaetti: "umboðsmaður barna", q1: "Hver er umboðsmaður barna?", q2: "Hvaða embætti gegnir Salvör Nordal?", svar2: ["Umboðsmaður barna"], logo: "myndir/forstjorar/umbodsmadur_barna.svg", mynd: "myndir/forstjorar/salvor_nordal.jpg" },

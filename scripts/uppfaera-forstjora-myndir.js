@@ -10,7 +10,8 @@ const MYNDIR = {
   "Runólfur Pálsson": M + "runolfur_palsson.jpg",
   "Stefán Eiríksson": M + "stefan_eiriksson_ruv.jpg",
   "Benedikt Bogason": M + "benedikt_bogason.jpg",
-  "Páll Gunnar Pálsson": M + "pall_gunnar_palsson.webp"
+  "Páll Gunnar Pálsson": M + "pall_gunnar_palsson.webp",
+  "Snorri Olsen": M + "snorri_olsen.jpg"
 };
 
 async function main() {
