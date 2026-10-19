@@ -2485,6 +2485,7 @@ const heatmapNemandi = document.getElementById("heatmapNemandi");
 const VIKUDAGAR = ["Mán", "Þri", "Mið", "Fim", "Fös", "Lau", "Sun"];
 const VIKUDAGAR_LANGT = ["mánudagur", "þriðjudagur", "miðvikudagur", "fimmtudagur", "föstudagur", "laugardagur", "sunnudagur"];
 let tolfraediNemendur = [];
+let tolfraediVerkefnaTitlar = new Map();
 let tolfraediHladid = false;
 let tolfraediAdHlada = false;
 
@@ -2563,7 +2564,8 @@ function reiknaNemanda(id, notandi, tilraunir, verkefnaTitlar) {
     verstiFlokkur: flokkar.length > 1 ? `${flokkar.at(-1).titill} (${Math.round(flokkar.at(-1).hlutfall * 100)}%)` : "—",
     tolvaSek,
     simiSek,
-    reitir
+    reitir,
+    heatmap: notandi.heatmap || {}
   };
 }
 
@@ -2574,6 +2576,7 @@ async function hladaTolfraedi() {
   try {
     const [notendurSnap, verkefnaSnap] = await Promise.all([getDocs(collection(db, "users")), getDocs(collection(db, "verkefni"))]);
     const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
+    tolfraediVerkefnaTitlar = verkefnaTitlar;
     const nemendur = notendurSnap.docs.filter((d) => d.data().role !== "admin" && (d.data().flokkur || "MS") !== "aðrir");
     tolfraediNemendur = [];
     for (const n of nemendur) {
@@ -2635,6 +2638,8 @@ function teiknaTolfraedi() {
   tolfraediNemendur.forEach((n) => heatmapNemandi.appendChild(new Option(n.nafn, n.id)));
   heatmapNemandi.value = [...heatmapNemandi.options].some((o) => o.value === gildi) ? gildi : "allir";
   teiknaHeatmap();
+  uppfaeraHmSidur();
+  teiknaHmAllt(true);
 }
 
 function teiknaHeatmap() {
@@ -2676,7 +2681,10 @@ function teiknaHeatmap() {
   });
 }
 
-heatmapNemandi.addEventListener("change", teiknaHeatmap);
+heatmapNemandi.addEventListener("change", () => {
+  teiknaHeatmap();
+  teiknaHmAllt(false);
+});
 tolfraediEndurhladaBtn.addEventListener("click", hladaTolfraedi);
 document.querySelectorAll("[data-skjaskot]").forEach((hnappur) => {
   hnappur.addEventListener("click", async () => {
@@ -2704,3 +2712,242 @@ function athugaTolfraediOpnun() {
 }
 document.getElementById("stjornNav").addEventListener("click", () => setTimeout(athugaTolfraediOpnun, 0));
 vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, () => athugaTolfraediOpnun());
+
+// --- Heatmap ofan á lifandi útgáfu leiksins (smellir og skrun) ---
+const hmSida = document.getElementById("hmSida");
+const hmGerd = document.getElementById("hmGerd");
+const hmStada = document.getElementById("hmStada");
+const HM_BREIDD = { tolva: 1200, simi: 390 };
+const HM_REITUR = 20;
+const HM_SKRUNAR_ROD = 100;
+const HM_HAMARKSHAED = 6000;
+const hmPanelar = {}; // taeki -> { lykill, W, H, k, canvas, tilbuid }
+let hmPalletta = null;
+
+function hmSidaHeiti(lykill) {
+  const [svaedi, id] = lykill.split("_");
+  const heiti = { minstada: "Mín staða", verkefni: "Verkefnalisti", glosur: "Glósur", spurningar: "Spurningar", glaerur: "Glærur" }[svaedi] || svaedi;
+  return id ? `${heiti}: ${tolfraediVerkefnaTitlar.get(id) || id}` : heiti;
+}
+
+function uppfaeraHmSidur() {
+  const fyrra = hmSida.value;
+  const lyklar = new Set(["minstada", "verkefni", "glosur"]);
+  for (const n of tolfraediNemendur) {
+    for (const taeki of Object.keys(HM_BREIDD)) Object.keys(n.heatmap?.[taeki] || {}).forEach((l) => lyklar.add(l));
+  }
+  hmSida.innerHTML = "";
+  [...lyklar].sort((a, b) => hmSidaHeiti(a).localeCompare(hmSidaHeiti(b), "is")).forEach((l) => hmSida.appendChild(new Option(hmSidaHeiti(l), l)));
+  hmSida.value = lyklar.has(fyrra) ? fyrra : "verkefni";
+}
+
+// Leggur saman gögn valinna nemenda fyrir tæki og síðu.
+function hmGogn(taeki, lykill) {
+  const valdir = heatmapNemandi.value === "allir" ? tolfraediNemendur : tolfraediNemendur.filter((n) => n.id === heatmapNemandi.value);
+  const smellir = new Map();
+  const skrun = [];
+  let lotur = 0;
+  for (const n of valdir) {
+    const g = n.heatmap?.[taeki]?.[lykill];
+    if (!g) continue;
+    lotur += g.n || 0;
+    for (const [k, v] of Object.entries(g)) {
+      if (k[0] === "c") smellir.set(k.slice(1), (smellir.get(k.slice(1)) || 0) + v);
+      else if (k[0] === "s") skrun[Number(k.slice(1))] = (skrun[Number(k.slice(1))] || 0) + v;
+    }
+  }
+  return { smellir, skrun, lotur, fjoldiSmella: [...smellir.values()].reduce((a, b) => a + b, 0) };
+}
+
+function hmLitaPalletta() {
+  if (hmPalletta) return hmPalletta;
+  const cv = document.createElement("canvas");
+  cv.width = 256;
+  cv.height = 1;
+  const ctx = cv.getContext("2d");
+  const g = ctx.createLinearGradient(0, 0, 256, 0);
+  [[0, "#2b4bff"], [0.35, "#00c8ff"], [0.55, "#2ee66b"], [0.75, "#ffe600"], [1, "#ff2a1a"]].forEach(([p, c]) => g.addColorStop(p, c));
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 256, 1);
+  hmPalletta = ctx.getImageData(0, 0, 256, 1).data;
+  return hmPalletta;
+}
+
+function hmTeiknaSmelli(cv, smellir) {
+  const { width: W, height: H } = cv;
+  const ctx = cv.getContext("2d");
+  ctx.clearRect(0, 0, W, H);
+  if (!smellir.size) return;
+  const hamark = Math.max(...smellir.values());
+  const buf = document.createElement("canvas");
+  buf.width = W;
+  buf.height = H;
+  const bctx = buf.getContext("2d");
+  const r = 28;
+  for (const [lykill, fjoldi] of smellir) {
+    const [dx, dy] = lykill.split("_").map(Number);
+    const x = W / 2 + (dx - 100) * HM_REITUR + HM_REITUR / 2;
+    const y = dy * HM_REITUR + HM_REITUR / 2;
+    const g = bctx.createRadialGradient(x, y, 0, x, y, r);
+    const a = Math.max(0.18, fjoldi / hamark) * 0.75;
+    g.addColorStop(0, `rgba(0,0,0,${a})`);
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    bctx.fillStyle = g;
+    bctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  const mynd = bctx.getImageData(0, 0, W, H);
+  const pal = hmLitaPalletta();
+  const d = mynd.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const a = d[i + 3];
+    if (!a) continue;
+    d[i] = pal[a * 4];
+    d[i + 1] = pal[a * 4 + 1];
+    d[i + 2] = pal[a * 4 + 2];
+    d[i + 3] = Math.min(235, a + 40);
+  }
+  ctx.putImageData(mynd, 0, 0);
+}
+
+function hmTeiknaSkrun(cv, skrun, lotur) {
+  const { width: W, height: H } = cv;
+  const ctx = cv.getContext("2d");
+  ctx.clearRect(0, 0, W, H);
+  if (!lotur) return;
+  ctx.font = "bold 13px sans-serif";
+  ctx.textAlign = "right";
+  for (let r = 0; r < skrun.length; r++) {
+    const p = Math.min(1, (skrun[r] || 0) / lotur);
+    const y = r * HM_SKRUNAR_ROD;
+    if (y >= H) break;
+    ctx.fillStyle = `hsla(${Math.round((1 - p) * 240)}, 90%, 50%, 0.42)`;
+    ctx.fillRect(0, y, W, HM_SKRUNAR_ROD);
+    if (r % 3 === 0) {
+      const texti = `${Math.round(p * 100)}%`;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(0,0,0,0.75)";
+      ctx.strokeText(texti, W - 8, y + 18);
+      ctx.fillStyle = "#fff";
+      ctx.fillText(texti, W - 8, y + 18);
+    }
+  }
+}
+
+function hmRitaCanvas(taeki) {
+  const p = hmPanelar[taeki];
+  if (!p || !p.tilbuid) return;
+  const gogn = hmGogn(taeki, p.lykill);
+  if (hmGerd.value === "skrun") hmTeiknaSkrun(p.canvas, gogn.skrun, gogn.lotur);
+  else hmTeiknaSmelli(p.canvas, gogn.smellir);
+}
+
+function hmBygguPanel(taeki, lykill) {
+  const ramma = document.getElementById(taeki === "tolva" ? "hmTolvaRamma" : "hmSimiRamma");
+  const gogn = hmGogn(taeki, lykill);
+  ramma.innerHTML = "";
+  delete hmPanelar[taeki];
+  if (!gogn.lotur && !gogn.fjoldiSmella) {
+    const tomt = document.createElement("div");
+    tomt.className = "hm-tomt";
+    tomt.textContent = "Engin gögn enn fyrir þetta tæki og þessa síðu.";
+    ramma.appendChild(tomt);
+    return;
+  }
+  const W = HM_BREIDD[taeki];
+  const k = Math.min(1, (ramma.clientWidth || 600) / W);
+  const innra = document.createElement("div");
+  innra.className = "hm-innra";
+  innra.style.width = `${W}px`;
+  innra.style.transform = `scale(${k})`;
+  const iframe = document.createElement("iframe");
+  iframe.width = W;
+  iframe.height = 700;
+  iframe.scrolling = "no";
+  iframe.title = "Forskoðun síðu";
+  iframe.src = `leikur.html?forskodun=1&heatmapsida=${encodeURIComponent(lykill)}`;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = 700;
+  innra.append(iframe, canvas);
+  ramma.style.height = `${Math.round(700 * k)}px`;
+  ramma.appendChild(innra);
+  const p = { lykill, W, H: 700, k, canvas, iframe, innra, ramma, tilbuid: false };
+  hmPanelar[taeki] = p;
+
+  // Efnið í iframe hleðst ósamstillt - bíðum þar til hæðin er stöðug.
+  iframe.addEventListener("load", () => {
+    let fyrriHaed = 0;
+    let stodugt = 0;
+    let talning = 0;
+    const bid = setInterval(() => {
+      talning++;
+      const haed = Math.min(HM_HAMARKSHAED, iframe.contentDocument?.documentElement?.scrollHeight || 0);
+      stodugt = haed && haed === fyrriHaed ? stodugt + 1 : 0;
+      fyrriHaed = haed;
+      if ((stodugt >= 3 || talning > 25) && haed) {
+        clearInterval(bid);
+        if (hmPanelar[taeki] !== p) return;
+        p.H = haed;
+        iframe.height = haed;
+        canvas.height = haed;
+        innra.style.height = `${haed}px`;
+        ramma.style.height = `${Math.round(Math.min(haed * k, 900))}px`;
+        p.tilbuid = true;
+        hmRitaCanvas(taeki);
+      }
+    }, 400);
+  });
+}
+
+function teiknaHmAllt(endurbyggja) {
+  const lykill = hmSida.value;
+  if (!lykill) return;
+  const nemandi = heatmapNemandi.value;
+  for (const taeki of Object.keys(HM_BREIDD)) {
+    const p = hmPanelar[taeki];
+    if (endurbyggja || !p || p.lykill !== lykill) hmBygguPanel(taeki, lykill);
+    else hmRitaCanvas(taeki);
+  }
+  const heiti = nemandi === "allir" ? "öll fjögur" : tolfraediNemendur.find((n) => n.id === nemandi)?.nafn;
+  hmStada.textContent = `${hmGerd.value === "skrun" ? "Skrun: hlutfall lota sem komust niður á hverja dýpt" : "Smellir: rautt = flestir smellir"} · ${heiti || ""}. Staðsetningin er áætluð - efni síðunnar getur verið mislangt hjá hverjum nemanda.`;
+}
+
+hmSida.addEventListener("change", () => teiknaHmAllt(true));
+hmGerd.addEventListener("change", () => teiknaHmAllt(false));
+document.querySelectorAll("[data-hm-skjaskot]").forEach((hnappur) => {
+  hnappur.addEventListener("click", async () => {
+    const taeki = hnappur.dataset.hmSkjaskot;
+    const p = hmPanelar[taeki];
+    if (!p || !p.tilbuid) {
+      alert("Engin mynd til að taka skjáskot af ennþá.");
+      return;
+    }
+    hnappur.disabled = true;
+    try {
+      const grunnur = await html2canvas(p.iframe.contentDocument.documentElement, {
+        width: p.W,
+        height: p.H,
+        windowWidth: p.W,
+        windowHeight: p.H,
+        backgroundColor: "#ffffff",
+        scale: 1,
+        useCORS: true
+      });
+      const ut = document.createElement("canvas");
+      ut.width = p.W;
+      ut.height = p.H;
+      const ctx = ut.getContext("2d");
+      ctx.drawImage(grunnur, 0, 0);
+      ctx.drawImage(p.canvas, 0, 0);
+      const tengill = document.createElement("a");
+      tengill.href = ut.toDataURL("image/png");
+      tengill.download = `heatmap-${hmGerd.value}-${taeki}-${new Date().toISOString().slice(0, 10)}.png`;
+      tengill.click();
+    } catch (villa) {
+      console.error(villa);
+      alert("Tókst ekki að taka skjáskot. Reyndu aftur.");
+    } finally {
+      hnappur.disabled = false;
+    }
+  });
+});

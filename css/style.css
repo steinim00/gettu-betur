@@ -1654,3 +1654,54 @@ th.radanlegt:hover {
   min-width: 200px;
   padding: 8px 12px;
 }
+
+/* --- Heatmap ofan á lifandi síðu (smellir / skrun) --- */
+.hm-net {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+@media (max-width: 900px) {
+  .hm-net {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.hm-panell {
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.hm-ramma {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--litur-jadar);
+  border-radius: 8px;
+  background: #fff;
+  max-height: 900px;
+  overflow-y: auto;
+}
+.hm-ramma .hm-tomt {
+  padding: 28px 16px;
+  color: var(--litur-daufur);
+  text-align: center;
+  font-size: 0.9rem;
+}
+.hm-innra {
+  position: relative;
+  transform-origin: 0 0;
+}
+.hm-innra iframe {
+  display: block;
+  border: 0;
+  pointer-events: none;
+  background: #fff;
+}
+.hm-innra canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}

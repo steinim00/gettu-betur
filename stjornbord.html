@@ -127,7 +127,8 @@
     <div class="stjorn-sida" id="sida-tolfraedi">
       <div class="hluti-titill" style="margin-top:0;">
         <h2>Tölfræði nemenda</h2>
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <select id="heatmapNemandi" aria-label="Velja nemanda"></select>
           <button class="smabtn" id="tolfraediEndurhladaBtn">Endurhlaða</button>
         </div>
       </div>
@@ -135,8 +136,29 @@
       <div id="tolfraediKort" class="tolfraedi-kort-net"></div>
 
       <div class="hluti-titill">
+        <h2>Heatmap á leiknum</h2>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <select id="hmSida" aria-label="Velja síðu"></select>
+          <select id="hmGerd" aria-label="Velja gerð">
+            <option value="smellir">Smellir</option>
+            <option value="skrun">Skrun</option>
+          </select>
+        </div>
+      </div>
+      <p class="tolfraedi-stada" id="hmStada">Sýnir hvar nemendurnir smella og hversu langt þeir skruna, teiknað ofan á lifandi útgáfu síðunnar. Gögn safnast frá og með 19. október 2026.</p>
+      <div class="hm-net">
+        <div class="hm-panell">
+          <div class="heatmap-haus"><h3>💻 Tölva</h3><button class="smabtn" data-hm-skjaskot="tolva">Taka skjáskot</button></div>
+          <div class="hm-ramma" id="hmTolvaRamma"></div>
+        </div>
+        <div class="hm-panell hm-panell-simi">
+          <div class="heatmap-haus"><h3>📱 Sími</h3><button class="smabtn" data-hm-skjaskot="simi">Taka skjáskot</button></div>
+          <div class="hm-ramma" id="hmSimiRamma"></div>
+        </div>
+      </div>
+
+      <div class="hluti-titill">
         <h2>Hvenær eru þau á síðunni?</h2>
-        <select id="heatmapNemandi" aria-label="Velja nemanda"></select>
       </div>
       <p class="tolfraedi-stada">Skjátími eftir vikudegi og klukkustund (íslenskur tími). Tækjaskiptingin er skráð frá og með 19. október 2026, svo myndirnar fyllast smám saman.</p>
       <div class="heatmap-net">

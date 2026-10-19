@@ -402,6 +402,62 @@ function virkniReitur(sekundur) {
   return { [`virkni.${taekiTegund()}.d${dagur}h${nuna.getUTCHours()}`]: increment(sekundur) };
 }
 
+// --- Heatmap-skráning: smellir og skrunardýpt, eftir tæki og "síðu" ---
+// Geymt á users/{uid}.heatmap.{tæki}.{lykill}: smellir í reitum (c<dx>_<dy>,
+// 20px reitir; dx er lárétt færsla frá miðju síðunnar svo miðjuð uppsetning
+// stemmi á ólíkum skjábreiddum) og skrun (s<röð> = fjöldi lota sem komust
+// niður í 100px-röð, n = fjöldi lota). Stjórnborðið teiknar þetta ofan á
+// lifandi útgáfu síðunnar (sjá Tölfræði-síðuna í js/admin.js).
+const HEATMAP_REITUR = 20;
+const SKRUNAR_ROD = 100;
+let virktSvaedi = null;
+let virktHeatmapLykill = null;
+let bidHeatmap = {};
+let dypstaSkrun = 0;
+
+function heatmapVirkt() {
+  return !!notandi && !erAdminNotandi && !!virktHeatmapLykill;
+}
+
+function skraHeatmap(slod, fjoldi = 1) {
+  bidHeatmap[slod] = (bidHeatmap[slod] || 0) + fjoldi;
+}
+
+function hefjaSkrunarlotu() {
+  dypstaSkrun = window.scrollY + window.innerHeight;
+}
+
+function lokaSkrunarlotu() {
+  if (heatmapVirkt()) {
+    const hamark = document.documentElement.scrollHeight;
+    const dypt = Math.min(Math.max(dypstaSkrun, window.scrollY + window.innerHeight), hamark);
+    const rodir = Math.min(Math.ceil(dypt / SKRUNAR_ROD), 100);
+    const grunnur = `heatmap.${taekiTegund()}.${virktHeatmapLykill}`;
+    for (let r = 0; r < rodir; r++) skraHeatmap(`${grunnur}.s${r}`);
+    skraHeatmap(`${grunnur}.n`);
+  }
+  dypstaSkrun = 0;
+}
+
+document.addEventListener(
+  "click",
+  (e) => {
+    if (!heatmapVirkt()) return;
+    const dx = Math.floor((e.pageX - document.documentElement.clientWidth / 2) / HEATMAP_REITUR) + 100;
+    const dy = Math.floor(e.pageY / HEATMAP_REITUR);
+    if (dx < 0 || dy < 0) return;
+    skraHeatmap(`heatmap.${taekiTegund()}.${virktHeatmapLykill}.c${dx}_${dy}`);
+  },
+  { passive: true }
+);
+window.addEventListener(
+  "scroll",
+  () => {
+    dypstaSkrun = Math.max(dypstaSkrun, window.scrollY + window.innerHeight);
+  },
+  { passive: true }
+);
+
 function vistaSkjatima() {
   stodvaTimamaelingu();
   if (!notandi) {
@@ -419,9 +475,13 @@ function vistaSkjatima() {
     breytingar.screenTimeSeconds = increment(sekundur);
     Object.assign(breytingar, virkniReitur(sekundur));
   }
+  const heatmapPakki = bidHeatmap;
+  bidHeatmap = {};
+  for (const [slod, fjoldi] of Object.entries(heatmapPakki)) breytingar[slod] = increment(fjoldi);
   updateDoc(doc(db, "users", notandi.uid), breytingar).catch((villa) => {
     console.error(villa);
     ovistadurSkjatimi += sekundur;
+    for (const [slod, fjoldi] of Object.entries(heatmapPakki)) skraHeatmap(slod, fjoldi);
   });
   hefjaTimamaelingu();
 }
@@ -445,20 +505,24 @@ function skraVirkni() {
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
+    lokaSkrunarlotu();
     vistaSkjatima();
   } else {
     hefjaTimamaelingu();
+    hefjaSkrunarlotu();
   }
 });
 
 window.addEventListener("beforeunload", () => {
   stodvaTimamaelingu();
-  if (notandi && ovistadurSkjatimi >= 1) {
+  lokaSkrunarlotu();
+  if (notandi && (ovistadurSkjatimi >= 1 || Object.keys(bidHeatmap).length)) {
     const sekundur = Math.round(ovistadurSkjatimi);
-    updateDoc(doc(db, "users", notandi.uid), {
-      screenTimeSeconds: increment(sekundur),
-      ...virkniReitur(sekundur)
-    }).catch(() => {});
+    const breytingar = {};
+    if (sekundur >= 1) Object.assign(breytingar, { screenTimeSeconds: increment(sekundur) }, virkniReitur(sekundur));
+    for (const [slod, fjoldi] of Object.entries(bidHeatmap)) breytingar[slod] = increment(fjoldi);
+    bidHeatmap = {};
+    updateDoc(doc(db, "users", notandi.uid), breytingar).catch(() => {});
   }
 });
 
@@ -511,7 +575,27 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
   // venjulega upphafsskjásins.
   const profIdUrSlod = new URLSearchParams(window.location.search).get("prof");
   if (profIdUrSlod) opnaProfUrSlod(profIdUrSlod);
+
+  // "?heatmapsida=<svæði>[_<verkefniId>]" - notað af heatmap-yfirlitinu á
+  // stjórnborðinu til að sýna rétta síðu undir heatmappinu (admin skráir ekki
+  // eigin smelli, sjá heatmapVirkt).
+  const heatmapSida = new URLSearchParams(window.location.search).get("heatmapsida");
+  if (heatmapSida && user && gogn?.role === "admin") opnaHeatmapSidu(heatmapSida);
 });
+
+async function opnaHeatmapSidu(sida) {
+  const [svaedi, id] = sida.split("_");
+  if (svaedi === "verkefni") return synaSvaedi("verkefni");
+  if (svaedi === "glosur") {
+    synaSvaedi("glosur");
+    return hladaGlosur();
+  }
+  if (!id) return;
+  const snap = await getDoc(doc(db, "verkefni", id));
+  if (!snap.exists()) return;
+  if (svaedi === "spurningar") opnaSpurningarBeint(snap.id, snap.data());
+  else opnaVerkefni(snap.id, snap.data());
+}
 
 async function opnaProfUrSlod(profId) {
   const snap = await getDoc(doc(db, "verkefni", profId));
@@ -522,6 +606,7 @@ async function opnaProfUrSlod(profId) {
 utskraBtn.addEventListener("click", () => skraUt());
 
 function synaSvaedi(svaedi) {
+  lokaSkrunarlotu();
   minStadaSvaedi.hidden = svaedi !== "minstada";
   glosurSvaedi.hidden = svaedi !== "glosur";
   verkefnaSvaedi.hidden = svaedi !== "verkefni";
@@ -537,6 +622,9 @@ function synaSvaedi(svaedi) {
     // notandinn var skrollaður niður þegar hann smellti.
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+  virktSvaedi = svaedi;
+  virktHeatmapLykill = (svaedi === "spurningar" || svaedi === "glaerur") && valdVerkefniId ? `${svaedi}_${valdVerkefniId}` : svaedi;
+  hefjaSkrunarlotu();
 }
 
 tilbakaFraGlaerum.addEventListener("click", () => synaSvaedi("verkefni"));
