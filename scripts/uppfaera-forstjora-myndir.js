@@ -14,15 +14,28 @@ const MYNDIR = {
   "Snorri Olsen": M + "snorri_olsen.jpg"
 };
 
+// Merki sem fara á fyrri spurninguna ("Hver er ...?").
+const MERKI = {
+  "Halla Bergþóra Björnsdóttir": M + "logreglustjarnan.png",
+  "Sigríður J. Friðjónsdóttir": M + "skjaldarmerki.svg"
+};
+
 async function main() {
   const snap = await db.collection("embaettismenn").get();
   for (const d of snap.docs) {
     const x = d.data();
     const mynd = MYNDIR[x.nafn];
-    if (!mynd) continue;
-    await db.collection("questions").doc(x.q2Id).update({ image: mynd });
-    await d.ref.update({ myndSlod: mynd });
-    console.log("uppfært:", x.nafn, "->", mynd);
+    if (mynd) {
+      await db.collection("questions").doc(x.q2Id).update({ image: mynd });
+      await d.ref.update({ myndSlod: mynd });
+      console.log("uppfært:", x.nafn, "->", mynd);
+    }
+    const merki = MERKI[x.nafn];
+    if (merki) {
+      await db.collection("questions").doc(x.q1Id).update({ image: merki });
+      await d.ref.update({ logoSlod: merki });
+      console.log("merki:", x.nafn, "->", merki);
+    }
   }
 }
 main().catch((v) => {
