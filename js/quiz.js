@@ -869,6 +869,7 @@ rangarSpurningarBtn.addEventListener("click", () => {
 // og venjulegt verkefni notar - svo "Reyna aftur"-æfingasvæðið á hverju korti
 // virkar sjálfkrafa eins, án nokkurs auka kóða.
 async function hladaRangarSpurningar() {
+  stillaFormTengil(null);
   valdVerkefniId = null;
   spurningaTitill.textContent = "Rangt svaraðar spurningar";
   spurningaListi.innerHTML = skeletonKort(5, 1);
@@ -993,7 +994,18 @@ function byggjaVerkefniKort(vDoc, verkefni, spurningaIds, svaradIds) {
 
 // Hoppar beint í spurningalistu verkefnisins, án þess að fara í gegnum
 // glærurnar fyrst - flýtileið fyrir nemendur sem vilja bara svara.
+// Verkefni geta verið með tengil á Google Form (reiturinn formSlod á verkefninu,
+// t.d. svarblað Mannkynssöguprófsins) - birtist sem hnappur í spurningasvæðinu.
+function stillaFormTengil(verkefni) {
+  const tengill = document.getElementById("verkefniFormTengill");
+  if (!tengill) return;
+  const slod = verkefni && verkefni.formSlod;
+  tengill.hidden = !slod;
+  if (slod) tengill.href = slod;
+}
+
 function opnaSpurningarBeint(verkefniId, verkefni, hoppaIOsvaradar = false) {
+  stillaFormTengil(verkefni);
   valdVerkefniId = verkefniId;
   spurningaBunkastaerd = spurningaBunkastaerdFyrir(verkefni);
   spurningaTitill.textContent = verkefni.title;
@@ -1089,6 +1101,17 @@ function byggjaHradaspurningarKort(vDoc, verkefni, spurningaIds, svaradIds) {
   });
   kort.appendChild(hnappur);
 
+  if (verkefni.formSlod) {
+    const formTengill = document.createElement("a");
+    formTengill.className = "smabtn";
+    formTengill.href = verkefni.formSlod;
+    formTengill.target = "_blank";
+    formTengill.rel = "noopener";
+    formTengill.textContent = "📝 Skila svörum";
+    formTengill.style.marginLeft = "8px";
+    kort.appendChild(formTengill);
+  }
+
   return kort;
 }
 
@@ -1151,6 +1174,7 @@ async function hladaVerkefnaListi() {
 let pptxIframe = null;
 
 function opnaVerkefni(verkefniId, verkefni) {
+  stillaFormTengil(verkefni);
   valdVerkefniId = verkefniId;
   heilskjaGlaerur = verkefni.slides || [];
   spurningaBunkastaerd = spurningaBunkastaerdFyrir(verkefni);
