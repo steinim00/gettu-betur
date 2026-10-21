@@ -4,7 +4,7 @@
 // Wikipedia-titlar) eru í hver-er-gogn.json og myndirnar sem fundust í
 // hver-er-myndir.json (búið til með hver-er-leita-mynda.js).
 // Endurkeyranlegt: spurningar fá fast skjalanúmer. Keyrsla: node scripts/leggja-inn-hver-er.js
-// (DRY=1 prentar bara). Verkefnin eru takmörkuð við Hinrik (leyfdirNotendur).
+// (DRY=1 prentar bara). Spurningarnar fara í eitt óvirkt verkefni, "Hver er".
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
@@ -13,7 +13,6 @@ const admin = require("firebase-admin");
 admin.initializeApp({ credential: admin.credential.cert(require(path.join(__dirname, "serviceAccountKey.json"))) });
 const db = admin.firestore();
 
-const LEYFDIR = ["5TkIf8dyi7T3EoAE10na2eR2xLl1"]; // Hinrik
 
 function samraema(text) {
   return text
@@ -30,8 +29,7 @@ async function finnaEdaBuaTilVerkefni(titill) {
   const ref = await db.collection("verkefni").add({
     title: titill,
     slides: [],
-    active: true,
-    leyfdirNotendur: LEYFDIR,
+    active: false, // falið fyrir nemendum (sjá sameina-hver-er.js)
     createdAt: admin.firestore.FieldValue.serverTimestamp()
   });
   return ref.id;
@@ -48,7 +46,7 @@ async function main() {
   let rod = 0;
 
   for (const flokkur of gogn) {
-    const verkefniId = await finnaEdaBuaTilVerkefni(flokkur.titill);
+    const verkefniId = await finnaEdaBuaTilVerkefni("Hver er");
     let fjoldi = 0;
     for (const [nafn, , afbrigdi, serstokSpurning] of flokkur["fólk"]) {
       const m = myndir[nafn];

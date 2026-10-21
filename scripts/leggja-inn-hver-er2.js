@@ -1,7 +1,7 @@
 // Býr til verkefni úr hver-er-gogn2.json (kennileiti úr "Umhverfis jörðina á 80
 // stöðum" I og II og listaverk) með myndum úr hver-er-myndir2.json. Hver færsla
 // getur gefið fleiri en eina spurningu með sömu mynd. Endurkeyranlegt (föst
-// skjalanúmer). DRY=1 prentar bara. Verkefnin eru takmörkuð við Hinrik.
+// skjalanúmer). DRY=1 prentar bara. Spurningarnar fara í eitt óvirkt verkefni, "Hver er".
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
@@ -9,7 +9,6 @@ const admin = require("firebase-admin");
 
 admin.initializeApp({ credential: admin.credential.cert(require(path.join(__dirname, "serviceAccountKey.json"))) });
 const db = admin.firestore();
-const LEYFDIR = ["5TkIf8dyi7T3EoAE10na2eR2xLl1"]; // Hinrik
 const SLEPPA = new Set((process.env.SLEPPA || "").split(",").filter(Boolean)); // lyklar "verkefni|nafn" sem á að sleppa
 
 function samraema(text) {
@@ -23,8 +22,7 @@ async function finnaEdaBuaTilVerkefni(titill) {
   const ref = await db.collection("verkefni").add({
     title: titill,
     slides: [],
-    active: true,
-    leyfdirNotendur: LEYFDIR,
+    active: false, // falið fyrir nemendum (sjá sameina-hver-er.js)
     createdAt: admin.firestore.FieldValue.serverTimestamp()
   });
   return ref.id;
@@ -40,7 +38,7 @@ async function main() {
   const grunnur = Date.now();
   let rod = 0;
   for (const g of gogn) {
-    const verkefniId = await finnaEdaBuaTilVerkefni(g.titill);
+    const verkefniId = await finnaEdaBuaTilVerkefni("Hver er");
     let fjoldi = 0;
     for (const e of g.entries) {
       const lykill = g.titill + "|" + e.nafn;
