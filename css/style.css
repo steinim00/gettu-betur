@@ -1705,3 +1705,20 @@ th.radanlegt:hover {
   inset: 0;
   pointer-events: none;
 }
+
+/* Staða eftir verkefnum: smellanleg verkefnakort og áherslan á næstu ósvöruðu spurningu */
+.smellanlegt-kort {
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.smellanlegt-kort:hover,
+.smellanlegt-kort:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--skuggi-stor);
+  outline: none;
+}
+.naest-osvarad {
+  outline: 3px solid var(--litur-lime);
+  outline-offset: 3px;
+  transition: outline-color 0.4s ease;
+}

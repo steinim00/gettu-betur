@@ -760,6 +760,7 @@ async function hladaMinaStodu() {
   ]);
 
   const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
+  const verkefnaGogn = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data()]));
   const notandaGogn = notandiSnap.data() || {};
 
   birtaVikuAherslu(verkefnaSnap);
@@ -834,6 +835,25 @@ async function hladaMinaStodu() {
     smatexti.style.fontSize = "0.82rem";
     smatexti.textContent = `${hlutfall}% nákvæmni${b.pass ? ` · ${b.pass} pass` : ""}`;
     kort.appendChild(smatexti);
+
+    // Smellt á verkefnið: fara í spurningarnar og á síðustu ósvöruðu (hoppar
+    // aðeins ef verkefnið er til og notandinn má sjá það).
+    const verkefniGogn = verkefnaGogn.get(verkefniId);
+    if (verkefniGogn && (erAdminNotandi || (verkefniGogn.active && synilegtNotanda(verkefniGogn)))) {
+      kort.classList.add("smellanlegt-kort");
+      kort.tabIndex = 0;
+      kort.setAttribute("role", "button");
+      kort.title = "Opna spurningarnar og halda áfram þar sem frá var horfið";
+      const opna = () => opnaSpurningarBeint(verkefniId, verkefniGogn, true);
+      kort.addEventListener("click", opna);
+      kort.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          opna();
+        }
+      });
+      smatexti.textContent += " · Halda áfram →";
+    }
 
     minarStodurListi.appendChild(kort);
   });
@@ -973,12 +993,12 @@ function byggjaVerkefniKort(vDoc, verkefni, spurningaIds, svaradIds) {
 
 // Hoppar beint í spurningalistu verkefnisins, án þess að fara í gegnum
 // glærurnar fyrst - flýtileið fyrir nemendur sem vilja bara svara.
-function opnaSpurningarBeint(verkefniId, verkefni) {
+function opnaSpurningarBeint(verkefniId, verkefni, hoppaIOsvaradar = false) {
   valdVerkefniId = verkefniId;
   spurningaBunkastaerd = spurningaBunkastaerdFyrir(verkefni);
   spurningaTitill.textContent = verkefni.title;
   synaSvaedi("spurningar");
-  hladaSpurningum();
+  hladaSpurningum(hoppaIOsvaradar);
   hladaMinumStodum();
 }
 
@@ -1271,7 +1291,7 @@ function faraISpurningarFraGlaerum() {
 afromISpurningar.addEventListener("click", faraISpurningarFraGlaerum);
 faraBeintISpurningarBtn.addEventListener("click", faraISpurningarFraGlaerum);
 
-async function hladaSpurningum() {
+async function hladaSpurningum(hoppaIOsvaradar = false) {
   spurningaListi.innerHTML = skeletonKort(5, 1);
   siduflettingarEfri.hidden = true;
   siduflettingar.hidden = true;
@@ -1308,7 +1328,26 @@ async function hladaSpurningum() {
   });
 
   spurningaSida = 0;
+
+  // "Staða eftir verkefnum" opnar verkefnið beint á fyrstu spurningunni sem
+  // notandinn á eftir að svara - síðan sem hún er á og skrunað að henni.
+  let hoppaIndex = -1;
+  if (hoppaIOsvaradar) {
+    hoppaIndex = allarSpurningaskjol.findIndex((d) => !svaradIdSett.has(d.id));
+    if (hoppaIndex > 0) spurningaSida = Math.floor(hoppaIndex / spurningaBunkastaerd);
+  }
   synaSpurningaSidu();
+  if (hoppaIndex > 0) {
+    const korti = spurningaListi.children[hoppaIndex % spurningaBunkastaerd];
+    if (korti) {
+      // synaSvaedi skrunar líka (á efst á listann) - bíðum aðeins svo þessi vinni.
+      setTimeout(() => {
+        korti.scrollIntoView({ behavior: "smooth", block: "center" });
+        korti.classList.add("naest-osvarad");
+        setTimeout(() => korti.classList.remove("naest-osvarad"), 2500);
+      }, 350);
+    }
+  }
 }
 
 function fjoldiSidna() {
