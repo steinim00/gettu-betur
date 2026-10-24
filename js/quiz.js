@@ -1437,8 +1437,12 @@ stokkaSpurningarBtn.addEventListener("click", stokkaSpurningar);
 // (öllum í einu, ekki bara stökum röngum svörum - heldur upphaflega
 // tilganginum með að svör séu óbreytanleg eftir á) svo hægt sé að svara
 // þeim aftur, og dregur frá samtölunum á users/{uid} til samræmis.
+// Ver gegn tvísmelli: aðgerðin les margar tilraunir eitt og eitt og tekur
+// nokkrar sekúndur - önnur keyrsla á meðan hefði dregið sömu svör tvisvar frá
+// samtölunum (svo fjöldi svara varð neikvæður).
+let byrjaAftur_ikeyrslu = false;
 async function byrjaVerkefniAftur() {
-  if (!notandi || valdVerkefniId === null) return;
+  if (!notandi || valdVerkefniId === null || byrjaAftur_ikeyrslu) return;
   if (
     !confirm(
       "Byrja þetta verkefni aftur? Þetta eyðir svarasögu þinni fyrir allar spurningarnar hér og þú getur svarað þeim aftur."
@@ -1446,6 +1450,17 @@ async function byrjaVerkefniAftur() {
   ) {
     return;
   }
+  byrjaAftur_ikeyrslu = true;
+  byrjaAfturBtn.disabled = true;
+  try {
+    await keyraByrjaVerkefniAftur();
+  } finally {
+    byrjaAftur_ikeyrslu = false;
+    byrjaAfturBtn.disabled = false;
+  }
+}
+
+async function keyraByrjaVerkefniAftur() {
 
   const spurningaIdSett = new Set(allarSpurningaskjol.map((d) => d.id));
   const attemptsSnap = await getDocs(collection(db, "users", notandi.uid, "attempts"));
