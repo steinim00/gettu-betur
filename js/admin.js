@@ -88,6 +88,7 @@ const notendaValPanell = document.getElementById("notendaValPanell");
 const notendaValTitill = document.getElementById("notendaValTitill");
 const notendaValGatlisti = document.getElementById("notendaValGatlisti");
 const vistaNotendaValBtn = document.getElementById("vistaNotendaValBtn");
+const kveikjaAllarCheckbox = document.getElementById("kveikjaAllarCheckbox");
 const hættaVidNotendaValBtn = document.getElementById("hættaVidNotendaValBtn");
 
 // Breyttu þessu ef repoið er einhvern tímann flutt/endurnefnt.
@@ -1204,6 +1205,14 @@ async function hladaVerkefnayfirlit() {
           }
         },
         {
+          texti: "Kveikja á öllum spurningum",
+          smella: async () => {
+            const fjoldi = await kveikjaVerkefniOgSpurningar(vDoc.id);
+            alert(`Kveikt á verkefninu og ${fjoldi} óvirkum spurningum.`);
+            hladaVerkefnayfirlit();
+          }
+        },
+        {
           texti: "Breyta titli",
           smella: async () => {
             const nyttNafn = prompt("Nýr titill:", verkefni.title);
@@ -1270,6 +1279,7 @@ let notendaValVerkefniId = "";
 async function opnaNotendaValPanell(verkefniId, verkefni) {
   notendaValVerkefniId = verkefniId;
   notendaValTitill.textContent = `Veldu notendur - "${verkefni.title}"`;
+  kveikjaAllarCheckbox.checked = true;
   notendaValGatlisti.innerHTML = "<p>Sæki notendur…</p>";
   notendaValPanell.hidden = false;
   notendaValPanell.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1299,9 +1309,26 @@ async function opnaNotendaValPanell(verkefniId, verkefni) {
   });
 }
 
+// Kveikir á verkefninu sjálfu og öllum óvirkum spurningum þess - nemendur sjá
+// bara spurningar með active == true í verkefni með active == true.
+async function kveikjaVerkefniOgSpurningar(verkefniId) {
+  await updateDoc(doc(db, "verkefni", verkefniId), { active: true });
+  const snap = await getDocs(query(collection(db, "questions"), where("verkefniId", "==", verkefniId)));
+  const oviRkar = snap.docs.filter((d) => !d.data().active);
+  for (let i = 0; i < oviRkar.length; i += 400) {
+    const batch = writeBatch(db);
+    oviRkar.slice(i, i + 400).forEach((d) => batch.update(d.ref, { active: true }));
+    await batch.commit();
+  }
+  return oviRkar.length;
+}
+
 vistaNotendaValBtn.addEventListener("click", async () => {
   const voldUid = [...notendaValGatlisti.querySelectorAll("input:checked")].map((i) => i.value);
   await updateDoc(doc(db, "verkefni", notendaValVerkefniId), { leyfdirNotendur: voldUid });
+  if (kveikjaAllarCheckbox.checked) {
+    await kveikjaVerkefniOgSpurningar(notendaValVerkefniId);
+  }
   notendaValPanell.hidden = true;
   hladaVerkefnayfirlit();
 });
