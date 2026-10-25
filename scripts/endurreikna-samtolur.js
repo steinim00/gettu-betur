@@ -72,6 +72,15 @@ async function main() {
       }
     });
 
+    // Talning á "Byrja aftur" er ekki leidd af svörunum - flytjum hana yfir svo
+    // endurreikningurinn eyði henni ekki.
+    for (const [vid, gamalt] of Object.entries(notandi.verkefnaStada || {})) {
+      if (!gamalt.byrjadAftur) continue;
+      if (!verkefnaStada[vid]) verkefnaStada[vid] = { svarad: 0, pass: 0, rett: 0 };
+      verkefnaStada[vid].byrjadAftur = gamalt.byrjadAftur;
+      if (gamalt.sidastByrjadAftur) verkefnaStada[vid].sidastByrjadAftur = gamalt.sidastByrjadAftur;
+    }
+
     const breyttiEinhverju =
       notandi.fjoldiSvarad !== fjoldiSvarad || notandi.fjoldiPass !== fjoldiPass || notandi.fjoldiRett !== fjoldiRett;
 

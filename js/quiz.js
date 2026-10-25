@@ -1015,11 +1015,11 @@ function opnaSpurningarBeint(verkefniId, verkefni, hoppaIOsvaradar = false) {
 }
 
 // Áberandi borði efst á "Mín staða" sem bendir beint á verkefni vikunnar -
-// núna "50 áhrifamiklir einstaklingar". Finnur verkefnið með titilleit
-// (sama mynstur og upload-hrifamiklir-extra.js notar), svo ekkert
+// núna "Hraðaspurningar". Finnur verkefnið með titilleit, svo ekkert
 // harðkóðað skjal-ID þarf að uppfæra ef verkefnið er endurskapað.
+const VIKU_AHERSLA_LEIT = "hraðaspurningar";
 function birtaVikuAherslu(verkefnaSnap) {
-  const vDoc = verkefnaSnap.docs.find((d) => (d.data().title || "").toLowerCase().includes("áhrifamiklir"));
+  const vDoc = verkefnaSnap.docs.find((d) => (d.data().title || "").toLowerCase().includes(VIKU_AHERSLA_LEIT));
   vikuAherslaSvaedi.innerHTML = "";
   vikuAherslaSvaedi.hidden = true;
   if (!vDoc) return;
@@ -1048,7 +1048,9 @@ function birtaVikuAherslu(verkefnaSnap) {
   glaeruBtn.addEventListener("click", () => opnaVerkefni(vDoc.id, verkefni));
 
   hnappar.appendChild(spurningaBtn);
-  hnappar.appendChild(glaeruBtn);
+  // Hraðaspurningar eru bara spurningar - "Fara í glærur" er aðeins sýnt ef
+  // verkefnið er með raunverulegt glæruefni.
+  if (!erProfVerkefni(verkefni)) hnappar.appendChild(glaeruBtn);
 
   borði.appendChild(titill);
   borði.appendChild(hnappar);
@@ -1487,7 +1489,11 @@ async function keyraByrjaVerkefniAftur() {
 
   const breytingar = {
     fjoldiSvarad: increment(svaradBreyting),
-    [`verkefnaStada.${valdVerkefniId}.svarad`]: increment(svaradBreyting)
+    [`verkefnaStada.${valdVerkefniId}.svarad`]: increment(svaradBreyting),
+    // Telur hversu oft notandinn byrjar verkefni aftur (sést í stjórnborðinu).
+    fjoldiByrjadAftur: increment(1),
+    [`verkefnaStada.${valdVerkefniId}.byrjadAftur`]: increment(1),
+    [`verkefnaStada.${valdVerkefniId}.sidastByrjadAftur`]: serverTimestamp()
   };
   if (passBreyting) {
     breytingar.fjoldiPass = increment(passBreyting);

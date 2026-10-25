@@ -641,7 +641,9 @@ async function hladaNotendayfirlit() {
           svarad,
           pass,
           rett,
-          nakvaemni: metin ? Math.round((rett / metin) * 100) : 0
+          nakvaemni: metin ? Math.round((rett / metin) * 100) : 0,
+          byrjadAftur: b.byrjadAftur || 0,
+          sidastByrjadAftur: b.sidastByrjadAftur?.toMillis?.() ?? null
         };
       })
       .sort((a, b) => b.svarad - a.svarad);
@@ -654,6 +656,7 @@ async function hladaNotendayfirlit() {
       // skjáskotssniði. Vantar reitinn -> gengið út frá "MS" (sjá
       // scripts/flokka-notendur.js fyrir upprunalegu flokkunina).
       flokkur: notandi.flokkur || "MS",
+      fjoldiByrjadAftur: Object.values(notandi.verkefnaStada || {}).reduce((a, b) => a + (b.byrjadAftur || 0), 0),
       fjoldiSvarad,
       fjoldiPass,
       fjoldiRett,
@@ -772,7 +775,8 @@ function birtaNotendaRadir() {
       ["Rétt", r.fjoldiRett],
       ["Pass", r.fjoldiPass],
       ["Nákvæmni", `${r.nakvaemni}%`],
-      ["Skjátími", formatSkjatimi(r.skjatimi)]
+      ["Skjátími", formatSkjatimi(r.skjatimi)],
+      ["Byrjað aftur", r.fjoldiByrjadAftur ? `${r.fjoldiByrjadAftur} sinnum` : "aldrei"]
     ].forEach(([haus, gildi]) => {
       const kort = document.createElement("div");
       kort.className = "smatala-kort";
@@ -819,6 +823,10 @@ function birtaNotendaRadir() {
         nakvaemniSpan.style.marginTop = "6px";
         nakvaemniSpan.style.marginBottom = "0";
         nakvaemniSpan.innerHTML = `<span>🎯 ${v.nakvaemni}% nákvæmni</span>`;
+        if (v.byrjadAftur) {
+          const sidast = v.sidastByrjadAftur ? ` (síðast ${formatDagsStutt(v.sidastByrjadAftur)})` : "";
+          nakvaemniSpan.innerHTML += `<span>↺ byrjað aftur ${v.byrjadAftur} ${v.byrjadAftur === 1 ? "sinni" : "sinnum"}${sidast}</span>`;
+        }
 
         kort.appendChild(titillDiv);
         kort.appendChild(tolurDiv);
@@ -2549,6 +2557,7 @@ function reiknaNemanda(id, notandi, tilraunir, verkefnaTitlar) {
     id,
     nafn: notandi.nafn || notandi.email,
     svarad: notandi.fjoldiSvarad || 0,
+    byrjadAftur: Object.values(notandi.verkefnaStada || {}).reduce((a, b) => a + (b.byrjadAftur || 0), 0),
     pass: notandi.fjoldiPass || 0,
     nakvaemni: metin ? Math.round((fjoldiRett / metin) * 100) : 0,
     skjatimi,
@@ -2609,6 +2618,7 @@ function teiknaTolfraedi() {
       ["Svarað / pass", `${n.svarad} / ${n.pass}`],
       ["Nákvæmni", `${n.nakvaemni}%`],
       ["Skjátími", sekSemTexti(n.skjatimi)],
+      ["Byrjaði verkefni aftur", n.byrjadAftur ? `${n.byrjadAftur} sinnum` : "aldrei"],
       ["Svör á klst. á síðunni", n.svorAKlst ?? "—"],
       ["Virkir dagar", n.virkirDagar],
       ["Meðaltal svara á virkum degi", n.medalSvorADag],
