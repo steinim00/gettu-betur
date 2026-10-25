@@ -1588,6 +1588,37 @@ async function hladaSpurningayfirlit() {
   });
 }
 
+// Sækir attempts-undirsöfn nemendanna (ekki admin) einu sinni og geymir í 5
+// mínútur - notað til að sýna hversu margir hafa svarað hverri spurningu.
+let svarafjoldaCache = null;
+function saekjaSvarafjolda() {
+  if (svarafjoldaCache && Date.now() - svarafjoldaCache.timi < 5 * 60 * 1000) {
+    return svarafjoldaCache.loforð;
+  }
+  const loforð = (async () => {
+    const notendurSnap = await getDocs(collection(db, "users"));
+    const nemendur = notendurSnap.docs.filter((d) => d.data().role !== "admin");
+    const svaradPerSpurning = new Map();
+    const sleptPerSpurning = new Map();
+    const attemptSnaps = await Promise.all(
+      nemendur.map((n) => getDocs(collection(db, "users", n.id, "attempts")))
+    );
+    attemptSnaps.forEach((snap) => {
+      snap.forEach((a) => {
+        if (a.data().svar === SLEPPT_MERKI) {
+          sleptPerSpurning.set(a.id, (sleptPerSpurning.get(a.id) || 0) + 1);
+        } else {
+          svaradPerSpurning.set(a.id, (svaradPerSpurning.get(a.id) || 0) + 1);
+        }
+      });
+    });
+    return { svaradPerSpurning, sleptPerSpurning, fjoldiNemenda: nemendur.length };
+  })();
+  svarafjoldaCache = { timi: Date.now(), loforð };
+  loforð.catch(() => { svarafjoldaCache = null; });
+  return loforð;
+}
+
 function byggjaSpurningaflokkur(flokkur, rettSvor) {
   const { verkefniId, titill, skjol } = flokkur;
   const erOpinn = opnirSpurningaflokkar.has(verkefniId);
@@ -1600,7 +1631,9 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
 
   const titillSpan = document.createElement("span");
   titillSpan.className = "spurningaflokkur-titill";
-  titillSpan.textContent = `${titill} (${skjol.length})`;
+  const fjoldiOvirkra = skjol.filter((d) => !d.data().active).length;
+  titillSpan.textContent = `${titill} (${skjol.length}${fjoldiOvirkra ? `, ${fjoldiOvirkra} óvirkar` : ""})`;
+  titillSpan.style.cursor = "pointer";
   haus.appendChild(titillSpan);
 
   const hnappar = document.createElement("div");
@@ -1635,7 +1668,7 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
   const innihaldsTafla = document.createElement("table");
   innihaldsTafla.className = "spurningaflokkur-tafla";
   innihaldsTafla.hidden = !erOpinn;
-  innihaldsTafla.innerHTML = "<thead><tr><th>Texti</th><th>Rétt svar</th><th>Staða</th><th>Aðgerð</th></tr></thead>";
+  innihaldsTafla.innerHTML = "<thead><tr><th>Texti</th><th>Rétt svar</th><th>Svöruðu</th><th>Staða</th><th>Aðgerð</th></tr></thead>";
 
   const tbody = document.createElement("tbody");
   skjol.forEach((qDoc) => {
@@ -1699,6 +1732,10 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
     const svarTd = document.createElement("td");
     svarTd.textContent = (rettSvor.get(qDoc.id) || []).join(" / ") || "—";
 
+    const svoruduTd = document.createElement("td");
+    svoruduTd.textContent = "…";
+    svoruduTd.dataset.qid = qDoc.id;
+
     const stodaTd = document.createElement("td");
     stodaTd.textContent = spurning.active ? "Virk" : "Óvirk";
 
@@ -1710,6 +1747,7 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
 
     tr.appendChild(textTd);
     tr.appendChild(svarTd);
+    tr.appendChild(svoruduTd);
     tr.appendChild(stodaTd);
     tr.appendChild(adgerdTd);
     tbody.appendChild(tr);
@@ -1717,12 +1755,32 @@ function byggjaSpurningaflokkur(flokkur, rettSvor) {
   innihaldsTafla.appendChild(tbody);
   kort.appendChild(innihaldsTafla);
 
-  skodaBtn.addEventListener("click", () => {
+  async function fyllaSvorudu() {
+    try {
+      const { svaradPerSpurning, sleptPerSpurning, fjoldiNemenda } = await saekjaSvarafjolda();
+      tbody.querySelectorAll("td[data-qid]").forEach((td) => {
+        const svarad = svaradPerSpurning.get(td.dataset.qid) || 0;
+        const sleppt = sleptPerSpurning.get(td.dataset.qid) || 0;
+        td.textContent = `${svarad} af ${fjoldiNemenda}` + (sleppt ? ` (${sleppt} slepptu)` : "");
+      });
+    } catch (villa) {
+      console.error(villa);
+      tbody.querySelectorAll("td[data-qid]").forEach((td) => { td.textContent = "villa"; });
+    }
+  }
+  if (erOpinn) fyllaSvorudu();
+
+  function skiptaOpnun() {
     innihaldsTafla.hidden = !innihaldsTafla.hidden;
     skodaBtn.textContent = innihaldsTafla.hidden ? "Skoða" : "Loka";
     if (innihaldsTafla.hidden) opnirSpurningaflokkar.delete(verkefniId);
-    else opnirSpurningaflokkar.add(verkefniId);
-  });
+    else {
+      opnirSpurningaflokkar.add(verkefniId);
+      fyllaSvorudu();
+    }
+  }
+  skodaBtn.addEventListener("click", skiptaOpnun);
+  titillSpan.addEventListener("click", skiptaOpnun);
 
   return kort;
 }
