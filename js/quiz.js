@@ -97,6 +97,7 @@ window.addEventListener("beforeunload", (e) => {
 // nemandi myndi sjá það, án þess að kveikja á því fyrir alla.
 let erAdminNotandi = false;
 let valdVerkefniId = null;
+let valdVerkefniErHrada = false;
 let heilskjaGlaerur = [];
 let heilskjaIndex = 0;
 
@@ -126,6 +127,22 @@ function erProfVerkefni(verkefni) {
 // stjórnborðinu, valið eftir netfangi) - tómt/ekkert svæði þýðir að allir
 // innskráðir sjái verkefnið, sem er sjálfgefna hegðunin fyrir öll eldri
 // verkefni.
+// "Hraðaspurningar" (sama titilleit og viku-áherslan) fær líka spurningarnar úr
+// flokkum sem notandinn hefur sérstaklega fengið úthlutað (leyfdirNotendur) -
+// hann getur þá annað hvort æft sinn einbeitta flokk sér eða tekið spurningarnar
+// með í hraðaspurningunum.
+function erHradaVerkefni(verkefni) {
+  return (verkefni.title || "").toLowerCase().includes("hraðaspurningar");
+}
+
+function uthlutadVerkefniFyrirNotanda(verkefniDocs) {
+  if (!notandi || erAdminNotandi) return [];
+  return verkefniDocs.filter((d) => {
+    const v = d.data();
+    return v.active && !erHradaVerkefni(v) && (v.leyfdirNotendur || []).includes(notandi.uid);
+  });
+}
+
 function synilegtNotanda(verkefni) {
   // Admin sér öll verkefni (líka þau sem eru takmörkuð við ákveðna nemendur) -
   // annars vantar flokka í "Sjá eins og nemandi".
@@ -1007,6 +1024,7 @@ function stillaFormTengil(verkefni) {
 function opnaSpurningarBeint(verkefniId, verkefni, hoppaIOsvaradar = false) {
   stillaFormTengil(verkefni);
   valdVerkefniId = verkefniId;
+  valdVerkefniErHrada = erHradaVerkefni(verkefni);
   spurningaBunkastaerd = spurningaBunkastaerdFyrir(verkefni);
   spurningaTitill.textContent = verkefni.title;
   synaSvaedi("spurningar");
@@ -1156,7 +1174,11 @@ async function hladaVerkefnaListi() {
   snap.forEach((vDoc) => {
     const verkefni = vDoc.data();
     if (!synilegtNotanda(verkefni)) return;
-    const spurningaIds = spurningaIdEftirVerkefni.get(vDoc.id) || [];
+    let spurningaIds = spurningaIdEftirVerkefni.get(vDoc.id) || [];
+    if (erHradaVerkefni(verkefni)) {
+      const aukaIds = uthlutadVerkefniFyrirNotanda(snap.docs).flatMap((d) => spurningaIdEftirVerkefni.get(d.id) || []);
+      spurningaIds = spurningaIds.concat(aukaIds);
+    }
 
     if (erProfVerkefni(verkefni)) {
       hradaspurningarListi.appendChild(byggjaHradaspurningarKort(vDoc, verkefni, spurningaIds, svaradIds));
@@ -1178,6 +1200,7 @@ let pptxIframe = null;
 function opnaVerkefni(verkefniId, verkefni) {
   stillaFormTengil(verkefni);
   valdVerkefniId = verkefniId;
+  valdVerkefniErHrada = erHradaVerkefni(verkefni);
   heilskjaGlaerur = verkefni.slides || [];
   spurningaBunkastaerd = spurningaBunkastaerdFyrir(verkefni);
   pptxIframe = null;
@@ -1333,6 +1356,22 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
         )
   );
 
+  let spurningaDocs = spurningarSnap.docs;
+  if (valdVerkefniErHrada && notandi && !erAdminNotandi) {
+    const verkefnaSnap = await getDocs(query(collection(db, "verkefni"), where("active", "==", true)));
+    const aukaVerkefniIds = uthlutadVerkefniFyrirNotanda(verkefnaSnap.docs).map((d) => d.id);
+    for (let i = 0; i < aukaVerkefniIds.length; i += 30) {
+      const aukaSnap = await getDocs(
+        query(
+          collection(db, "questions"),
+          where("verkefniId", "in", aukaVerkefniIds.slice(i, i + 30)),
+          where("active", "==", true)
+        )
+      );
+      spurningaDocs = spurningaDocs.concat(aukaSnap.docs);
+    }
+  }
+
   svaradIdSett = notandi
     ? new Set((await getDocs(collection(db, "users", notandi.uid, "attempts"))).docs.map((d) => d.id))
     : new Set();
@@ -1341,19 +1380,20 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
   // yfirlitinu (valdVerkefniId er þá null) og ekki fyrir gesti.
   byrjaAfturBtn.hidden = !notandi || valdVerkefniId === null;
 
-  if (spurningarSnap.empty) {
+  if (spurningaDocs.length === 0) {
     allarSpurningaskjol = [];
     spurningaListi.innerHTML = "<p>Engar virkar spurningar í þessu verkefni eins og er.</p>";
     return;
   }
 
-  allarSpurningaskjol = spurningarSnap.docs.slice().sort((a, b) => {
+  allarSpurningaskjol = spurningaDocs.slice().sort((a, b) => {
     const ta = a.data().createdAt?.toMillis?.() ?? 0;
     const tb = b.data().createdAt?.toMillis?.() ?? 0;
     return ta - tb;
   });
 
   spurningaSida = 0;
+  if (valdVerkefniErHrada) hladaMinumStodum();
 
   // "Staða eftir verkefnum" opnar verkefnið beint á fyrstu spurningunni sem
   // notandinn á eftir að svara - síðan sem hún er á og skrunað að henni.
@@ -1469,6 +1509,14 @@ async function keyraByrjaVerkefniAftur() {
   const tilEydingar = attemptsSnap.docs.filter((a) => spurningaIdSett.has(a.id));
   if (tilEydingar.length === 0) return;
 
+  // Svör teljast á verkefnið sem spurningin tilheyrir (í Hraðaspurningum geta
+  // verið spurningar úr úthlutuðum flokkum), svo dregið er frá þar.
+  const verkefniEftirSpurningu = new Map(allarSpurningaskjol.map((d) => [d.id, d.data().verkefniId]));
+  const stadaBreytingar = new Map();
+  const breytingFyrir = (vid) => {
+    if (!stadaBreytingar.has(vid)) stadaBreytingar.set(vid, { svarad: 0, pass: 0, rett: 0 });
+    return stadaBreytingar.get(vid);
+  };
   let svaradBreyting = 0;
   let passBreyting = 0;
   let rettBreyting = 0;
@@ -1476,33 +1524,37 @@ async function keyraByrjaVerkefniAftur() {
   const batch = writeBatch(db);
   for (const attemptDoc of tilEydingar) {
     const svar = attemptDoc.data().svar;
+    const stada = breytingFyrir(verkefniEftirSpurningu.get(attemptDoc.id) || valdVerkefniId);
     svaradBreyting--;
+    stada.svarad--;
     if (svar === SLEPPT_MERKI) {
       passBreyting--;
+      stada.pass--;
     } else {
       const svarSnap = await getDoc(doc(db, "answers", attemptDoc.id));
       const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
-      if (erSvarRett(svar, rettSvor)) rettBreyting--;
+      if (erSvarRett(svar, rettSvor)) {
+        rettBreyting--;
+        stada.rett--;
+      }
     }
     batch.delete(attemptDoc.ref);
   }
 
   const breytingar = {
     fjoldiSvarad: increment(svaradBreyting),
-    [`verkefnaStada.${valdVerkefniId}.svarad`]: increment(svaradBreyting),
     // Telur hversu oft notandinn byrjar verkefni aftur (sést í stjórnborðinu).
     fjoldiByrjadAftur: increment(1),
     [`verkefnaStada.${valdVerkefniId}.byrjadAftur`]: increment(1),
     [`verkefnaStada.${valdVerkefniId}.sidastByrjadAftur`]: serverTimestamp()
   };
-  if (passBreyting) {
-    breytingar.fjoldiPass = increment(passBreyting);
-    breytingar[`verkefnaStada.${valdVerkefniId}.pass`] = increment(passBreyting);
-  }
-  if (rettBreyting) {
-    breytingar.fjoldiRett = increment(rettBreyting);
-    breytingar[`verkefnaStada.${valdVerkefniId}.rett`] = increment(rettBreyting);
-  }
+  stadaBreytingar.forEach((st, vid) => {
+    if (st.svarad) breytingar[`verkefnaStada.${vid}.svarad`] = increment(st.svarad);
+    if (st.pass) breytingar[`verkefnaStada.${vid}.pass`] = increment(st.pass);
+    if (st.rett) breytingar[`verkefnaStada.${vid}.rett`] = increment(st.rett);
+  });
+  if (passBreyting) breytingar.fjoldiPass = increment(passBreyting);
+  if (rettBreyting) breytingar.fjoldiRett = increment(rettBreyting);
   batch.update(doc(db, "users", notandi.uid), breytingar);
 
   await batch.commit();
@@ -1765,7 +1817,16 @@ async function hladaMinumStodum() {
   // Les beint af users/{uid}.verkefnaStada í stað þess að endursækja spurningar
   // + attempts + hvert answers-skjal í hvert sinn sem spurningu er svarað.
   const notandiSnap = await getDoc(doc(db, "users", notandi.uid));
-  const b = notandiSnap.data()?.verkefnaStada?.[valdVerkefniId] || { svarad: 0, pass: 0, rett: 0 };
+  const stodur = notandiSnap.data()?.verkefnaStada || {};
+  // Í Hraðaspurningum teljast líka spurningar úr úthlutuðum flokkum.
+  const verkefniIds = new Set([valdVerkefniId]);
+  if (valdVerkefniErHrada) allarSpurningaskjol.forEach((d) => verkefniIds.add(d.data().verkefniId));
+  const b = { svarad: 0, pass: 0, rett: 0 };
+  verkefniIds.forEach((vid) => {
+    b.svarad += stodur[vid]?.svarad || 0;
+    b.pass += stodur[vid]?.pass || 0;
+    b.rett += stodur[vid]?.rett || 0;
+  });
   const fjoldiSvarad = b.svarad || 0;
   const fjoldiSleppt = b.pass || 0;
   const fjoldiRett = b.rett || 0;
