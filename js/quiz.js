@@ -20,6 +20,10 @@ const notandaNafn = document.getElementById("notandaNafn");
 const utskraBtn = document.getElementById("utskraBtn");
 
 const minStadaBtn = document.getElementById("minStadaBtn");
+const hverErBtn = document.getElementById("hverErBtn");
+const hverErSvaedi = document.getElementById("hverErSvaedi");
+const hverErFlokkar = document.getElementById("hverErFlokkar");
+const tilbakaFraHverEr = document.getElementById("tilbakaFraHverEr");
 const minStadaSvaedi = document.getElementById("minStadaSvaedi");
 const tilbakaFraMinniStodu = document.getElementById("tilbakaFraMinniStodu");
 const minarStodurSvarad = document.getElementById("minarStodurSvarad");
@@ -98,6 +102,7 @@ window.addEventListener("beforeunload", (e) => {
 let erAdminNotandi = false;
 let valdVerkefniId = null;
 let valdVerkefniErHrada = false;
+let valdHverErFlokkur = null;
 let heilskjaGlaerur = [];
 let heilskjaIndex = 0;
 
@@ -629,6 +634,7 @@ function synaSvaedi(svaedi) {
   lokaSkrunarlotu();
   minStadaSvaedi.hidden = svaedi !== "minstada";
   glosurSvaedi.hidden = svaedi !== "glosur";
+  hverErSvaedi.hidden = svaedi !== "hverEr";
   verkefnaSvaedi.hidden = svaedi !== "verkefni";
   glaeruSvaedi.hidden = svaedi !== "glaerur";
   spurningaSvaedi.hidden = svaedi !== "spurningar";
@@ -648,9 +654,99 @@ function synaSvaedi(svaedi) {
 }
 
 tilbakaFraGlaerum.addEventListener("click", () => synaSvaedi("verkefni"));
-tilbakaFraSpurningum.addEventListener("click", () => synaSvaedi("verkefni"));
+tilbakaFraSpurningum.addEventListener("click", () => {
+  if (valdHverErFlokkur) {
+    synaSvaedi("hverEr");
+    hladaHverEr();
+  } else {
+    synaSvaedi("verkefni");
+  }
+});
+tilbakaFraHverEr.addEventListener("click", () => synaSvaedi("verkefni"));
+hverErBtn.addEventListener("click", () => {
+  synaSvaedi("hverEr");
+  hladaHverEr();
+});
 tilbakaFraMinniStodu.addEventListener("click", () => synaSvaedi("verkefni"));
 tilbakaFraGlosum.addEventListener("click", () => synaSvaedi("verkefni"));
+
+// "Hver er" flipinn: spurningarnar (með mynd) eru í verkefninu "Hver er" sem er
+// falið fyrir nemendum á verkefnalistanum (active: false) - hér eru þær
+// flokkaðar eftir spurningatexta og spilaðar flokk fyrir flokk.
+const HVER_ER_FLOKKAR = [
+  { titill: "Rithöfundar", takn: "📚", textar: ["Hver er þessi rithöfundur?"] },
+  { titill: "Íslenskir leikarar", takn: "🎭", textar: ["Hver er þessi íslenski leikari?"] },
+  { titill: "Tennisleikarar", takn: "🎾", textar: ["Hver er þessi tennisleikari?"] },
+  { titill: "Kylfingar", takn: "⛳", textar: ["Hver er þessi kylfingur?"] },
+  { titill: "Knattspyrna", takn: "⚽", textar: ["Hver er þessi knattspyrnumaður?", "Hver er þessi knattspyrnukona?"] },
+  { titill: "Formúla 1", takn: "🏎️", textar: ["Hver er þessi ökuþór?"] },
+  { titill: "Kennileiti", takn: "🗺️", textar: ["Hvaða kennileiti er þetta?", "Í hvaða landi er þetta kennileiti?"] },
+  { titill: "Listaverk", takn: "🖼️", textar: ["Hvað heitir þetta listaverk?", "Hver gerði þetta listaverk?"] }
+];
+const HVER_ER_TEXTAR = new Set(HVER_ER_FLOKKAR.flatMap((f) => f.textar));
+
+function erHverErSpurning(spurning) {
+  return !!spurning?.image && HVER_ER_TEXTAR.has(spurning.text);
+}
+
+let hverErVerkefniIdCache = null;
+async function saekjaHverErVerkefniId() {
+  if (hverErVerkefniIdCache) return hverErVerkefniIdCache;
+  const snap = await getDocs(query(collection(db, "verkefni"), where("title", "==", "Hver er")));
+  hverErVerkefniIdCache = snap.empty ? null : snap.docs[0].id;
+  return hverErVerkefniIdCache;
+}
+
+async function hladaHverEr() {
+  hverErFlokkar.innerHTML = skeletonKort(4, 1);
+  const verkefniId = await saekjaHverErVerkefniId();
+  if (!verkefniId) {
+    hverErFlokkar.innerHTML = "<p>Hver er er ekki tilbúið ennþá.</p>";
+    return;
+  }
+  const [spurningarSnap, svaradIds] = await Promise.all([
+    getDocs(query(collection(db, "questions"), where("verkefniId", "==", verkefniId), where("active", "==", true))),
+    notandi
+      ? getDocs(collection(db, "users", notandi.uid, "attempts")).then((s) => new Set(s.docs.map((d) => d.id)))
+      : Promise.resolve(new Set())
+  ]);
+
+  hverErFlokkar.innerHTML = "";
+  HVER_ER_FLOKKAR.forEach((flokkur) => {
+    const ids = spurningarSnap.docs.filter((d) => flokkur.textar.includes(d.data().text)).map((d) => d.id);
+    if (ids.length === 0) return;
+
+    const kort = document.createElement("button");
+    kort.type = "button";
+    kort.className = "hver-er-flokkur";
+
+    const takn = document.createElement("span");
+    takn.className = "hver-er-takn";
+    takn.textContent = flokkur.takn;
+    const titill = document.createElement("h3");
+    titill.textContent = flokkur.titill;
+    const lysing = document.createElement("p");
+    lysing.className = "verkefni-lysing";
+    lysing.textContent = `${ids.length} myndir`;
+    kort.append(takn, titill, lysing);
+    if (notandi) kort.appendChild(byggjaFramvindukort(ids, svaradIds));
+
+    kort.addEventListener("click", () => opnaHverErFlokk(flokkur, verkefniId));
+    hverErFlokkar.appendChild(kort);
+  });
+}
+
+function opnaHverErFlokk(flokkur, verkefniId) {
+  stillaFormTengil(null);
+  valdVerkefniId = verkefniId;
+  valdVerkefniErHrada = false;
+  valdHverErFlokkur = flokkur;
+  spurningaBunkastaerd = 10;
+  spurningaTitill.textContent = `Hver er? — ${flokkur.titill}`;
+  synaSvaedi("spurningar");
+  hladaSpurningum();
+  hladaMinumStodum();
+}
 
 minStadaBtn.addEventListener("click", () => {
   synaSvaedi("minstada");
@@ -888,6 +984,7 @@ rangarSpurningarBtn.addEventListener("click", () => {
 async function hladaRangarSpurningar() {
   stillaFormTengil(null);
   valdVerkefniId = null;
+  valdHverErFlokkur = null;
   spurningaTitill.textContent = "Rangt svaraðar spurningar";
   spurningaListi.innerHTML = skeletonKort(5, 1);
   siduflettingarEfri.hidden = true;
@@ -1025,6 +1122,7 @@ function opnaSpurningarBeint(verkefniId, verkefni, hoppaIOsvaradar = false) {
   stillaFormTengil(verkefni);
   valdVerkefniId = verkefniId;
   valdVerkefniErHrada = erHradaVerkefni(verkefni);
+  valdHverErFlokkur = null;
   spurningaBunkastaerd = spurningaBunkastaerdFyrir(verkefni);
   spurningaTitill.textContent = verkefni.title;
   synaSvaedi("spurningar");
@@ -1201,6 +1299,7 @@ function opnaVerkefni(verkefniId, verkefni) {
   stillaFormTengil(verkefni);
   valdVerkefniId = verkefniId;
   valdVerkefniErHrada = erHradaVerkefni(verkefni);
+  valdHverErFlokkur = null;
   heilskjaGlaerur = verkefni.slides || [];
   spurningaBunkastaerd = spurningaBunkastaerdFyrir(verkefni);
   pptxIframe = null;
@@ -1357,6 +1456,9 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
   );
 
   let spurningaDocs = spurningarSnap.docs;
+  if (valdHverErFlokkur) {
+    spurningaDocs = spurningaDocs.filter((d) => valdHverErFlokkur.textar.includes(d.data().text));
+  }
   if (valdVerkefniErHrada && notandi && !erAdminNotandi) {
     const verkefnaSnap = await getDocs(query(collection(db, "verkefni"), where("active", "==", true)));
     const aukaVerkefniIds = uthlutadVerkefniFyrirNotanda(verkefnaSnap.docs).map((d) => d.id);
@@ -1394,6 +1496,15 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
 
   spurningaSida = 0;
   if (valdVerkefniErHrada) hladaMinumStodum();
+
+  // Hver er: óséðar myndir fyrst, í tilviljunarkenndri röð.
+  if (valdHverErFlokkur) {
+    for (let i = allarSpurningaskjol.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allarSpurningaskjol[i], allarSpurningaskjol[j]] = [allarSpurningaskjol[j], allarSpurningaskjol[i]];
+    }
+    allarSpurningaskjol.sort((a, b) => svaradIdSett.has(a.id) - svaradIdSett.has(b.id));
+  }
 
   // "Staða eftir verkefnum" opnar verkefnið beint á fyrstu spurningunni sem
   // notandinn á eftir að svara - síðan sem hún er á og skrunað að henni.
@@ -1573,6 +1684,10 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
   const titill = document.createElement("h3");
   titill.textContent = spurning.text;
   korti.appendChild(titill);
+
+  // "Hver er": myndin ER spurningin, svo hún er sýnd strax (annars birtist
+  // mynd bara eftir svar, sjá synaNidurstodu).
+  if (erHverErSpurning(spurning)) birtaSpurningamynd(korti, spurning);
 
   if (!notandi) {
     const abending = document.createElement("p");

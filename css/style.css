@@ -94,6 +94,10 @@ main h2 {
   align-items: start;
 }
 
+.verkefna-yfirlit[hidden] {
+  display: none;
+}
+
 @media (min-width: 780px) {
   .verkefna-yfirlit {
     grid-template-columns: 1fr 280px;
@@ -1721,4 +1725,41 @@ th.radanlegt:hover {
   outline: 3px solid var(--litur-lime);
   outline-offset: 3px;
   transition: outline-color 0.4s ease;
+}
+
+/* "Hver er" flipinn - flokkaval */
+.hver-er-net {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.hver-er-flokkur {
+  text-align: left;
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 16px;
+  box-shadow: var(--skuggi);
+  padding: 18px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.hver-er-flokkur:hover {
+  border-color: var(--litur-texti);
+}
+
+.hver-er-takn {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.hver-er-flokkur h3 {
+  margin: 0 0 4px;
+}
+
+.hver-er-flokkur .verkefni-lysing {
+  margin: 0 0 8px;
 }
