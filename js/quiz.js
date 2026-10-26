@@ -673,13 +673,15 @@ tilbakaFraGlosum.addEventListener("click", () => synaSvaedi("verkefni"));
 // "Hver er" flipinn: spurningarnar (með mynd) eru í verkefninu "Hver er" sem er
 // falið fyrir nemendum á verkefnalistanum (active: false) - hér eru þær
 // flokkaðar eftir spurningatexta og spilaðar flokk fyrir flokk.
+// Aðeins kennileiti og listaverk eru birt í flipanum núna - hinir flokkarnir
+// (fólk) eru til í gögnunum og birtast aftur ef "falid" er tekið af.
 const HVER_ER_FLOKKAR = [
-  { titill: "Rithöfundar", takn: "📚", textar: ["Hver er þessi rithöfundur?"] },
-  { titill: "Íslenskir leikarar", takn: "🎭", textar: ["Hver er þessi íslenski leikari?"] },
-  { titill: "Tennisleikarar", takn: "🎾", textar: ["Hver er þessi tennisleikari?"] },
-  { titill: "Kylfingar", takn: "⛳", textar: ["Hver er þessi kylfingur?"] },
-  { titill: "Knattspyrna", takn: "⚽", textar: ["Hver er þessi knattspyrnumaður?", "Hver er þessi knattspyrnukona?"] },
-  { titill: "Formúla 1", takn: "🏎️", textar: ["Hver er þessi ökuþór?"] },
+  { titill: "Rithöfundar", takn: "📚", textar: ["Hver er þessi rithöfundur?"], falid: true },
+  { titill: "Íslenskir leikarar", takn: "🎭", textar: ["Hver er þessi íslenski leikari?"], falid: true },
+  { titill: "Tennisleikarar", takn: "🎾", textar: ["Hver er þessi tennisleikari?"], falid: true },
+  { titill: "Kylfingar", takn: "⛳", textar: ["Hver er þessi kylfingur?"], falid: true },
+  { titill: "Knattspyrna", takn: "⚽", textar: ["Hver er þessi knattspyrnumaður?", "Hver er þessi knattspyrnukona?"], falid: true },
+  { titill: "Formúla 1", takn: "🏎️", textar: ["Hver er þessi ökuþór?"], falid: true },
   { titill: "Kennileiti", takn: "🗺️", textar: ["Hvaða kennileiti er þetta?", "Í hvaða landi er þetta kennileiti?"] },
   { titill: "Listaverk", takn: "🖼️", textar: ["Hvað heitir þetta listaverk?", "Hver gerði þetta listaverk?"] }
 ];
@@ -712,7 +714,7 @@ async function hladaHverEr() {
   ]);
 
   hverErFlokkar.innerHTML = "";
-  HVER_ER_FLOKKAR.forEach((flokkur) => {
+  HVER_ER_FLOKKAR.filter((f) => !f.falid).forEach((flokkur) => {
     const ids = spurningarSnap.docs.filter((d) => flokkur.textar.includes(d.data().text)).map((d) => d.id);
     if (ids.length === 0) return;
 
