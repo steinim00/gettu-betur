@@ -562,6 +562,8 @@ setInterval(vistaSkjatima, 60000);
 vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
   notandi = user;
   erAdminNotandi = gogn?.role === "admin";
+  // "Hver er" flipinn sést aðeins hjá admin (ekki í "Sjá eins og nemandi").
+  hverErBtn.hidden = !erKennileitaYfirferd();
 
   if (user) {
     notandaNafn.textContent = gogn.nafn || user.email;
