@@ -12,6 +12,7 @@ import {
   updateDoc,
   deleteDoc,
   writeBatch,
+  deleteField,
   increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
@@ -682,10 +683,34 @@ const HVER_ER_FLOKKAR = [
   { titill: "Kylfingar", takn: "⛳", textar: ["Hver er þessi kylfingur?"], falid: true },
   { titill: "Knattspyrna", takn: "⚽", textar: ["Hver er þessi knattspyrnumaður?", "Hver er þessi knattspyrnukona?"], falid: true },
   { titill: "Formúla 1", takn: "🏎️", textar: ["Hver er þessi ökuþór?"], falid: true },
-  { titill: "Kennileiti", takn: "🗺️", textar: ["Hvaða kennileiti er þetta?", "Í hvaða landi er þetta kennileiti?"] },
+  { titill: "Kennileiti", takn: "🗺️", textar: ["Hvaða kennileiti er þetta?"], adminEingongu: true },
   { titill: "Listaverk", takn: "🖼️", textar: ["Hvað heitir þetta listaverk?", "Hver gerði þetta listaverk?"] }
 ];
-const HVER_ER_TEXTAR = new Set(HVER_ER_FLOKKAR.flatMap((f) => f.textar));
+// "Í hvaða landi er þetta kennileiti?" er ekki lengur spilað í flipanum en
+// myndin á samt að sjást strax ef spurningin kemur fyrir annars staðar.
+const HVER_ER_TEXTAR = new Set([
+  ...HVER_ER_FLOKKAR.flatMap((f) => f.textar),
+  "Í hvaða landi er þetta kennileiti?"
+]);
+
+// Kennileitin eru enn í yfirferð hjá admin - sést aðeins þar (ekki í
+// "Sjá eins og nemandi"). Merkið "þarf nýja mynd" gildir aðeins til miðnættis
+// (UTC = íslenskur tími), sjá erNyMyndMerkt.
+function erKennileitaYfirferd() {
+  const erForskodun = new URLSearchParams(window.location.search).get("forskodun") === "1";
+  return erAdminNotandi && !erForskodun;
+}
+
+function upphafDagsMs() {
+  const nu = new Date();
+  return Date.UTC(nu.getUTCFullYear(), nu.getUTCMonth(), nu.getUTCDate());
+}
+
+function erNyMyndMerkt(spurning) {
+  const t = spurning?.nyMyndMerktAt;
+  const ms = typeof t?.toMillis === "function" ? t.toMillis() : typeof t === "number" ? t : 0;
+  return !!spurning?.nyMyndMerkt && ms >= upphafDagsMs();
+}
 
 function erHverErSpurning(spurning) {
   return !!spurning?.image && HVER_ER_TEXTAR.has(spurning.text);
@@ -714,7 +739,7 @@ async function hladaHverEr() {
   ]);
 
   hverErFlokkar.innerHTML = "";
-  HVER_ER_FLOKKAR.filter((f) => !f.falid).forEach((flokkur) => {
+  HVER_ER_FLOKKAR.filter((f) => !f.falid && (!f.adminEingongu || erKennileitaYfirferd())).forEach((flokkur) => {
     const ids = spurningarSnap.docs.filter((d) => flokkur.textar.includes(d.data().text)).map((d) => d.id);
     if (ids.length === 0) return;
 
@@ -736,6 +761,67 @@ async function hladaHverEr() {
     kort.addEventListener("click", () => opnaHverErFlokk(flokkur, verkefniId));
     hverErFlokkar.appendChild(kort);
   });
+}
+
+// Fjarlægir merki sem runnu út á miðnætti (gildið er hvort eð er hunsað í
+// erNyMyndMerkt - þetta heldur bara gagnagrunninum hreinum).
+async function hreinsaUtrunninMerki(skjol) {
+  const utrunnin = skjol.filter((d) => d.data().nyMyndMerkt && !erNyMyndMerkt(d.data()));
+  for (let i = 0; i < utrunnin.length; i += 400) {
+    const batch = writeBatch(db);
+    utrunnin.slice(i, i + 400).forEach((d) => batch.update(d.ref, { nyMyndMerkt: deleteField(), nyMyndMerktAt: deleteField() }));
+    await batch.commit().catch((villa) => console.error(villa));
+  }
+}
+
+// Yfirferðarhnappur á kennileitaspurningu: merkir hvort kennileitið þarf nýja
+// mynd. Sýnir líka rétta svarið svo hægt sé að meta myndina.
+const nyMyndStada = new Map(); // questionId -> merkt? (til að halda stöðunni milli síðna)
+function byggjaKennileitaYfirferd(korti, questionId, spurning) {
+  const stjorn = document.createElement("div");
+  stjorn.className = "kennileiti-yfirferd";
+
+  const svarTexti = document.createElement("span");
+  svarTexti.className = "kennileiti-svar";
+  svarTexti.textContent = "Svar: …";
+  getDoc(doc(db, "answers", questionId))
+    .then((snap) => {
+      svarTexti.textContent = `Svar: ${(snap.data()?.correctAnswers || []).join(" / ") || "—"}`;
+    })
+    .catch(() => {
+      svarTexti.textContent = "";
+    });
+
+  const merkiBtn = document.createElement("button");
+  merkiBtn.type = "button";
+  merkiBtn.className = "smabtn";
+  const uppfaeraTakka = () => {
+    const merkt = nyMyndStada.has(questionId) ? nyMyndStada.get(questionId) : erNyMyndMerkt(spurning);
+    merkiBtn.textContent = merkt ? "🔄 Þarf nýja mynd" : "🔄 Merkja: ný mynd";
+    merkiBtn.classList.toggle("merkt", merkt);
+  };
+  uppfaeraTakka();
+  merkiBtn.addEventListener("click", async () => {
+    const nyttGildi = !(nyMyndStada.has(questionId) ? nyMyndStada.get(questionId) : erNyMyndMerkt(spurning));
+    merkiBtn.disabled = true;
+    try {
+      await updateDoc(
+        doc(db, "questions", questionId),
+        nyttGildi
+          ? { nyMyndMerkt: true, nyMyndMerktAt: serverTimestamp() }
+          : { nyMyndMerkt: deleteField(), nyMyndMerktAt: deleteField() }
+      );
+      nyMyndStada.set(questionId, nyttGildi);
+    } catch (villa) {
+      console.error(villa);
+      alert("Tókst ekki að vista merkið: " + villa.message);
+    }
+    merkiBtn.disabled = false;
+    uppfaeraTakka();
+  });
+
+  stjorn.append(svarTexti, merkiBtn);
+  korti.appendChild(stjorn);
 }
 
 function opnaHverErFlokk(flokkur, verkefniId) {
@@ -1460,6 +1546,7 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
   let spurningaDocs = spurningarSnap.docs;
   if (valdHverErFlokkur) {
     spurningaDocs = spurningaDocs.filter((d) => valdHverErFlokkur.textar.includes(d.data().text));
+    if (valdHverErFlokkur.adminEingongu && erKennileitaYfirferd()) hreinsaUtrunninMerki(spurningaDocs);
   }
   if (valdVerkefniErHrada && notandi && !erAdminNotandi) {
     const verkefnaSnap = await getDocs(query(collection(db, "verkefni"), where("active", "==", true)));
@@ -1690,6 +1777,7 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
   // "Hver er": myndin ER spurningin, svo hún er sýnd strax (annars birtist
   // mynd bara eftir svar, sjá synaNidurstodu).
   if (erHverErSpurning(spurning)) birtaSpurningamynd(korti, spurning);
+  if (valdHverErFlokkur?.adminEingongu && erKennileitaYfirferd()) byggjaKennileitaYfirferd(korti, questionId, spurning);
 
   if (!notandi) {
     const abending = document.createElement("p");

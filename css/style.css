@@ -1763,3 +1763,22 @@ th.radanlegt:hover {
 .hver-er-flokkur .verkefni-lysing {
   margin: 0 0 8px;
 }
+
+/* Kennileitayfirferð (admin) */
+.kennileiti-yfirferd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.kennileiti-svar {
+  font-weight: 700;
+}
+
+.kennileiti-yfirferd .smabtn.merkt {
+  background: var(--litur-texti);
+  color: var(--litur-korti);
+  border-color: var(--litur-texti);
+}
