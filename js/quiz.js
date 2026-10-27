@@ -686,13 +686,14 @@ const HVER_ER_FLOKKAR = [
   { titill: "Knattspyrna", takn: "⚽", textar: ["Hver er þessi knattspyrnumaður?", "Hver er þessi knattspyrnukona?"], falid: true },
   { titill: "Formúla 1", takn: "🏎️", textar: ["Hver er þessi ökuþór?"], falid: true },
   { titill: "Kennileiti", takn: "🗺️", textar: ["Hvaða kennileiti er þetta?"], adminEingongu: true },
-  { titill: "Listaverk", takn: "🖼️", textar: ["Hvað heitir þetta listaverk?", "Hver gerði þetta listaverk?"] }
+  { titill: "Listaverk", takn: "🖼️", textar: ["Hver gerði þetta listaverk?"] }
 ];
 // "Í hvaða landi er þetta kennileiti?" er ekki lengur spilað í flipanum en
 // myndin á samt að sjást strax ef spurningin kemur fyrir annars staðar.
 const HVER_ER_TEXTAR = new Set([
   ...HVER_ER_FLOKKAR.flatMap((f) => f.textar),
-  "Í hvaða landi er þetta kennileiti?"
+  "Í hvaða landi er þetta kennileiti?",
+  "Hvað heitir þetta listaverk?"
 ]);
 
 // Kennileitin eru enn í yfirferð hjá admin - sést aðeins þar (ekki í
