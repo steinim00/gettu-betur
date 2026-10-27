@@ -1782,3 +1782,13 @@ th.radanlegt:hover {
   color: var(--litur-korti);
   border-color: var(--litur-texti);
 }
+
+.kennileiti-takkar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.spurning-kort.ovirkt-kort {
+  opacity: 0.55;
+}

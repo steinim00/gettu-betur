@@ -779,6 +779,7 @@ async function hreinsaUtrunninMerki(skjol) {
 
 // Yfirferðarhnappur á kennileitaspurningu: merkir hvort kennileitið þarf nýja
 // mynd. Sýnir líka rétta svarið svo hægt sé að meta myndina.
+const virkStada = new Map(); // questionId -> virk? (til að halda stöðunni milli síðna)
 const nyMyndStada = new Map(); // questionId -> merkt? (til að halda stöðunni milli síðna)
 function byggjaKennileitaYfirferd(korti, questionId, spurning) {
   const stjorn = document.createElement("div");
@@ -823,7 +824,34 @@ function byggjaKennileitaYfirferd(korti, questionId, spurning) {
     uppfaeraTakka();
   });
 
-  stjorn.append(svarTexti, merkiBtn);
+  // Slekkur/kveikir á spurningunni sjálfri (active) - t.d. ef kennileitið á ekki heima hér.
+  const virkBtn = document.createElement("button");
+  virkBtn.type = "button";
+  virkBtn.className = "smabtn";
+  const erVirk = () => (virkStada.has(questionId) ? virkStada.get(questionId) : spurning.active !== false);
+  const uppfaeraVirkBtn = () => {
+    virkBtn.textContent = erVirk() ? "⛔ Gera óvirkt" : "✅ Gera virkt";
+    korti.classList.toggle("ovirkt-kort", !erVirk());
+  };
+  uppfaeraVirkBtn();
+  virkBtn.addEventListener("click", async () => {
+    const nyttGildi = !erVirk();
+    virkBtn.disabled = true;
+    try {
+      await updateDoc(doc(db, "questions", questionId), { active: nyttGildi });
+      virkStada.set(questionId, nyttGildi);
+    } catch (villa) {
+      console.error(villa);
+      alert("Tókst ekki að breyta stöðunni: " + villa.message);
+    }
+    virkBtn.disabled = false;
+    uppfaeraVirkBtn();
+  });
+
+  const takkar = document.createElement("div");
+  takkar.className = "kennileiti-takkar";
+  takkar.append(merkiBtn, virkBtn);
+  stjorn.append(svarTexti, takkar);
   korti.appendChild(stjorn);
 }
 
