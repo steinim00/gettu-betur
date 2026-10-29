@@ -58,7 +58,9 @@ export const AMINNINGAR = [
 ];
 
 // Undirskrift á áminningapóstum.
-const UNDIRSKRIFT = "Steini aka the goat coach";
+const UNDIRSKRIFT = "Steini - the goat of coaches";
+// Geitin er skrifuð sem HTML-tákn (&#128016;) því emoji brotna í sumum sendingarleiðum.
+const UNDIRSKRIFT_HTML_EMOJI = " &#128016;";
 
 const YFIRSKRIFT_LYKILL = "gettuBetur_aminningarYfirskrift";
 const SKRIPTU_LYKLAR = { url: "gettuBetur_appsScriptUrl", lykilord: "gettuBetur_appsScriptLykilord" };
@@ -218,7 +220,7 @@ export function byggjaPostHtml(aminning, ctx) {
 <h1 style="font-size:24px;margin:0 0 12px;">${htmlHreinsa(fyrirsogn)}</h1>
 <p style="font-size:16px;line-height:1.5;margin:0 0 22px;">${htmlHreinsa(texti)}</p>
 <a href="${SIDU_SLOD}leikur.html" style="display:inline-block;background:#161616;color:#d7ff3e;text-decoration:none;font-weight:bold;padding:13px 26px;border-radius:999px;">Halda áfram í Gettu Betur →</a>
-<p style="font-size:14px;line-height:1.5;color:#555;margin:22px 0 0;">Kveðja,<br>${htmlHreinsa(ctx.sendandi || UNDIRSKRIFT)}<br><span style="font-size:12px;color:#888;">Þessi áminning er send beint frá mér - þú mátt svara þessum pósti.</span></p>
+<p style="font-size:14px;line-height:1.5;color:#555;margin:22px 0 0;">Kveðja,<br>${htmlHreinsa(ctx.sendandi || UNDIRSKRIFT)}${ctx.sendandi ? "" : UNDIRSKRIFT_HTML_EMOJI}<br><span style="font-size:12px;color:#888;">Þessi áminning er send beint frá mér - þú mátt svara þessum pósti.</span></p>
 </div></div>`;
 }
 
