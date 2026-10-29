@@ -10,6 +10,9 @@ import {
   query,
   where,
   documentId,
+  orderBy,
+  limit,
+  startAfter,
   updateDoc,
   arrayUnion,
   arrayRemove,
@@ -556,6 +559,7 @@ const RODUNAR_LYKLAR = {
 };
 
 let notendaRadir = [];
+let notendaVerkefnaTitlar = new Map();
 let notendaRodunarDalkur = "sidastSvarad"; // nývirkasti notandinn efst
 let notendaRodunarStefna = -1; // 1 = vaxandi, -1 = minnkandi
 
@@ -886,6 +890,7 @@ async function hladaNotendayfirlit() {
   ]);
 
   const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
+  notendaVerkefnaTitlar = verkefnaTitlar;
 
   // Yfirlits-tölukortin eru fyllt út frá sömu gögnum og þegar voru sótt hér
   // að ofan - engar aukafyrirspurnir.
@@ -962,6 +967,97 @@ async function hladaNotendayfirlit() {
 
   notendaRadir = rows;
   birtaNotendaRadir();
+}
+
+// "Nýjustu svör": 15 nýjustu spurningarnar sem nemandi hefur svarað, sóttar í bútum
+// (orderBy answeredAt + limit - aðeins 15 lestrar í hvert sinn, ekki öll svörin).
+// "Sjá meira" sækir 15 til viðbótar.
+const NYJUSTU_SVOR_BITI = 15;
+function byggjaNyjustuSvor(uid) {
+  const vefja = document.createElement("div");
+  vefja.className = "nyjustu-svor";
+  const titill = document.createElement("h4");
+  titill.textContent = "Nýjustu svör";
+  titill.style.margin = "14px 0 6px";
+  const tafla = document.createElement("table");
+  tafla.className = "sundurlidun-tafla";
+  tafla.innerHTML = "<thead><tr><th>Spurning</th><th>Verkefni</th><th>Svar</th><th>Niðurstaða</th><th>Hvenær</th></tr></thead>";
+  const biti = document.createElement("tbody");
+  tafla.appendChild(biti);
+  const stada = document.createElement("p");
+  stada.className = "undirtitill-vinstri";
+  const sjaMeiraBtn = document.createElement("button");
+  sjaMeiraBtn.type = "button";
+  sjaMeiraBtn.className = "smabtn";
+  sjaMeiraBtn.textContent = "Sjá meira";
+  sjaMeiraBtn.hidden = true;
+  vefja.append(titill, tafla, stada, sjaMeiraBtn);
+  tafla.hidden = true;
+
+  let sidasta = null;
+  let faerslurSamtals = 0;
+  let saekir = false;
+
+  async function saekja() {
+    if (saekir) return;
+    saekir = true;
+    sjaMeiraBtn.disabled = true;
+    stada.textContent = "Sæki gögn…";
+    try {
+      const skilyrdi = [orderBy("answeredAt", "desc"), limit(NYJUSTU_SVOR_BITI)];
+      if (sidasta) skilyrdi.splice(1, 0, startAfter(sidasta));
+      const snap = await getDocs(query(collection(db, "users", uid, "attempts"), ...skilyrdi));
+      if (snap.empty && faerslurSamtals === 0) {
+        stada.textContent = "Engar spurningar svaraðar ennþá.";
+        return;
+      }
+      const ids = snap.docs.map((d) => d.id);
+      const spurningar = new Map();
+      const svor = new Map();
+      for (let i = 0; i < ids.length; i += 30) {
+        const hluti = ids.slice(i, i + 30);
+        const [qs, as] = await Promise.all([
+          getDocs(query(collection(db, "questions"), where(documentId(), "in", hluti))),
+          getDocs(query(collection(db, "answers"), where(documentId(), "in", hluti)))
+        ]);
+        qs.forEach((d) => spurningar.set(d.id, d.data()));
+        as.forEach((d) => svor.set(d.id, d.data().correctAnswers || []));
+      }
+      snap.docs.forEach((d) => {
+        const { svar, answeredAt } = d.data();
+        const spurning = spurningar.get(d.id);
+        const pass = svar === SLEPPT_MERKI;
+        const rett = !pass && erSvarRett(svar, svor.get(d.id) || []);
+        const tr = document.createElement("tr");
+        const reitir = [
+          spurning?.text || "(spurning fannst ekki - hefur verið eytt)",
+          notendaVerkefnaTitlar.get(spurning?.verkefniId) || "Ótengdar spurningar",
+          pass ? "—" : svar,
+          pass ? "⏭ Pass" : rett ? "✅ Rétt" : "❌ Rangt",
+          formatDagsStutt(answeredAt?.toMillis?.() ?? null)
+        ];
+        reitir.forEach((texti) => {
+          const td = document.createElement("td");
+          td.textContent = texti;
+          tr.appendChild(td);
+        });
+        biti.appendChild(tr);
+      });
+      faerslurSamtals += snap.size;
+      sidasta = snap.docs[snap.docs.length - 1] || sidasta;
+      tafla.hidden = false;
+      sjaMeiraBtn.hidden = snap.size < NYJUSTU_SVOR_BITI;
+      stada.textContent = snap.size < NYJUSTU_SVOR_BITI ? `Öll ${faerslurSamtals} svörin sýnd.` : `Sýni ${faerslurSamtals} nýjustu svörin.`;
+    } catch (villa) {
+      console.error(villa);
+      stada.textContent = "Tókst ekki að sækja svörin: " + villa.message;
+    } finally {
+      saekir = false;
+      sjaMeiraBtn.disabled = false;
+    }
+  }
+  sjaMeiraBtn.addEventListener("click", saekja);
+  return { vefja, hlada: saekja };
 }
 
 function birtaNotendaRadir() {
@@ -1057,17 +1153,15 @@ function birtaNotendaRadir() {
     }
 
     const adgerdTd = document.createElement("td");
-    const nanarBtn = document.createElement("button");
-    nanarBtn.type = "button";
-    nanarBtn.className = "smabtn";
-    nanarBtn.textContent = "Nánar";
-    adgerdTd.appendChild(nanarBtn);
     {
       const ytaBtn = document.createElement("button");
       ytaBtn.type = "button";
       ytaBtn.className = "smabtn yta-vid-btn";
       ytaBtn.textContent = "👋 Ýta við";
-      ytaBtn.addEventListener("click", () => opnaYtaVid(r));
+      ytaBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        opnaYtaVid(r);
+      });
       adgerdTd.appendChild(ytaBtn);
     }
     tr.appendChild(adgerdTd);
@@ -1147,6 +1241,9 @@ function birtaNotendaRadir() {
       sundurlidunTd.appendChild(kortNet);
     }
 
+    const nyjustuSvor = byggjaNyjustuSvor(r.uid);
+    sundurlidunTd.appendChild(nyjustuSvor.vefja);
+
     const svaraListaBtn = document.createElement("button");
     svaraListaBtn.type = "button";
     svaraListaBtn.className = "smabtn";
@@ -1172,9 +1269,34 @@ function birtaNotendaRadir() {
     sundurlidunTr.appendChild(sundurlidunTd);
     notendaTafla.appendChild(sundurlidunTr);
 
-    nanarBtn.addEventListener("click", () => {
+    // Smellt á notandann (röðina) opnar/lokar sundurliðuninni.
+    const ororSpan = document.createElement("span");
+    ororSpan.className = "opna-oror";
+    ororSpan.textContent = "▸";
+    nafnTd.prepend(ororSpan);
+    tr.classList.add("smellanleg-rod");
+    tr.tabIndex = 0;
+    tr.setAttribute("role", "button");
+    tr.title = "Smelltu til að sjá nánari tölfræði og nýjustu svör";
+    let nyjustuHladin = false;
+    const skiptaSundurlidun = () => {
       sundurlidunTr.hidden = !sundurlidunTr.hidden;
-      nanarBtn.textContent = sundurlidunTr.hidden ? "Nánar" : "Loka";
+      ororSpan.textContent = sundurlidunTr.hidden ? "▸" : "▾";
+      if (!sundurlidunTr.hidden && !nyjustuHladin) {
+        nyjustuHladin = true;
+        nyjustuSvor.hlada();
+      }
+    };
+    tr.addEventListener("click", (e) => {
+      if (e.target.closest("button, a")) return;
+      skiptaSundurlidun();
+    });
+    tr.addEventListener("keydown", (e) => {
+      if (e.target !== tr) return;
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        skiptaSundurlidun();
+      }
     });
   });
 }

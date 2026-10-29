@@ -1903,3 +1903,17 @@ th.radanlegt:hover {
   white-space: pre;
   margin: 8px 0;
 }
+
+tr.smellanleg-rod {
+  cursor: pointer;
+}
+
+tr.smellanleg-rod:hover td {
+  background: var(--litur-baksvid);
+}
+
+.opna-oror {
+  display: inline-block;
+  width: 1.1em;
+  color: var(--litur-daufur);
+}
