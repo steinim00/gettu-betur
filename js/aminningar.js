@@ -211,8 +211,8 @@ export function myndaForskodun(aminning) {
 }
 
 // Pósturinn sjálfur (HTML með innfelldum stílum - virkar í flestum póstforritum).
-export function byggjaPostHtml(aminning, ctx, medMynd = true) {
-  if (!medMynd) {
+export function byggjaPostHtml(aminning, ctx, myndahamur = "lit") {
+  if (myndahamur === "engin" || myndahamur === false) {
     // Einfaldur póstur án myndar og skrauts - minni líkur á ruslpósti hjá nýjum viðtakanda.
     return `<p>${htmlHreinsa(fyllaInn(aminning.texti, ctx))}</p>
 <p>Halda áfram: <a href="${SIDU_SLOD}leikur.html">${SIDU_SLOD}leikur.html</a></p>
@@ -220,6 +220,17 @@ export function byggjaPostHtml(aminning, ctx, medMynd = true) {
   }
   const fyrirsogn = fyllaInn(aminning.fyrirsogn, ctx);
   const texti = fyllaInn(aminning.texti, ctx);
+  if (myndahamur === "lit" || myndahamur === true) {
+    // Texti fyrst, lítil mynd og venjuleg slóð - líkist venjulegum pósti frá manneskju
+    // og lendir síður í ruslpósti en stór myndborði með hnappi.
+    return `<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#161616;max-width:520px;">
+<p style="margin:0 0 12px;"><strong>${htmlHreinsa(fyrirsogn)}</strong></p>
+<p style="margin:0 0 14px;">${htmlHreinsa(texti)}</p>
+<p style="margin:0 0 14px;"><img src="${myndaSlod(aminning)}" alt="Bikarinn" width="240" style="display:block;border-radius:12px;"></p>
+<p style="margin:0 0 14px;">Halda áfram: <a href="${SIDU_SLOD}leikur.html">${SIDU_SLOD}leikur.html</a></p>
+<p style="margin:0;">Kveðja,<br>${htmlHreinsa(ctx.sendandi || UNDIRSKRIFT)}${ctx.sendandi ? "" : UNDIRSKRIFT_HTML_EMOJI}</p>
+</div>`;
+  }
   return `<div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e6e6e0;">
 <img src="${myndaSlod(aminning)}" alt="" width="520" style="display:block;width:100%;height:auto;">
 <div style="padding:22px 26px 28px;color:#161616;">
@@ -239,7 +250,7 @@ export function mailtoSlod(til, aminning, ctx) {
 }
 
 // Sendir póst um EmailJS. Kastar villu ef það er ekki stillt eða sendingin mistekst.
-export async function sendaPost({ til, nafn, aminning, dagar, kyn, sendandi, medMynd = true }) {
+export async function sendaPost({ til, nafn, aminning, dagar, kyn, sendandi, myndahamur = "lit" }) {
   if (!postStillt()) throw new Error("Póstsending er ekki stillt (sjá Stillingar → Áminningar).");
   const ctx = { nafn, dagar, kyn, sendandi };
   if (skriptaStillt()) {
@@ -253,9 +264,9 @@ export async function sendaPost({ til, nafn, aminning, dagar, kyn, sendandi, med
           lykilord: sk.lykilord,
           til,
           efni: efnislina(aminning.titill, ctx),
-          html: byggjaPostHtml(aminning, ctx, medMynd),
+          html: byggjaPostHtml(aminning, ctx, myndahamur),
           texti: byggjaPostTexta(aminning, ctx),
-          mynd: medMynd ? myndaSlod(aminning) : ""
+          mynd: myndahamur === "engin" ? "" : myndaSlod(aminning)
         })
       });
     } catch (villa) {
@@ -277,7 +288,7 @@ export async function sendaPost({ til, nafn, aminning, dagar, kyn, sendandi, med
         to_email: til,
         to_name: fyrstaNafn(nafn),
         subject: efnislina(aminning.titill, ctx),
-        message_html: byggjaPostHtml(aminning, ctx, medMynd),
+        message_html: byggjaPostHtml(aminning, ctx, myndahamur),
         message_text: byggjaPostTexta(aminning, ctx)
       }
     })

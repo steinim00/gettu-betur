@@ -155,8 +155,13 @@
         <p id="ytaVidUpplysingar" class="undirtitill-vinstri" style="margin:0 0 12px;"></p>
         <div id="ytaVidValkostir" class="aminninga-net"></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;">
-          <label class="undirtitill-vinstri" style="margin:0;display:flex;align-items:center;gap:6px;" title="Taktu hakið af ef pósturinn lendir í ruslpósti - þá fer einfaldur póstur án myndar">
-            <input type="checkbox" id="ytaVidMedMynd" checked> Með mynd
+          <label class="undirtitill-vinstri" style="margin:0;display:flex;align-items:center;gap:6px;" title="Ef pósturinn lendir í ruslpósti: prófaðu minni mynd eða enga">
+            Útlit:
+            <select id="ytaVidMyndahamur">
+              <option value="lit" selected>Lítil mynd (mælt með)</option>
+              <option value="stor">Stór mynd</option>
+              <option value="engin">Engin mynd</option>
+            </select>
           </label>
           <button type="button" class="aðal-hnappur" id="ytaVidSendaBtn">📧 Senda póst</button>
           <a class="smabtn" id="ytaVidMailtoTengill" href="#">Opna í póstforriti</a>
