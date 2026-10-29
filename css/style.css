@@ -1912,3 +1912,108 @@ tr.smellanleg-rod:hover td {
   background: var(--litur-baksvid);
 }
 
+
+/* Notendur á litlum skjá: taflan skrunast til hliðar í stað þess að skerast af */
+.tafla-skrun {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tafla-skrun .sundurlidun-tafla {
+  min-width: 560px;
+}
+
+@media (max-width: 900px) {
+  #sida-notendur {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #notendaTafla {
+    min-width: 760px;
+  }
+
+  #notendaTafla td,
+  #notendaTafla th {
+    white-space: nowrap;
+  }
+
+  #notendaTafla .sundurlidun-smatolur,
+  #notendaTafla .sundurlidun-kort-net {
+    white-space: normal;
+  }
+}
+
+/* Notendur á símum: hver notandi er spjald í stað breiðrar töflu */
+@media (max-width: 700px) {
+  #notendaTafla {
+    min-width: 0;
+    display: block;
+    overflow: visible;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  #notendaTafla thead {
+    display: none;
+  }
+
+  #notendaTafla tbody {
+    display: block;
+  }
+
+  #notendaTafla tr.smellanleg-rod {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+    background: var(--litur-korti);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--skuggi);
+  }
+
+  #notendaTafla tr.smellanleg-rod td {
+    display: block;
+    border: 0;
+    padding: 0;
+    white-space: normal;
+    background: transparent;
+  }
+
+  #notendaTafla tr.smellanleg-rod td:first-child {
+    grid-column: 1 / -1;
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+
+  #notendaTafla tr.smellanleg-rod td[data-label]:not([data-label=""])::before {
+    content: attr(data-label) ": ";
+    color: var(--litur-daufur);
+    font-size: 0.8rem;
+  }
+
+  #notendaTafla tr.smellanleg-rod td.adgerd-hluti {
+    grid-column: 1 / -1;
+    margin-top: 6px;
+  }
+
+  #notendaTafla tr:not(.smellanleg-rod) {
+    display: block;
+    margin: -4px 0 12px;
+  }
+
+  #notendaTafla tr:not(.smellanleg-rod)[hidden] {
+    display: none;
+  }
+
+  #notendaTafla tr:not(.smellanleg-rod) > td {
+    display: block;
+    padding: 0;
+    background: var(--litur-korti);
+    border-radius: 16px;
+    padding: 14px 16px;
+    box-shadow: var(--skuggi);
+    white-space: normal;
+  }
+}

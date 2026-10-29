@@ -1021,7 +1021,10 @@ function byggjaNyjustuSvor(uid) {
   sjaMeiraBtn.className = "smabtn";
   sjaMeiraBtn.textContent = "Sjá meira";
   sjaMeiraBtn.hidden = true;
-  vefja.append(titill, tafla, stada, sjaMeiraBtn);
+  const taflaSkrun = document.createElement("div");
+  taflaSkrun.className = "tafla-skrun";
+  taflaSkrun.appendChild(tafla);
+  vefja.append(titill, taflaSkrun, stada, sjaMeiraBtn);
   tafla.hidden = true;
 
   let sidasta = null;
@@ -1174,6 +1177,10 @@ function birtaNotendaRadir() {
       tr.appendChild(nyskraningTd);
     }
     tr.appendChild(sidastTd);
+    // Merki fyrir spjaldasniðið á símum (sjá "@media (max-width: 700px)" í css/style.css)
+    [...tr.children].forEach((td) => {
+      td.dataset.label = td === nafnTd ? "" : td === svaradTd ? "Svarað" : td === passTd ? "Pass" : td === rettTd ? "Rétt" : td === nakvaemniTd ? "Nákvæmni" : td === skjatimiTd ? "Skjátími" : td === sidastTd ? "Síðast virk/ur" : "Nýskráð/ur";
+    });
 
     // Skjáskotssnið: engin Aðgerð-dálkur, og þar með ekkert "Nánar"-spjald
     // (það er bara opnað gegnum þann hnapp) - sleppa restinni af þessari röð.
@@ -1183,6 +1190,8 @@ function birtaNotendaRadir() {
     }
 
     const adgerdTd = document.createElement("td");
+    adgerdTd.dataset.label = "";
+    adgerdTd.className = "adgerd-hluti";
     {
       const ytaBtn = document.createElement("button");
       ytaBtn.type = "button";
