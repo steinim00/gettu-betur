@@ -1670,8 +1670,9 @@ async function hladaVerkefnayfirlit() {
     const erProf = verkefni.tegund === "prof";
 
     const leyfdir = verkefni.leyfdirNotendur || [];
-    if (leyfdir.length > 0 && leyfdir.every((uid) => litirPerUid.has(uid))) {
-      tr.style.background = blandaLiti(leyfdir.map((uid) => litirPerUid.get(uid)));
+    const litadir = leyfdir.filter((uid) => litirPerUid.has(uid));
+    if (litadir.length > 0) {
+      tr.style.background = blandaLiti(litadir.map((uid) => litirPerUid.get(uid)));
     }
 
     const titillTd = document.createElement("td");
