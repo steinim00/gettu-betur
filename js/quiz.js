@@ -1237,7 +1237,7 @@ function stillaFormTengil(verkefni) {
   if (slod) tengill.href = slod;
 }
 
-function opnaSpurningarBeint(verkefniId, verkefni, hoppaIOsvaradar = false) {
+function opnaSpurningarBeint(verkefniId, verkefni, hoppaIOsvaradar = true) {
   stillaFormTengil(verkefni);
   valdVerkefniId = verkefniId;
   valdVerkefniErHrada = erHradaVerkefni(verkefni);
@@ -1626,7 +1626,7 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
     allarSpurningaskjol.sort((a, b) => svaradIdSett.has(a.id) - svaradIdSett.has(b.id));
   }
 
-  // "Staða eftir verkefnum" opnar verkefnið beint á fyrstu spurningunni sem
+  // Verkefni opnast beint á fyrstu spurningunni sem
   // notandinn á eftir að svara - síðan sem hún er á og skrunað að henni.
   let hoppaIndex = -1;
   if (hoppaIOsvaradar) {
