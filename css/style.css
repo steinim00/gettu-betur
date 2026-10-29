@@ -1912,8 +1912,3 @@ tr.smellanleg-rod:hover td {
   background: var(--litur-baksvid);
 }
 
-.opna-oror {
-  display: inline-block;
-  width: 1.1em;
-  color: var(--litur-daufur);
-}

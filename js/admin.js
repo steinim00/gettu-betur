@@ -1297,10 +1297,6 @@ function birtaNotendaRadir() {
     notendaTafla.appendChild(sundurlidunTr);
 
     // Smellt á notandann (röðina) opnar/lokar sundurliðuninni.
-    const ororSpan = document.createElement("span");
-    ororSpan.className = "opna-oror";
-    ororSpan.textContent = "▸";
-    nafnTd.prepend(ororSpan);
     tr.classList.add("smellanleg-rod");
     tr.tabIndex = 0;
     tr.setAttribute("role", "button");
@@ -1308,7 +1304,6 @@ function birtaNotendaRadir() {
     let nyjustuHladin = false;
     const skiptaSundurlidun = () => {
       sundurlidunTr.hidden = !sundurlidunTr.hidden;
-      ororSpan.textContent = sundurlidunTr.hidden ? "▸" : "▾";
       if (!sundurlidunTr.hidden && !nyjustuHladin) {
         nyjustuHladin = true;
         nyjustuSvor.hlada();
