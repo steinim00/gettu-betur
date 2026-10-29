@@ -540,15 +540,24 @@ function formatDagsStutt(ms) {
   return `${d.toLocaleDateString("is-IS", { day: "numeric", month: "numeric" })} kl. ${timi}`;
 }
 
-// Litar röð verkefnis í Verkefni-töflunni þegar það er takmarkað við AÐEINS
-// einn notanda (leyfdirNotendur, sjá "Velja notendur") - svo sjáist í fljótu
-// bragði hvers "einkaverkefni" hvert er. Handvirkur listi sem bætt er við
-// eftir þörfum, engin tengsl við gögnin sjálf.
+// Litar röð verkefnis í Verkefni-töflunni eftir þeim notendum sem það er
+// takmarkað við (leyfdirNotendur, sjá "Velja notendur") - svo sjáist í fljótu
+// bragði hvers "einkaverkefni" hvert er. Séu notendurnir fleiri en einn
+// blandast litir þeirra. Handvirkur listi sem bætt er við eftir þörfum, engin
+// tengsl við gögnin sjálf.
 const NOTENDA_LITIR = {
   "Hekla Kristin Bjornsdottir": "#cffafe",
   "Hinrik Hugi Runarsson": "#dcfce7",
   "julia sigurdard": "#fae8ff"
 };
+
+// Meðaltal hex-lita (#rrggbb) - notað þegar verkefni er takmarkað við fleiri en
+// einn notanda svo liturinn sé blanda af litum þeirra.
+function blandaLiti(litir) {
+  const rgb = litir.map((l) => [1, 3, 5].map((i) => parseInt(l.slice(i, i + 2), 16)));
+  const medal = [0, 1, 2].map((i) => Math.round(rgb.reduce((s, c) => s + c[i], 0) / rgb.length));
+  return `rgb(${medal.join(", ")})`;
+}
 
 // Hrá gildi (ekki birt strengi) fyrir hvern raðanlegan dálk, notað bæði til
 // að raða og til að varðveita röðunina þegar taflan er endurbyggð.
@@ -1661,8 +1670,8 @@ async function hladaVerkefnayfirlit() {
     const erProf = verkefni.tegund === "prof";
 
     const leyfdir = verkefni.leyfdirNotendur || [];
-    if (leyfdir.length === 1 && litirPerUid.has(leyfdir[0])) {
-      tr.style.background = litirPerUid.get(leyfdir[0]);
+    if (leyfdir.length > 0 && leyfdir.every((uid) => litirPerUid.has(uid))) {
+      tr.style.background = blandaLiti(leyfdir.map((uid) => litirPerUid.get(uid)));
     }
 
     const titillTd = document.createElement("td");
