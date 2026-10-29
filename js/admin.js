@@ -759,7 +759,7 @@ ytaVidSendaBtn.addEventListener("click", async () => {
   ytaVidSendaBtn.disabled = true;
   ytaVidStada.textContent = "Sendi…";
   try {
-    await sendaPost({ til: r.email, nafn: r.nafn, aminning: a, dagar: dagarSidanVirk(r), kyn: r.kyn, sendandi: adminNafn });
+    await sendaPost({ til: r.email, nafn: r.nafn, aminning: a, dagar: dagarSidanVirk(r), kyn: r.kyn });
     await skraYttVid(r);
     ytaVidStada.textContent = `Póstur sendur á ${r.email} ✅`;
   } catch (villa) {
@@ -852,7 +852,7 @@ profaPostBtn.addEventListener("click", async () => {
   profaPostBtn.disabled = true;
   postStada.textContent = "Sendi prufupóst…";
   try {
-    await sendaPost({ til: adminNetfang, nafn: "Prufa", aminning: a, dagar: 3, sendandi: adminNafn });
+    await sendaPost({ til: adminNetfang, nafn: "Prufa", aminning: a, dagar: 3 });
     postStada.textContent = `Prufupóstur sendur á ${adminNetfang} ✅`;
   } catch (villa) {
     console.error(villa);
