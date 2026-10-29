@@ -95,6 +95,28 @@
         <button type="button" class="smabtn" id="vistaAnthropicTeiknBtn">Vista</button>
       </div>
       <p id="anthropicTeiknStada"></p>
+
+      <div class="hluti-titill">
+        <h2>Áminningar (ýta við nemendum)</h2>
+      </div>
+      <p class="undirtitill-vinstri">
+        Í „Notendur → Liðið“ geturðu ýtt við nemanda sem er orðinn óvirkur og þá fer póstur með
+        einni af áminningunum hér fyrir neðan. Til að pósturinn <strong>sendist beint úr stjórnborðinu</strong>
+        þarf ókeypis aðgang hjá <a class="tengill" href="https://www.emailjs.com" target="_blank" rel="noopener">EmailJS</a>:
+        tengdu póstþjónustu (t.d. Gmail), búðu til sniðmát (<em>template</em>) með <code>To: {{to_email}}</code>,
+        <code>Subject: {{subject}}</code> og innihald <code>{{{message_html}}}</code> (þrjár slaufur), og settu
+        Service ID, Template ID og Public Key hér. Stillingarnar eru eingöngu geymdar í þessum vafra.
+        Án þeirra opnast póstforritið þitt með tilbúnum texta í staðinn.
+      </p>
+      <div class="innflutnings-form">
+        <input type="text" id="emailjsService" placeholder="Service ID (service_...)">
+        <input type="text" id="emailjsTemplate" placeholder="Template ID (template_...)">
+        <input type="text" id="emailjsKey" placeholder="Public Key">
+        <button type="button" class="smabtn" id="vistaPostBtn">Vista</button>
+        <button type="button" class="smabtn" id="profaPostBtn">Senda prufupóst á mig</button>
+      </div>
+      <p id="postStada"></p>
+      <div id="aminningaListi" class="aminninga-net"></div>
     </div>
 
     <div class="stjorn-sida" id="sida-notendur">
@@ -106,6 +128,23 @@
           <button class="smabtn" id="endurhladaBtn">Endurhlaða</button>
         </div>
       </div>
+      <div class="undirflipar" id="notendaHopar" role="tablist">
+        <button type="button" class="smabtn virkur" data-hopur="lid">Liðið</button>
+        <button type="button" class="smabtn" data-hopur="adrir">Aðrir</button>
+      </div>
+
+      <div id="ytaVidPanell" class="yta-vid-panell" hidden>
+        <h3 id="ytaVidTitill" style="margin:0 0 4px;">Ýta við</h3>
+        <p id="ytaVidUpplysingar" class="undirtitill-vinstri" style="margin:0 0 12px;"></p>
+        <div id="ytaVidValkostir" class="aminninga-net"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;">
+          <button type="button" class="aðal-hnappur" id="ytaVidSendaBtn">📧 Senda póst</button>
+          <a class="smabtn" id="ytaVidMailtoTengill" href="#">Opna í póstforriti</a>
+          <button type="button" class="smabtn" id="ytaVidHaettaBtn">Hætta við</button>
+          <span id="ytaVidStada" class="undirtitill-vinstri" style="margin:0;"></span>
+        </div>
+      </div>
+
       <table id="notendaTafla">
         <thead>
           <tr>
@@ -400,10 +439,10 @@
       yfirlit: ["Yfirlit", "Staðan á Gettu Betur í hnotskurn."],
       verkefni: ["Verkefni og spurningar", "Búa til, skoða og stjórna verkefnum og spurningum þeirra."],
       serflokkar: ["Sérflokkar", "Embættismannalisti og bókalisti - tvíátta spurningar."],
-      notendur: ["Notendur", "Frammistaða hvers og eins nemanda."],
+      notendur: ["Notendur", "Liðið og aðrir notendur - frammistaða og áminningar."],
       tolfraedi: ["Tölfræði", "Nánari tölfræði um nemendurna og hvenær þeir eru á síðunni."],
       graenadeildin: ["Grænadeildin", "Æfingaskráning fyrir liðið."],
-      stillingar: ["Stillingar", "GitHub og Anthropic tengingar fyrir þennan vafra."]
+      stillingar: ["Stillingar", "GitHub-, Anthropic- og póststillingar og áminningar fyrir þennan vafra."]
     };
 
     var nav = document.getElementById("stjornNav");

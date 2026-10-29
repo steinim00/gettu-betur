@@ -1792,3 +1792,102 @@ th.radanlegt:hover {
 .spurning-kort.ovirkt-kort {
   opacity: 0.55;
 }
+
+/* Notendur: Liðið / Aðrir og áminningar */
+.undirflipar {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.undirflipar .smabtn.virkur {
+  background: var(--litur-texti);
+  color: var(--litur-korti);
+  border-color: var(--litur-texti);
+}
+
+.ovirk-merki {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ffe1d6;
+  color: #9a2c0a;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.ytt-vid-smatt {
+  display: block;
+  color: var(--litur-daufur);
+  font-size: 0.75rem;
+}
+
+.yta-vid-btn {
+  margin-left: 6px;
+}
+
+.yta-vid-panell {
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.yta-vid-panell[hidden] {
+  display: none;
+}
+
+.aminninga-net {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.aminning-kort {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.aminning-kort img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  display: block;
+}
+
+.aminning-kort input[type="text"],
+.aminning-kort textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+.aminning-kort.valkostur {
+  cursor: pointer;
+  position: relative;
+}
+
+.aminning-kort.valkostur input[type="radio"] {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 20px;
+  height: 20px;
+}
+
+.aminning-kort.valkostur:has(input:checked) {
+  border-color: var(--litur-texti);
+  box-shadow: 0 0 0 2px var(--litur-texti);
+}
+
+.aminning-kort.valkostur span {
+  color: var(--litur-daufur);
+  font-size: 0.85rem;
+}

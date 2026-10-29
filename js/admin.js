@@ -19,6 +19,21 @@ import {
   writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+import {
+  hladaAminningar,
+  vistaAminningu,
+  nullstillaAminningu,
+  lesaPostStillingar,
+  vistaPostStillingar,
+  postStillt,
+  fyllaInn,
+  byggjaPostHtml,
+  myndaForskodun,
+  mailtoSlod,
+  sendaPost
+} from "./aminningar.js";
+
+let adminNetfang = ""; // netfang innskráða admin (prufupóstar)
 const notandaNafn = document.getElementById("notandaNafn");
 const yfirlitVerkefni = document.getElementById("yfirlitVerkefni");
 const yfirlitSpurningar = document.getElementById("yfirlitSpurningar");
@@ -128,6 +143,7 @@ vistaAnthropicTeiknBtn.addEventListener("click", () => {
 
 vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
   notandaNafn.textContent = gogn.nafn || user.email;
+  adminNetfang = user.email;
   hladaAllt();
 
   // Endurhleður allt á 5 mín fresti í stað 30 sek - stjórnborðið gerir fulla
@@ -540,6 +556,22 @@ let notendaRadir = [];
 let notendaRodunarDalkur = "sidastSvarad"; // nývirkasti notandinn efst
 let notendaRodunarStefna = -1; // 1 = vaxandi, -1 = minnkandi
 
+// "Liðið" = Júlía, Hinrik og Hekla (fyrsta nafn, án hástafa/broddstafa); allir hinir eru í "Aðrir".
+const LID_FYRSTU_NOFN = ["julia", "hinrik", "hekla"];
+function erLidsmadur(nafn) {
+  const fyrsta = (nafn || "").trim().split(/\s+/)[0] || "";
+  return LID_FYRSTU_NOFN.includes(fyrsta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
+}
+let notendaHopur = "lid"; // "lid" | "adrir"
+document.querySelectorAll("#notendaHopar [data-hopur]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    notendaHopur = btn.dataset.hopur;
+    document.querySelectorAll("#notendaHopar [data-hopur]").forEach((b) => b.classList.toggle("virkur", b === btn));
+    ytaVidPanell.hidden = true;
+    birtaNotendaRadir();
+  });
+});
+
 // Skjáskotssnið: falið nöfn (í staðinn "Nemandi N"), engin Aðgerð-dálkur og
 // sleppir notendum í flokki "aðrir" (t.d. prufuaðgangar, ekki alvöru
 // nemendur) - svo kennarinn geti tekið skjáskot af töflunni og deilt án
@@ -594,6 +626,213 @@ document.querySelectorAll("#notendaTafla thead th[data-rada]").forEach((th) => {
     birtaNotendaRadir();
   });
 });
+
+// ---- Ýta við (áminningarpóstur) ----
+const ytaVidPanell = document.getElementById("ytaVidPanell");
+const ytaVidTitill = document.getElementById("ytaVidTitill");
+const ytaVidUpplysingar = document.getElementById("ytaVidUpplysingar");
+const ytaVidValkostir = document.getElementById("ytaVidValkostir");
+const ytaVidSendaBtn = document.getElementById("ytaVidSendaBtn");
+const ytaVidMailtoTengill = document.getElementById("ytaVidMailtoTengill");
+const ytaVidHaettaBtn = document.getElementById("ytaVidHaettaBtn");
+const ytaVidStada = document.getElementById("ytaVidStada");
+
+function dagarSidanVirk(r) {
+  if (!r.lastActive) return null;
+  return Math.floor((Date.now() - r.lastActive) / (24 * 60 * 60 * 1000));
+}
+
+let ytaVidNotandi = null;
+let ytaVidValinId = null;
+
+function ytaVidCtx() {
+  return { nafn: ytaVidNotandi.nafn, dagar: dagarSidanVirk(ytaVidNotandi) };
+}
+
+function ytaVidUppfaeraMailto() {
+  const a = hladaAminningar().find((x) => x.id === ytaVidValinId);
+  ytaVidMailtoTengill.href = a && ytaVidNotandi?.email ? mailtoSlod(ytaVidNotandi.email, a, ytaVidCtx()) : "#";
+}
+
+function opnaYtaVid(r) {
+  ytaVidNotandi = r;
+  ytaVidStada.textContent = "";
+  ytaVidTitill.textContent = `Ýta við: ${r.nafn}`;
+  const dagar = dagarSidanVirk(r);
+  ytaVidUpplysingar.textContent =
+    `${r.email || "Ekkert netfang skráð"} · síðast virk/ur ${r.lastActive ? formatDagsStutt(r.lastActive) : "aldrei"}` +
+    (dagar !== null ? ` (${dagar === 1 ? "1 dagur" : dagar + " dagar"})` : "") +
+    (r.sidastYttVid ? ` · síðast ýtt við ${formatDagsStutt(r.sidastYttVid)} (${r.fjoldiYttVid} sinnum samtals)` : "") +
+    (postStillt() ? "" : " · Póstsending ekki stillt - \"Senda póst\" opnar þá póstforritið.");
+
+  const aminningar = hladaAminningar();
+  ytaVidValinId = aminningar[Math.floor(Math.random() * aminningar.length)].id;
+  ytaVidValkostir.innerHTML = "";
+  aminningar.forEach((a) => {
+    const kort = document.createElement("label");
+    kort.className = "aminning-kort valkostur";
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "ytaVidAminning";
+    radio.value = a.id;
+    radio.checked = a.id === ytaVidValinId;
+    radio.addEventListener("change", () => {
+      ytaVidValinId = a.id;
+      ytaVidUppfaeraMailto();
+    });
+    const mynd = document.createElement("img");
+    mynd.src = myndaForskodun(a);
+    mynd.alt = "";
+    mynd.loading = "lazy";
+    const titill = document.createElement("strong");
+    titill.textContent = fyllaInn(a.titill, ytaVidCtx());
+    const texti = document.createElement("span");
+    texti.textContent = fyllaInn(a.texti, ytaVidCtx());
+    kort.append(radio, mynd, titill, texti);
+    ytaVidValkostir.appendChild(kort);
+  });
+  ytaVidUppfaeraMailto();
+  ytaVidPanell.hidden = false;
+  ytaVidPanell.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+ytaVidHaettaBtn.addEventListener("click", () => {
+  ytaVidPanell.hidden = true;
+});
+
+async function skraYttVid(r) {
+  await updateDoc(doc(db, "users", r.uid), { sidastYttVid: serverTimestamp(), fjoldiYttVid: increment(1) });
+  r.sidastYttVid = Date.now();
+  r.fjoldiYttVid += 1;
+  birtaNotendaRadir();
+}
+
+ytaVidMailtoTengill.addEventListener("click", (e) => {
+  if (!ytaVidNotandi || !ytaVidNotandi.email) {
+    e.preventDefault();
+    return;
+  }
+  // Póstforritið opnast - skráum áminninguna svo sjáist að ýtt var við.
+  skraYttVid(ytaVidNotandi).catch((v) => console.error(v));
+});
+
+ytaVidSendaBtn.addEventListener("click", async () => {
+  const r = ytaVidNotandi;
+  const a = hladaAminningar().find((x) => x.id === ytaVidValinId);
+  if (!r || !a) return;
+  if (!r.email) {
+    ytaVidStada.textContent = "Notandinn hefur ekkert netfang skráð.";
+    return;
+  }
+  if (r.sidastYttVid && Date.now() - r.sidastYttVid < 12 * 60 * 60 * 1000) {
+    if (!confirm(`${r.nafn} fékk áminningu fyrir minna en 12 tímum síðan. Senda aftur?`)) return;
+  }
+  if (!postStillt()) {
+    ytaVidStada.textContent = "Póstsending er ekki stillt - opna póstforritið í staðinn…";
+    skraYttVid(r).catch((v) => console.error(v));
+    window.location.href = ytaVidMailtoTengill.href;
+    return;
+  }
+  ytaVidSendaBtn.disabled = true;
+  ytaVidStada.textContent = "Sendi…";
+  try {
+    await sendaPost({ til: r.email, nafn: r.nafn, aminning: a, dagar: dagarSidanVirk(r) });
+    await skraYttVid(r);
+    ytaVidStada.textContent = `Póstur sendur á ${r.email} ✅`;
+  } catch (villa) {
+    console.error(villa);
+    ytaVidStada.textContent = "Tókst ekki að senda: " + villa.message;
+  }
+  ytaVidSendaBtn.disabled = false;
+});
+
+// ---- Stillingar: póststillingar og áminningasniðmát ----
+const emailjsService = document.getElementById("emailjsService");
+const emailjsTemplate = document.getElementById("emailjsTemplate");
+const emailjsKey = document.getElementById("emailjsKey");
+const vistaPostBtn = document.getElementById("vistaPostBtn");
+const profaPostBtn = document.getElementById("profaPostBtn");
+const postStada = document.getElementById("postStada");
+const aminningaListi = document.getElementById("aminningaListi");
+
+{
+  const st = lesaPostStillingar();
+  emailjsService.value = st.service;
+  emailjsTemplate.value = st.template;
+  emailjsKey.value = st.key;
+}
+
+vistaPostBtn.addEventListener("click", () => {
+  vistaPostStillingar({ service: emailjsService.value, template: emailjsTemplate.value, key: emailjsKey.value });
+  postStada.textContent = postStillt() ? "Vistað - póstsending er stillt í þessum vafra." : "Vistað, en vantar eitthvað af þremur reitum - þá opnast póstforritið í staðinn.";
+});
+
+profaPostBtn.addEventListener("click", async () => {
+  if (!postStillt()) {
+    postStada.textContent = "Fylltu út og vistaðu Service ID, Template ID og Public Key fyrst.";
+    return;
+  }
+  const aminningar = hladaAminningar();
+  const a = aminningar[Math.floor(Math.random() * aminningar.length)];
+  profaPostBtn.disabled = true;
+  postStada.textContent = "Sendi prufupóst…";
+  try {
+    await sendaPost({ til: adminNetfang, nafn: "Prufa", aminning: a, dagar: 3 });
+    postStada.textContent = `Prufupóstur sendur á ${adminNetfang} ✅`;
+  } catch (villa) {
+    console.error(villa);
+    postStada.textContent = "Tókst ekki að senda: " + villa.message;
+  }
+  profaPostBtn.disabled = false;
+});
+
+function byggjaAminningaLista() {
+  aminningaListi.innerHTML = "";
+  hladaAminningar().forEach((a) => {
+    const kort = document.createElement("div");
+    kort.className = "aminning-kort";
+    const mynd = document.createElement("img");
+    mynd.src = myndaForskodun(a);
+    mynd.alt = "";
+    const titill = document.createElement("input");
+    titill.type = "text";
+    titill.value = a.titill;
+    titill.setAttribute("aria-label", "Efnislína");
+    const fyrirsogn = document.createElement("input");
+    fyrirsogn.type = "text";
+    fyrirsogn.value = a.fyrirsogn;
+    fyrirsogn.setAttribute("aria-label", "Fyrirsögn");
+    const texti = document.createElement("textarea");
+    texti.rows = 4;
+    texti.value = a.texti;
+    texti.setAttribute("aria-label", "Texti");
+    const hjalp = document.createElement("small");
+    hjalp.textContent = "Má nota {nafn}, {dagar} (3 dagar) og {dogum} (fyrir 3 dögum).";
+    const takkar = document.createElement("div");
+    takkar.style.cssText = "display:flex;gap:8px;";
+    const vista = document.createElement("button");
+    vista.type = "button";
+    vista.className = "smabtn";
+    vista.textContent = "Vista";
+    vista.addEventListener("click", () => {
+      vistaAminningu(a.id, { titill: titill.value, fyrirsogn: fyrirsogn.value, texti: texti.value });
+      vista.textContent = "Vistað ✓";
+      setTimeout(() => (vista.textContent = "Vista"), 1500);
+    });
+    const nullstilla = document.createElement("button");
+    nullstilla.type = "button";
+    nullstilla.className = "smabtn";
+    nullstilla.textContent = "Núllstilla";
+    nullstilla.addEventListener("click", () => {
+      nullstillaAminningu(a.id);
+      byggjaAminningaLista();
+    });
+    takkar.append(vista, nullstilla);
+    kort.append(mynd, titill, fyrirsogn, texti, hjalp, takkar);
+    aminningaListi.appendChild(kort);
+  });
+}
+byggjaAminningaLista();
 
 async function hladaNotendayfirlit() {
   notendaTafla.innerHTML = `<tr><td colspan="9">Sæki gögn…</td></tr>`;
@@ -664,6 +903,9 @@ async function hladaNotendayfirlit() {
       nakvaemni,
       skjatimi: notandi.screenTimeSeconds || 0,
       nyskraning: notandi.createdAt?.toMillis?.() ?? null,
+      lid: erLidsmadur(notandi.nafn || notandi.email),
+      sidastYttVid: notandi.sidastYttVid?.toMillis?.() ?? null,
+      fjoldiYttVid: notandi.fjoldiYttVid || 0,
       // "Síðast virk/ur" á að þýða hvenær notandinn sást síðast á síðunni
       // (lastActive-hjartslátturinn, skrifaður á 60 sek fresti á meðan
       // flipinn er opinn - sjá vistaSkjatima í js/quiz.js), ekki hvenær
@@ -681,7 +923,8 @@ async function hladaNotendayfirlit() {
 
 function birtaNotendaRadir() {
   const lykill = RODUNAR_LYKLAR[notendaRodunarDalkur];
-  const rows = (skjaskotsSnid ? notendaRadir.filter((r) => r.flokkur !== "aðrir") : [...notendaRadir]).sort((a, b) => {
+  const iHopnum = notendaRadir.filter((r) => (notendaHopur === "lid") === r.lid);
+  const rows = (skjaskotsSnid ? iHopnum.filter((r) => r.flokkur !== "aðrir") : [...iHopnum]).sort((a, b) => {
     const va = lykill(a);
     const vb = lykill(b);
     if (va < vb) return -1 * notendaRodunarStefna;
@@ -706,7 +949,7 @@ function birtaNotendaRadir() {
 
   notendaTafla.innerHTML = "";
   if (rows.length === 0) {
-    notendaTafla.innerHTML = `<tr><td colspan="9">Engir notendur skráðir ennþá.</td></tr>`;
+    notendaTafla.innerHTML = `<tr><td colspan="9">${notendaHopur === "lid" ? "Enginn í liðinu hefur skráð sig inn ennþá." : "Engir aðrir notendur."}</td></tr>`;
     return;
   }
 
@@ -722,6 +965,21 @@ function birtaNotendaRadir() {
       nafnTd.appendChild(punktur);
     }
     nafnTd.appendChild(document.createTextNode(skjaskotsSnid ? `Nemandi ${vIndex + 1}` : r.nafn));
+    if (!skjaskotsSnid && r.lid) {
+      const dagar = dagarSidanVirk(r);
+      if (dagar !== null && dagar >= 2) {
+        const merki = document.createElement("span");
+        merki.className = "ovirk-merki";
+        merki.textContent = `óvirk/ur í ${dagar} daga`;
+        nafnTd.appendChild(merki);
+      }
+      if (r.sidastYttVid) {
+        const yttSmatt = document.createElement("small");
+        yttSmatt.className = "ytt-vid-smatt";
+        yttSmatt.textContent = `Ýtt við ${formatDagsStutt(r.sidastYttVid)}`;
+        nafnTd.appendChild(yttSmatt);
+      }
+    }
     const svaradTd = document.createElement("td");
     svaradTd.textContent = r.fjoldiSvarad;
     const passTd = document.createElement("td");
@@ -761,6 +1019,14 @@ function birtaNotendaRadir() {
     nanarBtn.className = "smabtn";
     nanarBtn.textContent = "Nánar";
     adgerdTd.appendChild(nanarBtn);
+    if (r.lid) {
+      const ytaBtn = document.createElement("button");
+      ytaBtn.type = "button";
+      ytaBtn.className = "smabtn yta-vid-btn";
+      ytaBtn.textContent = "👋 Ýta við";
+      ytaBtn.addEventListener("click", () => opnaYtaVid(r));
+      adgerdTd.appendChild(ytaBtn);
+    }
     tr.appendChild(adgerdTd);
     notendaTafla.appendChild(tr);
 
