@@ -562,6 +562,17 @@ function erLidsmadur(nafn) {
   const fyrsta = (nafn || "").trim().split(/\s+/)[0] || "";
   return LID_FYRSTU_NOFN.includes(fyrsta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
 }
+// Kyn liðsmanna (Hinrik er strákur, Hekla og Júlía stelpur) - notað til að sleppa "virk/ur" o.þ.h.
+function kynNemanda(nafn) {
+  const fyrsta = (nafn || "").trim().split(/\s+/)[0] || "";
+  const n = fyrsta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (n === "hinrik") return "kk";
+  if (n === "hekla" || n === "julia") return "kvk";
+  return undefined;
+}
+function kynsord(kyn, kk, kvk, hvort) {
+  return kyn === "kk" ? kk : kyn === "kvk" ? kvk : hvort;
+}
 let notendaHopur = "lid"; // "lid" | "adrir"
 document.querySelectorAll("#notendaHopar [data-hopur]").forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -646,7 +657,7 @@ let ytaVidNotandi = null;
 let ytaVidValinId = null;
 
 function ytaVidCtx() {
-  return { nafn: ytaVidNotandi.nafn, dagar: dagarSidanVirk(ytaVidNotandi) };
+  return { nafn: ytaVidNotandi.nafn, dagar: dagarSidanVirk(ytaVidNotandi), kyn: ytaVidNotandi.kyn };
 }
 
 function ytaVidUppfaeraMailto() {
@@ -660,7 +671,7 @@ function opnaYtaVid(r) {
   ytaVidTitill.textContent = `Ýta við: ${r.nafn}`;
   const dagar = dagarSidanVirk(r);
   ytaVidUpplysingar.textContent =
-    `${r.email || "Ekkert netfang skráð"} · síðast virk/ur ${r.lastActive ? formatDagsStutt(r.lastActive) : "aldrei"}` +
+    `${r.email || "Ekkert netfang skráð"} · síðast ${kynsord(r.kyn, "virkur", "virk", "virk/ur")} ${r.lastActive ? formatDagsStutt(r.lastActive) : "aldrei"}` +
     (dagar !== null ? ` (${dagar === 1 ? "1 dagur" : dagar + " dagar"})` : "") +
     (r.sidastYttVid ? ` · síðast ýtt við ${formatDagsStutt(r.sidastYttVid)} (${r.fjoldiYttVid} sinnum samtals)` : "") +
     (postStillt() ? "" : " · Póstsending ekki stillt - \"Senda póst\" opnar þá póstforritið.");
@@ -736,7 +747,7 @@ ytaVidSendaBtn.addEventListener("click", async () => {
   ytaVidSendaBtn.disabled = true;
   ytaVidStada.textContent = "Sendi…";
   try {
-    await sendaPost({ til: r.email, nafn: r.nafn, aminning: a, dagar: dagarSidanVirk(r) });
+    await sendaPost({ til: r.email, nafn: r.nafn, aminning: a, dagar: dagarSidanVirk(r), kyn: r.kyn });
     await skraYttVid(r);
     ytaVidStada.textContent = `Póstur sendur á ${r.email} ✅`;
   } catch (villa) {
@@ -904,6 +915,7 @@ async function hladaNotendayfirlit() {
       skjatimi: notandi.screenTimeSeconds || 0,
       nyskraning: notandi.createdAt?.toMillis?.() ?? null,
       lid: erLidsmadur(notandi.nafn || notandi.email),
+      kyn: kynNemanda(notandi.nafn || notandi.email),
       sidastYttVid: notandi.sidastYttVid?.toMillis?.() ?? null,
       fjoldiYttVid: notandi.fjoldiYttVid || 0,
       // "Síðast virk/ur" á að þýða hvenær notandinn sást síðast á síðunni
@@ -970,7 +982,7 @@ function birtaNotendaRadir() {
       if (dagar !== null && dagar >= 2) {
         const merki = document.createElement("span");
         merki.className = "ovirk-merki";
-        merki.textContent = `óvirk/ur í ${dagar} daga`;
+        merki.textContent = `${kynsord(r.kyn, "óvirkur", "óvirk", "óvirk/ur")} í ${dagar} daga`;
         nafnTd.appendChild(merki);
       }
       if (r.sidastYttVid) {

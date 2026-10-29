@@ -39,7 +39,7 @@ export const AMINNINGAR = [
     mynd: "hissa.png",
     titill: "Bíddu, hvað?! Hvar ertu?",
     fyrirsogn: "Ha?! Hvert fórstu?",
-    texti: "{nafn}?! Við héldum að þú værir rétt ókomin(n). Það eru yfir þúsund spurningar að bíða - og engin þeirra bítur."
+    texti: "{nafn}?! Við héldum að þú værir rétt {okominn}. Það eru yfir þúsund spurningar að bíða - og engin þeirra bítur."
   },
   {
     id: "vonsvikinn",
@@ -122,8 +122,14 @@ export function dogum(fjoldi) {
   return fjoldi === 1 ? "1 degi" : `${fjoldi} dögum`;
 }
 
+// Kyn nemandans ("kk" | "kvk" | undefined) - sjá kynNemanda í js/admin.js.
+function kynsbeygt(ctx, kk, kvk, hvort) {
+  return ctx.kyn === "kk" ? kk : ctx.kyn === "kvk" ? kvk : hvort;
+}
+
 export function fyllaInn(strengur, ctx) {
   return (strengur || "")
+    .replaceAll("{okominn}", kynsbeygt(ctx, "ókominn", "ókomin", "ókomin(n)"))
     .replaceAll("{nafn}", fyrstaNafn(ctx.nafn) || "þú")
     .replaceAll("{dagar}", dagar(ctx.dagar))
     .replaceAll("{dogum}", dogum(ctx.dagar));
@@ -165,10 +171,10 @@ export function mailtoSlod(til, aminning, ctx) {
 }
 
 // Sendir póst um EmailJS. Kastar villu ef það er ekki stillt eða sendingin mistekst.
-export async function sendaPost({ til, nafn, aminning, dagar }) {
+export async function sendaPost({ til, nafn, aminning, dagar, kyn }) {
   const s = lesaPostStillingar();
   if (!postStillt()) throw new Error("Póstsending er ekki stillt (sjá Stillingar → Áminningar).");
-  const ctx = { nafn, dagar };
+  const ctx = { nafn, dagar, kyn };
   const svar = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
