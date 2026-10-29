@@ -41,6 +41,7 @@ import {
 
 let adminNetfang = ""; // netfang innskráða admin (prufupóstar)
 let adminUid = "";
+let adminNafn = "";
 const notandaNafn = document.getElementById("notandaNafn");
 const yfirlitVerkefni = document.getElementById("yfirlitVerkefni");
 const yfirlitSpurningar = document.getElementById("yfirlitSpurningar");
@@ -152,6 +153,7 @@ vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
   notandaNafn.textContent = gogn.nafn || user.email;
   adminNetfang = user.email;
   adminUid = user.uid;
+  adminNafn = gogn.nafn || "";
   saekjaPostStillingarUrGagnagrunni();
   hladaAllt();
 
@@ -757,7 +759,7 @@ ytaVidSendaBtn.addEventListener("click", async () => {
   ytaVidSendaBtn.disabled = true;
   ytaVidStada.textContent = "Sendi…";
   try {
-    await sendaPost({ til: r.email, nafn: r.nafn, aminning: a, dagar: dagarSidanVirk(r), kyn: r.kyn });
+    await sendaPost({ til: r.email, nafn: r.nafn, aminning: a, dagar: dagarSidanVirk(r), kyn: r.kyn, sendandi: adminNafn });
     await skraYttVid(r);
     ytaVidStada.textContent = `Póstur sendur á ${r.email} ✅`;
   } catch (villa) {
@@ -850,7 +852,7 @@ profaPostBtn.addEventListener("click", async () => {
   profaPostBtn.disabled = true;
   postStada.textContent = "Sendi prufupóst…";
   try {
-    await sendaPost({ til: adminNetfang, nafn: "Prufa", aminning: a, dagar: 3 });
+    await sendaPost({ til: adminNetfang, nafn: "Prufa", aminning: a, dagar: 3, sendandi: adminNafn });
     postStada.textContent = `Prufupóstur sendur á ${adminNetfang} ✅`;
   } catch (villa) {
     console.error(villa);

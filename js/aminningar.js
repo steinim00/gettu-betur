@@ -23,21 +23,21 @@ export const AMINNINGAR = [
   {
     id: "reiddur",
     mynd: "reidd.png",
-    titill: "Þessar spurningar svara sér ekki sjálfar",
+    titill: "{nafn}, spurningarnar svara sér ekki sjálfar",
     fyrirsogn: "Bikarinn er svolítið pirraður",
-    texti: "{nafn}, ég er ekki reiður. Ég er bara að lyfta augabrúnunum mjög hátt. Síðast sást til þín fyrir {dogum} og það er EKKI í lagi. Komdu og svaraðu nokkrum."
+    texti: "{nafn}, ég er ekki reiður. Ég er bara að lyfta augabrúnunum mjög hátt. Síðast sást til þín fyrir {dogum} og það er alls ekki í lagi. Komdu og svaraðu nokkrum."
   },
   {
     id: "sofandi",
     mynd: "sofandi.png",
-    titill: "Zzz… Gettu Betur sofnaði",
+    titill: "Gettu Betur sofnaði án þín",
     fyrirsogn: "Allt er orðið svo rólegt",
     texti: "Appið er farið að hrjóta. Vaknaðu, {nafn}, og svaraðu 10 spurningum - þá vaknar bikarinn líka."
   },
   {
     id: "hissa",
     mynd: "hissa.png",
-    titill: "Bíddu, hvað?! Hvar ertu?",
+    titill: "Hvar ertu, {nafn}?",
     fyrirsogn: "Ha?! Hvert fórstu?",
     texti: "{nafn}?! Við héldum að þú værir rétt {okominn}. Það eru yfir þúsund spurningar að bíða - og engin þeirra bítur."
   },
@@ -215,11 +215,12 @@ export function byggjaPostHtml(aminning, ctx) {
 <h1 style="font-size:24px;margin:0 0 12px;">${htmlHreinsa(fyrirsogn)}</h1>
 <p style="font-size:16px;line-height:1.5;margin:0 0 22px;">${htmlHreinsa(texti)}</p>
 <a href="${SIDU_SLOD}leikur.html" style="display:inline-block;background:#161616;color:#d7ff3e;text-decoration:none;font-weight:bold;padding:13px 26px;border-radius:999px;">Halda áfram í Gettu Betur →</a>
+<p style="font-size:14px;line-height:1.5;color:#555;margin:22px 0 0;">Kveðja,<br>${htmlHreinsa(ctx.sendandi || "kennarinn þinn")}<br><span style="font-size:12px;color:#888;">Þessi áminning er send beint frá mér - þú mátt svara þessum pósti.</span></p>
 </div></div>`;
 }
 
 export function byggjaPostTexta(aminning, ctx) {
-  return `${fyllaInn(aminning.fyrirsogn, ctx)}\n\n${fyllaInn(aminning.texti, ctx)}\n\nHalda áfram: ${SIDU_SLOD}leikur.html\n(Mynd: ${myndaSlod(aminning)})`;
+  return `${fyllaInn(aminning.fyrirsogn, ctx)}\n\n${fyllaInn(aminning.texti, ctx)}\n\nHalda áfram: ${SIDU_SLOD}leikur.html\n\nKveðja,\n${ctx.sendandi || "kennarinn þinn"}\n(Þú mátt svara þessum pósti.)`;
 }
 
 export function mailtoSlod(til, aminning, ctx) {
@@ -227,9 +228,9 @@ export function mailtoSlod(til, aminning, ctx) {
 }
 
 // Sendir póst um EmailJS. Kastar villu ef það er ekki stillt eða sendingin mistekst.
-export async function sendaPost({ til, nafn, aminning, dagar, kyn }) {
+export async function sendaPost({ til, nafn, aminning, dagar, kyn, sendandi }) {
   if (!postStillt()) throw new Error("Póstsending er ekki stillt (sjá Stillingar → Áminningar).");
-  const ctx = { nafn, dagar, kyn };
+  const ctx = { nafn, dagar, kyn, sendandi };
   if (skriptaStillt()) {
     const sk = lesaSkriptuStillingar();
     let svar;
