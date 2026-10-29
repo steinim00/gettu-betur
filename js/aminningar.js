@@ -211,7 +211,13 @@ export function myndaForskodun(aminning) {
 }
 
 // Pósturinn sjálfur (HTML með innfelldum stílum - virkar í flestum póstforritum).
-export function byggjaPostHtml(aminning, ctx) {
+export function byggjaPostHtml(aminning, ctx, medMynd = true) {
+  if (!medMynd) {
+    // Einfaldur póstur án myndar og skrauts - minni líkur á ruslpósti hjá nýjum viðtakanda.
+    return `<p>${htmlHreinsa(fyllaInn(aminning.texti, ctx))}</p>
+<p>Halda áfram: <a href="${SIDU_SLOD}leikur.html">${SIDU_SLOD}leikur.html</a></p>
+<p>Kveðja,<br>${htmlHreinsa(ctx.sendandi || UNDIRSKRIFT)}${ctx.sendandi ? "" : UNDIRSKRIFT_HTML_EMOJI}</p>`;
+  }
   const fyrirsogn = fyllaInn(aminning.fyrirsogn, ctx);
   const texti = fyllaInn(aminning.texti, ctx);
   return `<div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e6e6e0;">
@@ -233,7 +239,7 @@ export function mailtoSlod(til, aminning, ctx) {
 }
 
 // Sendir póst um EmailJS. Kastar villu ef það er ekki stillt eða sendingin mistekst.
-export async function sendaPost({ til, nafn, aminning, dagar, kyn, sendandi }) {
+export async function sendaPost({ til, nafn, aminning, dagar, kyn, sendandi, medMynd = true }) {
   if (!postStillt()) throw new Error("Póstsending er ekki stillt (sjá Stillingar → Áminningar).");
   const ctx = { nafn, dagar, kyn, sendandi };
   if (skriptaStillt()) {
@@ -247,9 +253,9 @@ export async function sendaPost({ til, nafn, aminning, dagar, kyn, sendandi }) {
           lykilord: sk.lykilord,
           til,
           efni: efnislina(aminning.titill, ctx),
-          html: byggjaPostHtml(aminning, ctx),
+          html: byggjaPostHtml(aminning, ctx, medMynd),
           texti: byggjaPostTexta(aminning, ctx),
-          mynd: myndaSlod(aminning)
+          mynd: medMynd ? myndaSlod(aminning) : ""
         })
       });
     } catch (villa) {
@@ -271,7 +277,7 @@ export async function sendaPost({ til, nafn, aminning, dagar, kyn, sendandi }) {
         to_email: til,
         to_name: fyrstaNafn(nafn),
         subject: efnislina(aminning.titill, ctx),
-        message_html: byggjaPostHtml(aminning, ctx),
+        message_html: byggjaPostHtml(aminning, ctx, medMynd),
         message_text: byggjaPostTexta(aminning, ctx)
       }
     })

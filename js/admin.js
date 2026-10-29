@@ -659,6 +659,7 @@ const ytaVidSendaBtn = document.getElementById("ytaVidSendaBtn");
 const ytaVidMailtoTengill = document.getElementById("ytaVidMailtoTengill");
 const ytaVidHaettaBtn = document.getElementById("ytaVidHaettaBtn");
 const ytaVidStada = document.getElementById("ytaVidStada");
+const ytaVidMedMynd = document.getElementById("ytaVidMedMynd");
 
 function dagarSidanVirk(r) {
   if (!r.lastActive) return null;
@@ -759,7 +760,7 @@ ytaVidSendaBtn.addEventListener("click", async () => {
   ytaVidSendaBtn.disabled = true;
   ytaVidStada.textContent = "Sendi…";
   try {
-    await sendaPost({ til: r.email, nafn: r.nafn, aminning: a, dagar: dagarSidanVirk(r), kyn: r.kyn });
+    await sendaPost({ til: r.email, nafn: r.nafn, aminning: a, dagar: dagarSidanVirk(r), kyn: r.kyn, medMynd: ytaVidMedMynd.checked });
     await skraYttVid(r);
     ytaVidStada.textContent = `Póstur sendur á ${r.email} ✅`;
   } catch (villa) {
