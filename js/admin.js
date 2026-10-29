@@ -562,11 +562,11 @@ function erLidsmadur(nafn) {
   const fyrsta = (nafn || "").trim().split(/\s+/)[0] || "";
   return LID_FYRSTU_NOFN.includes(fyrsta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
 }
-// Kyn liðsmanna (Hinrik er strákur, Hekla og Júlía stelpur) - notað til að sleppa "virk/ur" o.þ.h.
+// Kyn nemenda (Hinrik og Sólon eru strákar, Hekla og Júlía stelpur; hin óviss) - notað til að sleppa "virk/ur" o.þ.h.
 function kynNemanda(nafn) {
   const fyrsta = (nafn || "").trim().split(/\s+/)[0] || "";
   const n = fyrsta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  if (n === "hinrik") return "kk";
+  if (n === "hinrik" || n === "solon") return "kk";
   if (n === "hekla" || n === "julia") return "kvk";
   return undefined;
 }
