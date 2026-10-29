@@ -26,6 +26,9 @@ import {
   lesaPostStillingar,
   vistaPostStillingar,
   postStillt,
+  lesaSkriptuStillingar,
+  vistaSkriptuStillingar,
+  APPS_SCRIPT_KODI,
   fyllaInn,
   byggjaPostHtml,
   myndaForskodun,
@@ -674,7 +677,7 @@ function opnaYtaVid(r) {
     `${r.email || "Ekkert netfang skráð"} · síðast ${kynsord(r.kyn, "virkur", "virk", "virk/ur")} ${r.lastActive ? formatDagsStutt(r.lastActive) : "aldrei"}` +
     (dagar !== null ? ` (${dagar === 1 ? "1 dagur" : dagar + " dagar"})` : "") +
     (r.sidastYttVid ? ` · síðast ýtt við ${formatDagsStutt(r.sidastYttVid)} (${r.fjoldiYttVid} sinnum samtals)` : "") +
-    (postStillt() ? "" : " · Póstsending ekki stillt - \"Senda póst\" opnar þá póstforritið.");
+    (postStillt() ? "" : " · Póstsending ekki stillt (Stillingar → Áminningar) - \"Senda póst\" opnar þá póstforritið.");
 
   const aminningar = hladaAminningar();
   ytaVidValinId = aminningar[Math.floor(Math.random() * aminningar.length)].id;
@@ -763,9 +766,37 @@ const emailjsTemplate = document.getElementById("emailjsTemplate");
 const emailjsKey = document.getElementById("emailjsKey");
 const vistaPostBtn = document.getElementById("vistaPostBtn");
 const profaPostBtn = document.getElementById("profaPostBtn");
+const skriptaUrl = document.getElementById("skriptaUrl");
+const skriptaLykilord = document.getElementById("skriptaLykilord");
+const vistaSkriptuBtn = document.getElementById("vistaSkriptuBtn");
+const afritaKodaBtn = document.getElementById("afritaKodaBtn");
+const appsScriptKodiEl = document.getElementById("appsScriptKodi");
 const postStada = document.getElementById("postStada");
 const aminningaListi = document.getElementById("aminningaListi");
 
+appsScriptKodiEl.textContent = APPS_SCRIPT_KODI;
+afritaKodaBtn.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(APPS_SCRIPT_KODI);
+    afritaKodaBtn.textContent = "Afritað ✓";
+  } catch {
+    const r = document.createRange();
+    r.selectNodeContents(appsScriptKodiEl);
+    getSelection().removeAllRanges();
+    getSelection().addRange(r);
+    afritaKodaBtn.textContent = "Valið - ýttu á Ctrl/Cmd+C";
+  }
+  setTimeout(() => (afritaKodaBtn.textContent = "Afrita kóða"), 2500);
+});
+{
+  const sk = lesaSkriptuStillingar();
+  skriptaUrl.value = sk.url;
+  skriptaLykilord.value = sk.lykilord;
+}
+vistaSkriptuBtn.addEventListener("click", () => {
+  vistaSkriptuStillingar({ url: skriptaUrl.value, lykilord: skriptaLykilord.value });
+  postStada.textContent = postStillt() ? "Vistað - póstsending er stillt í þessum vafra." : "Vistað, en bæði URL og lykilorð þurfa að vera til staðar.";
+});
 {
   const st = lesaPostStillingar();
   emailjsService.value = st.service;
@@ -780,7 +811,7 @@ vistaPostBtn.addEventListener("click", () => {
 
 profaPostBtn.addEventListener("click", async () => {
   if (!postStillt()) {
-    postStada.textContent = "Fylltu út og vistaðu Service ID, Template ID og Public Key fyrst.";
+    postStada.textContent = "Fylltu út og vistaðu Web app URL og lykilorð fyrst.";
     return;
   }
   const aminningar = hladaAminningar();
@@ -818,7 +849,7 @@ function byggjaAminningaLista() {
     texti.value = a.texti;
     texti.setAttribute("aria-label", "Texti");
     const hjalp = document.createElement("small");
-    hjalp.textContent = "Má nota {nafn}, {dagar} (3 dagar) og {dogum} (fyrir 3 dögum).";
+    hjalp.textContent = "Má nota {nafn}, {dagar} (3 dagar), {dogum} (fyrir 3 dögum) og {okominn} (ókominn/ókomin eftir kyni).";
     const takkar = document.createElement("div");
     takkar.style.cssText = "display:flex;gap:8px;";
     const vista = document.createElement("button");

@@ -58,6 +58,7 @@ export const AMINNINGAR = [
 ];
 
 const YFIRSKRIFT_LYKILL = "gettuBetur_aminningarYfirskrift";
+const SKRIPTU_LYKLAR = { url: "gettuBetur_appsScriptUrl", lykilord: "gettuBetur_appsScriptLykilord" };
 const POST_LYKLAR = { service: "gettuBetur_emailjsService", template: "gettuBetur_emailjsTemplate", key: "gettuBetur_emailjsKey" };
 
 function lesaYfirskrift() {
@@ -101,10 +102,56 @@ export function vistaPostStillingar({ service, template, key }) {
   }
 }
 
-export function postStillt() {
+// Google Apps Script vefforrit sem sendir póstinn úr Gmail kennarans (mælt með).
+export function lesaSkriptuStillingar() {
+  return { url: localStorage.getItem(SKRIPTU_LYKLAR.url) || "", lykilord: localStorage.getItem(SKRIPTU_LYKLAR.lykilord) || "" };
+}
+
+export function vistaSkriptuStillingar({ url, lykilord }) {
+  for (const [k, v] of [["url", url], ["lykilord", lykilord]]) {
+    if (v) localStorage.setItem(SKRIPTU_LYKLAR[k], v.trim());
+    else localStorage.removeItem(SKRIPTU_LYKLAR[k]);
+  }
+}
+
+export function skriptaStillt() {
+  const s = lesaSkriptuStillingar();
+  return !!(s.url && s.lykilord);
+}
+
+export function emailjsStillt() {
   const s = lesaPostStillingar();
   return !!(s.service && s.template && s.key);
 }
+
+export function postStillt() {
+  return skriptaStillt() || emailjsStillt();
+}
+
+// Kóðinn sem kennarinn límir í Google Apps Script (sjá Stillingar → Áminningar).
+export const APPS_SCRIPT_KODI = `// Gettu Betur - sendir áminningarpósta úr þínum Gmail.
+const LYKILORD = 'BREYTTU-MER'; // sama lykilorð og í Stillingar á stjórnborðinu
+
+function doPost(e) {
+  try {
+    const gogn = JSON.parse(e.postData.contents);
+    if (gogn.lykilord !== LYKILORD) return svar({ ok: false, villa: 'Rangt lykilorð' });
+    let html = gogn.html;
+    const myndir = {};
+    if (gogn.mynd) {
+      myndir.aminning = UrlFetchApp.fetch(gogn.mynd).getBlob().setName('aminning.png');
+      html = html.split(gogn.mynd).join('cid:aminning');
+    }
+    GmailApp.sendEmail(gogn.til, gogn.efni, gogn.texti, { htmlBody: html, inlineImages: myndir, name: 'Gettu Betur' });
+    return svar({ ok: true });
+  } catch (villa) {
+    return svar({ ok: false, villa: String(villa) });
+  }
+}
+
+function svar(o) {
+  return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}`;
 
 export function fyrstaNafn(nafn) {
   return (nafn || "").trim().split(/\s+/)[0] || "";
@@ -172,9 +219,32 @@ export function mailtoSlod(til, aminning, ctx) {
 
 // Sendir póst um EmailJS. Kastar villu ef það er ekki stillt eða sendingin mistekst.
 export async function sendaPost({ til, nafn, aminning, dagar, kyn }) {
-  const s = lesaPostStillingar();
   if (!postStillt()) throw new Error("Póstsending er ekki stillt (sjá Stillingar → Áminningar).");
   const ctx = { nafn, dagar, kyn };
+  if (skriptaStillt()) {
+    const sk = lesaSkriptuStillingar();
+    let svar;
+    try {
+      svar = await fetch(sk.url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          lykilord: sk.lykilord,
+          til,
+          efni: fyllaInn(aminning.titill, ctx),
+          html: byggjaPostHtml(aminning, ctx),
+          texti: byggjaPostTexta(aminning, ctx),
+          mynd: myndaSlod(aminning)
+        })
+      });
+    } catch (villa) {
+      throw new Error("Náði ekki sambandi við Apps Script (athugaðu slóðina). Gæti samt hafa sendst - kíktu í Sent í Gmail.");
+    }
+    const j = await svar.json().catch(() => null);
+    if (!j || !j.ok) throw new Error(j?.villa || "Apps Script svaraði ekki rétt.");
+    return;
+  }
+  const s = lesaPostStillingar();
   const svar = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

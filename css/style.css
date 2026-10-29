@@ -1891,3 +1891,15 @@ th.radanlegt:hover {
   color: var(--litur-daufur);
   font-size: 0.85rem;
 }
+
+.kodi-kassi {
+  background: #161616;
+  color: #d7ff3e;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre;
+  margin: 8px 0;
+}

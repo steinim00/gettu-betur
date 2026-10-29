@@ -100,21 +100,38 @@
         <h2>Áminningar (ýta við nemendum)</h2>
       </div>
       <p class="undirtitill-vinstri">
-        Í „Notendur → Liðið“ geturðu ýtt við nemanda sem er orðinn óvirkur og þá fer póstur með
-        einni af áminningunum hér fyrir neðan. Til að pósturinn <strong>sendist beint úr stjórnborðinu</strong>
-        þarf ókeypis aðgang hjá <a class="tengill" href="https://www.emailjs.com" target="_blank" rel="noopener">EmailJS</a>:
-        tengdu póstþjónustu (t.d. Gmail), búðu til sniðmát (<em>template</em>) með <code>To: {{to_email}}</code>,
-        <code>Subject: {{subject}}</code> og innihald <code>{{{message_html}}}</code> (þrjár slaufur), og settu
-        Service ID, Template ID og Public Key hér. Stillingarnar eru eingöngu geymdar í þessum vafra.
-        Án þeirra opnast póstforritið þitt með tilbúnum texta í staðinn.
+        Í „Notendur“ geturðu ýtt við nemanda sem er orðinn óvirkur og þá fer póstur með einni af
+        áminningunum hér fyrir neðan, <strong>sendur beint úr þínu eigin Gmail</strong> með myndinni
+        innbyggðri. Til þess þarf lítið Google-forrit (<em>Apps Script</em>) - ókeypis, engin önnur
+        þjónusta, og sett upp einu sinni (um 5 mínútur):
       </p>
+      <ol class="undirtitill-vinstri" style="padding-left:20px;">
+        <li>Farðu á <a class="tengill" href="https://script.google.com" target="_blank" rel="noopener">script.google.com</a> → <em>Nýtt verkefni</em>. Eyddu kóðanum sem er þar og límdu kóðann hér fyrir neðan. Breyttu <code>BREYTTU-MER</code> í þitt eigið lykilorð.</li>
+        <li><em>Deploy</em> → <em>New deployment</em> → tegund <em>Web app</em>. <em>Execute as:</em> Me, <em>Who has access:</em> Anyone → <em>Deploy</em>. Samþykktu heimildirnar (Gmail og ytri tengingar).</li>
+        <li>Afritaðu <em>Web app URL</em> (endar á <code>/exec</code>) og settu það hér að neðan ásamt sama lykilorði. Ýttu á „Senda prufupóst á mig“.</li>
+      </ol>
+      <pre id="appsScriptKodi" class="kodi-kassi"></pre>
+      <div style="margin-bottom:12px;"><button type="button" class="smabtn" id="afritaKodaBtn">Afrita kóða</button></div>
       <div class="innflutnings-form">
-        <input type="text" id="emailjsService" placeholder="Service ID (service_...)">
-        <input type="text" id="emailjsTemplate" placeholder="Template ID (template_...)">
-        <input type="text" id="emailjsKey" placeholder="Public Key">
-        <button type="button" class="smabtn" id="vistaPostBtn">Vista</button>
+        <input type="text" id="skriptaUrl" placeholder="Web app URL (https://script.google.com/macros/s/.../exec)">
+        <input type="password" id="skriptaLykilord" placeholder="Lykilorð (sama og í kóðanum)">
+        <button type="button" class="smabtn" id="vistaSkriptuBtn">Vista</button>
         <button type="button" class="smabtn" id="profaPostBtn">Senda prufupóst á mig</button>
       </div>
+      <details style="margin:12px 0;">
+        <summary class="undirtitill-vinstri" style="cursor:pointer;">Annar valkostur: EmailJS</summary>
+        <p class="undirtitill-vinstri">
+          Ef þú vilt frekar nota <a class="tengill" href="https://www.emailjs.com" target="_blank" rel="noopener">EmailJS</a>:
+          búðu til sniðmát (<em>template</em>) með <code>To: {{to_email}}</code>, <code>Subject: {{subject}}</code> og innihald
+          <code>{{{message_html}}}</code> (þrjár slaufur) og settu auðkennin hér. Apps Script hér að ofan gengur fyrir ef bæði eru stillt.
+        </p>
+        <div class="innflutnings-form">
+          <input type="text" id="emailjsService" placeholder="Service ID (service_...)">
+          <input type="text" id="emailjsTemplate" placeholder="Template ID (template_...)">
+          <input type="text" id="emailjsKey" placeholder="Public Key">
+          <button type="button" class="smabtn" id="vistaPostBtn">Vista</button>
+        </div>
+      </details>
       <p id="postStada"></p>
       <div id="aminningaListi" class="aminninga-net"></div>
     </div>
