@@ -977,7 +977,7 @@ function birtaNotendaRadir() {
       nafnTd.appendChild(punktur);
     }
     nafnTd.appendChild(document.createTextNode(skjaskotsSnid ? `Nemandi ${vIndex + 1}` : r.nafn));
-    if (!skjaskotsSnid && r.lid) {
+    if (!skjaskotsSnid) {
       const dagar = dagarSidanVirk(r);
       if (dagar !== null && dagar >= 2) {
         const merki = document.createElement("span");
@@ -1031,7 +1031,7 @@ function birtaNotendaRadir() {
     nanarBtn.className = "smabtn";
     nanarBtn.textContent = "Nánar";
     adgerdTd.appendChild(nanarBtn);
-    if (r.lid) {
+    {
       const ytaBtn = document.createElement("button");
       ytaBtn.type = "button";
       ytaBtn.className = "smabtn yta-vid-btn";
