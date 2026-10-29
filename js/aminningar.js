@@ -174,6 +174,15 @@ function kynsbeygt(ctx, kk, kvk, hvort) {
   return ctx.kyn === "kk" ? kk : ctx.kyn === "kvk" ? kvk : hvort;
 }
 
+// Emoji í efnislínu birtast sem "???" í sumum póstforritum (Apps Script/EmailJS
+// senda þau ekki rétt) - tökum þau úr efnislínunni, þau haldast í sjálfum póstinum.
+export function efnislina(strengur, ctx) {
+  return fyllaInn(strengur, ctx)
+    .replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function fyllaInn(strengur, ctx) {
   return (strengur || "")
     .replaceAll("{okominn}", kynsbeygt(ctx, "ókominn", "ókomin", "ókomin(n)"))
@@ -231,7 +240,7 @@ export async function sendaPost({ til, nafn, aminning, dagar, kyn }) {
         body: JSON.stringify({
           lykilord: sk.lykilord,
           til,
-          efni: fyllaInn(aminning.titill, ctx),
+          efni: efnislina(aminning.titill, ctx),
           html: byggjaPostHtml(aminning, ctx),
           texti: byggjaPostTexta(aminning, ctx),
           mynd: myndaSlod(aminning)
@@ -255,7 +264,7 @@ export async function sendaPost({ til, nafn, aminning, dagar, kyn }) {
       template_params: {
         to_email: til,
         to_name: fyrstaNafn(nafn),
-        subject: fyllaInn(aminning.titill, ctx),
+        subject: efnislina(aminning.titill, ctx),
         message_html: byggjaPostHtml(aminning, ctx),
         message_text: byggjaPostTexta(aminning, ctx)
       }
