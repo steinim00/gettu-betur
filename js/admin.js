@@ -40,6 +40,7 @@ import {
 } from "./aminningar.js";
 
 let adminNetfang = ""; // netfang innskráða admin (prufupóstar)
+let adminUid = "";
 const notandaNafn = document.getElementById("notandaNafn");
 const yfirlitVerkefni = document.getElementById("yfirlitVerkefni");
 const yfirlitSpurningar = document.getElementById("yfirlitSpurningar");
@@ -150,6 +151,8 @@ vistaAnthropicTeiknBtn.addEventListener("click", () => {
 vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
   notandaNafn.textContent = gogn.nafn || user.email;
   adminNetfang = user.email;
+  adminUid = user.uid;
+  saekjaPostStillingarUrGagnagrunni();
   hladaAllt();
 
   // Endurhleður allt á 5 mín fresti í stað 30 sek - stjórnborðið gerir fulla
@@ -746,7 +749,7 @@ ytaVidSendaBtn.addEventListener("click", async () => {
     if (!confirm(`${r.nafn} fékk áminningu fyrir minna en 12 tímum síðan. Senda aftur?`)) return;
   }
   if (!postStillt()) {
-    ytaVidStada.textContent = "Póstsending er ekki stillt - opna póstforritið í staðinn…";
+    ytaVidStada.textContent = "Póstsending er ekki stillt í þessum vafra (Stillingar → Áminningar) - opna póstforritið í staðinn…";
     skraYttVid(r).catch((v) => console.error(v));
     window.location.href = ytaVidMailtoTengill.href;
     return;
@@ -797,8 +800,32 @@ afritaKodaBtn.addEventListener("click", async () => {
   skriptaUrl.value = sk.url;
   skriptaLykilord.value = sk.lykilord;
 }
+// Póststillingarnar eru líka geymdar á notandaskjali admin (users/{uid}.postStillingar,
+// aðeins hann sjálfur má lesa það) svo þær týnist ekki þegar vafragögnum er eytt
+// eða stjórnborðið er opnað í öðrum vafra/tæki.
+async function saekjaPostStillingarUrGagnagrunni() {
+  try {
+    const snap = await getDoc(doc(db, "users", adminUid));
+    const st = snap.data()?.postStillingar;
+    if (!st?.url || !st?.lykilord) return;
+    const nuna = lesaSkriptuStillingar();
+    if (nuna.url && nuna.lykilord) return; // vafrinn er þegar stilltur
+    vistaSkriptuStillingar({ url: st.url, lykilord: st.lykilord });
+    skriptaUrl.value = st.url;
+    skriptaLykilord.value = st.lykilord;
+    postStada.textContent = "Póststillingar sóttar úr gagnagrunninum (vistaðar áður).";
+  } catch (villa) {
+    console.error(villa);
+  }
+}
+
 vistaSkriptuBtn.addEventListener("click", () => {
   vistaSkriptuStillingar({ url: skriptaUrl.value, lykilord: skriptaLykilord.value });
+  if (adminUid) {
+    updateDoc(doc(db, "users", adminUid), {
+      postStillingar: { url: skriptaUrl.value.trim(), lykilord: skriptaLykilord.value.trim() }
+    }).catch((villa) => console.error(villa));
+  }
   postStada.textContent = postStillt() ? "Vistað - póstsending er stillt í þessum vafra." : "Vistað, en bæði URL og lykilorð þurfa að vera til staðar.";
 });
 {
