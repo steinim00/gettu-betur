@@ -1550,6 +1550,31 @@ async function gefaSvariRett(rad) {
 // Setur margar aðgerðir saman í einn "..." hnapp með fellivalmynd í stað
 // þess að hrúga mörgum hnöppum í sama Aðgerð-reitinn. adgerdir: [{texti,
 // smella}]. Aðeins ein valmynd er opin í einu - smellur annars staðar lokar.
+// Valmyndin er "fixed" svo hún skerist ekki af töflunni sem hún er í (síðasta röð /
+// þröng tafla) - sett undir takkann, eða fyrir ofan hann ef ekki er pláss fyrir neðan.
+function stadsetjaValmynd(takki, valmynd) {
+  valmynd.style.position = "fixed";
+  valmynd.style.right = "auto";
+  valmynd.style.maxHeight = `${window.innerHeight - 16}px`;
+  valmynd.style.overflowY = "auto";
+  const t = takki.getBoundingClientRect();
+  const h = valmynd.offsetHeight;
+  const b = valmynd.offsetWidth;
+  const plassNedan = window.innerHeight - t.bottom - 8;
+  const top = plassNedan >= h || t.top < h ? Math.min(t.bottom + 4, Math.max(8, window.innerHeight - h - 8)) : t.top - h - 4;
+  valmynd.style.top = `${Math.max(8, top)}px`;
+  valmynd.style.left = `${Math.max(8, Math.min(t.right - b, window.innerWidth - b - 8))}px`;
+}
+window.addEventListener(
+  "scroll",
+  (e) => {
+    if (e.target?.closest?.(".adgerd-valmynd")) return;
+    document.querySelectorAll(".adgerd-valmynd").forEach((v) => (v.hidden = true));
+  },
+  true
+);
+window.addEventListener("resize", () => document.querySelectorAll(".adgerd-valmynd").forEach((v) => (v.hidden = true)));
+
 function byggjaAdgerdaValmynd(adgerdir) {
   const vefja = document.createElement("div");
   vefja.className = "adgerd-valmynd-vefja";
@@ -1581,6 +1606,7 @@ function byggjaAdgerdaValmynd(adgerdir) {
       if (v !== valmynd) v.hidden = true;
     });
     valmynd.hidden = !valmynd.hidden;
+    if (!valmynd.hidden) stadsetjaValmynd(takki, valmynd);
   });
 
   vefja.appendChild(takki);

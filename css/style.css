@@ -731,6 +731,11 @@ td .smabtn + .smabtn {
   margin-bottom: 14px;
 }
 
+/* "display: flex" að ofan yfirtekur annars [hidden] (t.d. "Veldu notendur" spjaldið) */
+.innflutnings-form[hidden] {
+  display: none;
+}
+
 .innflutnings-form input[type="file"] {
   flex: 1;
   padding: 10px;
@@ -1512,7 +1517,7 @@ th.radanlegt:hover {
   flex-direction: column;
   gap: 2px;
   min-width: 180px;
-  z-index: 20;
+  z-index: 200;
 }
 
 /* Sama sérhæfni og ".adgerd-valmynd" ein og sér (0,0,1,0), en kemur á eftir
