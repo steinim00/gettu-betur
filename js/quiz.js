@@ -404,9 +404,25 @@ function hefjaTimamaelingu() {
   }
 }
 
+// Skjátími telst bara á meðan notandinn gerir eitthvað (smellur, snerting,
+// áslátt, skrun, músarhreyfing) - opinn en ónotaður flipi telur ekki með,
+// annars sýnist notandi "virkur" þó enginn sé við tölvuna.
+const OVIRKUR_EFTIR_MS = 30000;
+let sidastaSnerting = Date.now();
+let hreyfingSidanVistun = true;
+function skraSnertingu() {
+  sidastaSnerting = Date.now();
+  hreyfingSidanVistun = true;
+}
+["click", "touchstart", "keydown", "scroll", "mousemove"].forEach((heiti) => {
+  window.addEventListener(heiti, skraSnertingu, { passive: true });
+});
+
 function stodvaTimamaelingu() {
   if (virkTimamaeling) {
-    ovistadurSkjatimi += (Date.now() - virkTimamaeling) / 1000;
+    const nuna = Date.now();
+    const lok = Math.min(nuna, sidastaSnerting + OVIRKUR_EFTIR_MS);
+    ovistadurSkjatimi += Math.max(0, lok - virkTimamaeling) / 1000;
     virkTimamaeling = null;
   }
 }
@@ -492,11 +508,12 @@ function vistaSkjatima() {
   }
   const sekundur = Math.round(ovistadurSkjatimi);
   ovistadurSkjatimi = 0;
-  // lastActive fylgir alltaf með hér, sama skrif og skjátíminn - óháð því
-  // hvort einhver sekúnda safnaðist upp (t.d. strax eftir að flipinn var
-  // opnaður), svo þetta nái líka tilvikum sem skraVirkni ein og sér myndi
-  // missa af.
-  const breytingar = { lastActive: serverTimestamp() };
+  // lastActive fylgir með hér, sama skrif og skjátíminn - en aðeins ef
+  // notandinn gerði eitthvað frá síðustu vistun (opinn, ónotaður flipi er ekki
+  // "virkur").
+  const breytingar = {};
+  if (hreyfingSidanVistun || sekundur >= 1) breytingar.lastActive = serverTimestamp();
+  hreyfingSidanVistun = false;
   if (sekundur >= 1) {
     breytingar.screenTimeSeconds = increment(sekundur);
     Object.assign(breytingar, virkniReitur(sekundur));
@@ -504,6 +521,10 @@ function vistaSkjatima() {
   const heatmapPakki = bidHeatmap;
   bidHeatmap = {};
   for (const [slod, fjoldi] of Object.entries(heatmapPakki)) breytingar[slod] = increment(fjoldi);
+  if (Object.keys(breytingar).length === 0) {
+    hefjaTimamaelingu();
+    return;
+  }
   updateDoc(doc(db, "users", notandi.uid), breytingar).catch((villa) => {
     console.error(villa);
     ovistadurSkjatimi += sekundur;
