@@ -401,6 +401,10 @@ button.aðal-hnappur:active {
   margin-bottom: 20px;
 }
 
+.siduflettingar[hidden] {
+  display: none;
+}
+
 .siduflettingar {
   display: flex;
   align-items: center;
@@ -1385,6 +1389,22 @@ td .smabtn + .smabtn {
     white-space: nowrap;
   }
 
+  /* Nafnið, merkið og 3 hnappar komast ekki fyrir á mjóum skjá - nafnið er
+     sleppt þar svo síðan verði ekki breiðari en skjárinn. */
+  header.sida-haus .notandi-svaedi #notandaNafn {
+    display: none;
+  }
+
+  header.sida-haus {
+    flex-wrap: wrap;
+  }
+
+  .notandi-svaedi {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
   .notandi-svaedi .smabtn {
     white-space: nowrap;
     padding: 6px 10px;
@@ -2021,4 +2041,44 @@ tr.smellanleg-rod:hover td {
     box-shadow: var(--skuggi);
     white-space: normal;
   }
+}
+
+/* Ein spurning í einu */
+.ein-framvinda {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--litur-daufur);
+}
+
+.ein-stika {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--litur-jadar);
+  overflow: hidden;
+}
+
+.ein-stika > div {
+  height: 100%;
+  background: var(--litur-lime);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.ein-naesta {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.endurtekning-merki {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--litur-lime-deild);
+  color: var(--litur-texti);
+  font-size: 0.85rem;
+  font-weight: 600;
 }

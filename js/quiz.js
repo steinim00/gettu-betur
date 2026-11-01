@@ -1427,8 +1427,12 @@ async function hladaVerkefnaListi() {
     }
   });
 
-  if (fjoldiGlaeruverkefna === 0) {
-    verkefnaListi.innerHTML = "<p>Engin verkefni með glærum eru virk eins og er.</p>";
+  // Engin glæruverkefni: fela "Verkefni" dálkinn ef Hraðaspurningar eru til
+  // (annars lítur út eins og eitthvað vanti), annars segja að ekkert sé virkt.
+  const adalDalkur = verkefnaListi.closest(".verkefna-adal");
+  if (adalDalkur) adalDalkur.hidden = fjoldiGlaeruverkefna === 0 && fjoldiHradaspurninga > 0;
+  if (fjoldiGlaeruverkefna === 0 && fjoldiHradaspurninga === 0) {
+    verkefnaListi.innerHTML = "<p>Engin verkefni eru virk eins og er.</p>";
   }
   hradaspurningarSvaedi.hidden = fjoldiHradaspurninga === 0;
 }
@@ -1647,6 +1651,13 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
     allarSpurningaskjol.sort((a, b) => svaradIdSett.has(a.id) - svaradIdSett.has(b.id));
   }
 
+  // Nemendur fá eina spurningu í einu (sjá birtaEinaSpurningu).
+  if (einnHamur()) {
+    await hladaEndurtokuStodu();
+    birtaEinaSpurningu();
+    return;
+  }
+
   // Verkefni opnast beint á fyrstu spurningunni sem
   // notandinn á eftir að svara - síðan sem hún er á og skrunað að henni.
   let hoppaIndex = -1;
@@ -1723,7 +1734,7 @@ function stokkaSpurningar() {
     [allarSpurningaskjol[i], allarSpurningaskjol[j]] = [allarSpurningaskjol[j], allarSpurningaskjol[i]];
   }
   spurningaSida = 0;
-  synaSpurningaSidu();
+  birtaSpurningar();
 }
 stokkaSpurningarBtn.addEventListener("click", stokkaSpurningar);
 
@@ -1774,6 +1785,7 @@ async function keyraByrjaVerkefniAftur() {
   let rettBreyting = 0;
 
   const batch = writeBatch(db);
+  const endurtokuBreytingar = {};
   for (const attemptDoc of tilEydingar) {
     const svar = attemptDoc.data().svar;
     const stada = breytingFyrir(verkefniEftirSpurningu.get(attemptDoc.id) || valdVerkefniId);
@@ -1791,9 +1803,12 @@ async function keyraByrjaVerkefniAftur() {
       }
     }
     batch.delete(attemptDoc.ref);
+    endurtokuBreytingar[`endurtaka.${attemptDoc.id}`] = deleteField();
+    endurtaka.delete(attemptDoc.id);
   }
 
   const breytingar = {
+    ...endurtokuBreytingar,
     fjoldiSvarad: increment(svaradBreyting),
     // Telur hversu oft notandinn byrjar verkefni aftur (sést í stjórnborðinu).
     fjoldiByrjadAftur: increment(1),
@@ -1813,14 +1828,199 @@ async function keyraByrjaVerkefniAftur() {
 
   svaradIdSett.clear();
   spurningaSida = 0;
-  synaSpurningaSidu();
+  birtaSpurningar();
   hladaMinumStodum();
 }
 byrjaAfturBtn.addEventListener("click", byrjaVerkefniAftur);
 
-function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
+// --- Ein spurning í einu (nemendur) ---
+// Nemandi sér eina spurningu í einu með framvindustiku; eftir svar kemur
+// "Næsta" takki (Enter virkar líka) og fókusinn fer á svarreitinn í næstu
+// spurningu. Rangt svar er sýnt strax með réttu svari og spurningin kemur aftur
+// 15-20 spurningum seinna (endurtaka, geymt á users/{uid}.endurtaka). Ef hún er
+// þá svöruð rétt kemur nýtt svar í stað þess ranga og hún telst rétt.
+const ENDURTAKA_LAGMARK = 15;
+const ENDURTAKA_HAMARK = 20;
+let endurtaka = new Map(); // spurningaID -> "fjoldiSvarad" þegar hún á að koma aftur
+let svaradTalning = 0; // fjöldi svarða spurninga hjá notandanum (users/{uid}.fjoldiSvarad)
+
+function einnHamur() {
+  return (
+    !!notandi &&
+    !erAdminNotandi &&
+    valdVerkefniId !== null &&
+    !valdHverErFlokkur &&
+    spurningaBunkastaerd !== SPURNINGAR_A_SIDU_PROF_SKRAD
+  );
+}
+
+function birtaSpurningar() {
+  if (einnHamur()) birtaEinaSpurningu();
+  else synaSpurningaSidu();
+}
+
+async function hladaEndurtokuStodu() {
+  try {
+    const gogn = (await getDoc(doc(db, "users", notandi.uid))).data() || {};
+    svaradTalning = gogn.fjoldiSvarad || 0;
+    endurtaka = new Map(Object.entries(gogn.endurtaka || {}));
+  } catch (villa) {
+    console.error(villa);
+    svaradTalning = 0;
+    endurtaka = new Map();
+  }
+}
+
+function naestiEndurtekningardagur() {
+  return svaradTalning + ENDURTAKA_LAGMARK + Math.floor(Math.random() * (ENDURTAKA_HAMARK - ENDURTAKA_LAGMARK + 1));
+}
+
+function skraEndurtekningu(questionId) {
+  const dagur = naestiEndurtekningardagur();
+  endurtaka.set(questionId, dagur);
+  updateDoc(doc(db, "users", notandi.uid), { [`endurtaka.${questionId}`]: dagur }).catch((villa) => console.error(villa));
+}
+
+function afskraEndurtekningu(questionId) {
+  if (!endurtaka.has(questionId)) return;
+  endurtaka.delete(questionId);
+  updateDoc(doc(db, "users", notandi.uid), { [`endurtaka.${questionId}`]: deleteField() }).catch((villa) => console.error(villa));
+}
+
+// Næsta spurning: fyrst endurtekin spurning sem er komin á tíma, annars fyrsta
+// ósvaraða. Þegar engin er ósvöruð eru endurtekningar sýndar þó þær séu ekki
+// komnar á tíma.
+function veljaNaestuSpurningu() {
+  const iBodi = allarSpurningaskjol
+    .filter((d) => svaradIdSett.has(d.id) && endurtaka.has(d.id))
+    .sort((a, b) => endurtaka.get(a.id) - endurtaka.get(b.id));
+  const komin = iBodi.find((d) => endurtaka.get(d.id) <= svaradTalning);
+  if (komin) return { qDoc: komin, endurtekning: true };
+  const osvarad = allarSpurningaskjol.find((d) => !svaradIdSett.has(d.id));
+  if (osvarad) return { qDoc: osvarad, endurtekning: false };
+  if (iBodi.length > 0) return { qDoc: iBodi[0], endurtekning: true };
+  return null;
+}
+
+function birtaEinaSpurningu(fokus = false) {
+  siduflettingarEfri.hidden = true;
+  siduflettingar.hidden = true;
+  spurningaListi.innerHTML = "";
+
+  const svaradAlls = allarSpurningaskjol.filter((d) => svaradIdSett.has(d.id)).length;
+  const heild = allarSpurningaskjol.length;
+
+  const framvinda = document.createElement("div");
+  framvinda.className = "ein-framvinda";
+  const framvindaTexti = document.createElement("span");
+  framvindaTexti.textContent = `Svarað ${svaradAlls} af ${heild}`;
+  const stika = document.createElement("div");
+  stika.className = "ein-stika";
+  const stikaFyllt = document.createElement("div");
+  stikaFyllt.style.width = `${heild ? Math.round((svaradAlls / heild) * 100) : 0}%`;
+  stika.appendChild(stikaFyllt);
+  framvinda.append(framvindaTexti, stika);
+  spurningaListi.appendChild(framvinda);
+
+  const naest = veljaNaestuSpurningu();
+  if (!naest) {
+    const lok = document.createElement("div");
+    lok.className = "spurning-kort";
+    lok.innerHTML = "<h3>Þú hefur svarað öllum spurningunum hér 🎉</h3><p>Þú getur stokkað eða byrjað verkefnið aftur hér fyrir ofan.</p>";
+    spurningaListi.appendChild(lok);
+    return;
+  }
+
+  const { qDoc, endurtekning } = naest;
+  const spurning = qDoc.data();
+  const naestaBtn = document.createElement("button");
+  naestaBtn.type = "button";
+  naestaBtn.className = "aðal-hnappur ein-naesta";
+  naestaBtn.textContent = "Næsta →";
+  naestaBtn.hidden = true;
+  naestaBtn.addEventListener("click", () => birtaEinaSpurningu(true));
+
+  const klaradi = () => {
+    naestaBtn.hidden = false;
+    naestaBtn.focus({ preventScroll: true });
+    naestaBtn.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
+
+  const korti = byggjaSpurningaKort(qDoc.id, spurning, false, {
+    einn: true,
+    endurtekning,
+    eftirLokid: klaradi,
+    eftirSvar: (nidurstodur) => {
+      svaradTalning++;
+      const nyttSvarad = allarSpurningaskjol.filter((d) => svaradIdSett.has(d.id)).length;
+      framvindaTexti.textContent = `Svarað ${nyttSvarad} af ${heild}`;
+      stikaFyllt.style.width = `${heild ? Math.round((nyttSvarad / heild) * 100) : 0}%`;
+      if (nidurstodur && !nidurstodur.pass && !nidurstodur.rett) skraEndurtekningu(qDoc.id);
+      else afskraEndurtekningu(qDoc.id);
+      klaradi();
+    }
+  });
+  spurningaListi.appendChild(korti);
+  spurningaListi.appendChild(naestaBtn);
+
+  if (fokus) {
+    const reitur = korti.querySelector(".svar-form input");
+    if (reitur) reitur.focus({ preventScroll: true });
+    korti.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+// Endurtekin spurning: svarið skráist ekki sem nýtt svar nema það sé rétt - þá
+// kemur það í stað ranga svarsins (attempts eru óbreytanlegar svo því gamla er
+// eytt og nýtt skráð) og telst rétt í samtölunum.
+async function svaraEndurtekningu(questionId, hraSvar, form, nidurstada, spurning, valkostir) {
+  const svar = hraSvar === SLEPPT_MERKI ? SLEPPT_MERKI : samraema(hraSvar);
+  if (!svar) return;
+  form.querySelector("input").disabled = true;
+  form.querySelectorAll("button").forEach((b) => (b.disabled = true));
+
+  const svarSnap = await getDoc(doc(db, "answers", questionId));
+  const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
+  const rett = svar !== SLEPPT_MERKI && erSvarRett(svar, rettSvor);
+
+  if (rett) {
+    try {
+      const attemptRef = doc(db, "users", notandi.uid, "attempts", questionId);
+      await deleteDoc(attemptRef);
+      await setDoc(attemptRef, { svar, answeredAt: serverTimestamp() });
+      const breytingar = { fjoldiRett: increment(1), [`endurtaka.${questionId}`]: deleteField() };
+      if (spurning?.verkefniId) breytingar[`verkefnaStada.${spurning.verkefniId}.rett`] = increment(1);
+      await updateDoc(doc(db, "users", notandi.uid), breytingar);
+      endurtaka.delete(questionId);
+    } catch (villa) {
+      console.error(villa);
+      alert("Tókst ekki að skrá svarið. Reyndu aftur.");
+      form.querySelector("input").disabled = false;
+      form.querySelectorAll("button").forEach((b) => (b.disabled = false));
+      return;
+    }
+    nidurstada.textContent = "Rétt núna! 🎉 Þetta telst nú rétt.";
+    nidurstada.classList.add("rett");
+  } else {
+    nidurstada.textContent = `Rangt aftur. Rétt svar: ${rettSvor[0] ?? "—"} - hún kemur aftur seinna.`;
+    nidurstada.classList.add("rangt");
+    skraEndurtekningu(questionId);
+  }
+  birtaSpurningamynd(form.closest(".spurning-kort"), spurning);
+  hladaMinumStodum();
+  valkostir.eftirLokid?.();
+}
+
+function byggjaSpurningaKort(questionId, spurning, buidSvarad, valkostir = {}) {
   const korti = document.createElement("article");
   korti.className = "spurning-kort" + (buidSvarad ? " svarad" : "");
+
+  if (valkostir.endurtekning) {
+    const merki = document.createElement("p");
+    merki.className = "endurtekning-merki";
+    merki.textContent = "🔁 Endurtekin spurning - svaraðu núna rétt og hún telst rétt";
+    korti.appendChild(merki);
+  }
 
   const titill = document.createElement("h3");
   titill.textContent = spurning.text;
@@ -1873,13 +2073,24 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad) {
   aefingaSvaedi.hidden = true;
   korti.appendChild(aefingaSvaedi);
 
+  // Ein spurning í einu: engin "reyndu aftur" æfing (svarið er sýnt strax og
+  // spurningin kemur aftur eftir nokkrar spurningar, sjá endurtaka).
+  const aefing = valkostir.einn ? null : aefingaSvaedi;
+  const sendaSvar = (svarTexti) => {
+    if (valkostir.endurtekning) {
+      svaraEndurtekningu(questionId, svarTexti, form, nidurstada, spurning, valkostir);
+    } else {
+      svaraSpurningu(questionId, svarTexti, korti, form, nidurstada, aefing, spurning, valkostir);
+    }
+  };
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    svaraSpurningu(questionId, innslattur.value, korti, form, nidurstada, aefingaSvaedi, spurning);
+    sendaSvar(innslattur.value);
   });
 
   sleppaBtn.addEventListener("click", () => {
-    svaraSpurningu(questionId, SLEPPT_MERKI, korti, form, nidurstada, aefingaSvaedi, spurning);
+    sendaSvar(SLEPPT_MERKI);
   });
 
   if (buidSvarad) {
@@ -1950,7 +2161,7 @@ function birtaAeftinguEftirRangt(svaedi, rettSvor) {
   svaedi.appendChild(aefingaNidurstada);
 }
 
-async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada, aefingaSvaedi, spurning) {
+async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada, aefingaSvaedi, spurning, valkostir = {}) {
   const svar = hraSvar === SLEPPT_MERKI ? SLEPPT_MERKI : samraema(hraSvar);
   if (!svar) return;
 
@@ -1982,6 +2193,7 @@ async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada, aefi
   const nidurstodur = await synaNidurstodu(questionId, korti, nidurstada, svar, aefingaSvaedi, spurning);
   uppfaeraSamtoluStodu(spurning?.verkefniId, nidurstodur);
   hladaMinumStodum();
+  if (valkostir.eftirSvar) valkostir.eftirSvar(nidurstodur);
 }
 
 // Heldur fjoldiSvarad/fjoldiRett/fjoldiPass/verkefnaStada/sidastSvaradAt á
