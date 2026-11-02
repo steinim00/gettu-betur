@@ -2698,3 +2698,45 @@ body.beta #glosurSvaedi > .hluti-titill {
   width: auto;
   display: block;
 }
+
+/* Spotify / Apple Podcasts hlekkir á hlaðvarpsspjöldum */
+.ahugavert-veitur {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ahugavert-veita {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.ahugavert-veita:hover {
+  border-color: var(--akent);
+  background: var(--akent-bak);
+}
+
+.ahugavert-veita svg {
+  height: 18px;
+  width: auto;
+  display: block;
+}
+
+.ahugavert-texti .ahugavert-veita span {
+  color: inherit;
+  font-size: inherit;
+  line-height: 1;
+}

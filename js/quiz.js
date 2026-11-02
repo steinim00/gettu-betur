@@ -754,6 +754,7 @@ const AHUGAVERT_FLOKKAR = {
 const AHUGAVERT_LOGO = {
   ruv: '<img src="images/ahugavert/ruv-logo.png" alt="RÚV">',
   youtube: '<svg viewBox="0 0 36 26" role="img" aria-label="YouTube"><rect width="36" height="26" rx="7" fill="#ff0000"/><path d="M14.5 7.5l9 5.5-9 5.5z" fill="#fff"/></svg>',
+  apple: '<svg viewBox="0 0 26 26" role="img" aria-label="Apple Podcasts"><defs><linearGradient id="apGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f452ff"/><stop offset="1" stop-color="#832bc1"/></linearGradient></defs><rect width="26" height="26" rx="6" fill="url(#apGrad)"/><g fill="none" stroke="#fff" stroke-linecap="round" stroke-width="1.7"><path d="M8.2 15.6a5.6 5.6 0 1 1 9.6 0"/><path d="M5.6 17.2a8.6 8.6 0 1 1 14.8 0"/></g><circle cx="13" cy="11.2" r="2.1" fill="#fff"/><path d="M13 14.2c-1.5 0-2.2 1-2 2.3l.5 3.5c.1.8.7 1.4 1.5 1.4s1.4-.6 1.5-1.4l.5-3.5c.2-1.3-.5-2.3-2-2.3z" fill="#fff"/></svg>',
   spotify: '<svg viewBox="0 0 26 26" role="img" aria-label="Spotify"><circle cx="13" cy="13" r="13" fill="#1db954"/><g fill="none" stroke="#161616" stroke-linecap="round"><path d="M6 9.2c4.4-1.3 9.8-.9 13.9 1.5" stroke-width="2.1"/><path d="M6.8 13.2c3.7-1.1 8.1-.7 11.5 1.2" stroke-width="1.8"/><path d="M7.6 16.9c3-.8 6.4-.5 9.1 1.1" stroke-width="1.5"/></g></svg>'
 };
 const AHUGAVERT_LITIR = ["graent", "blatt", "appelsinugult"];
@@ -830,7 +831,29 @@ function byggjaAhugavertKort(g, litur) {
   } catch (villa) {
     host.textContent = "Opna";
   }
-  texti.appendChild(host);
+  if (!g.slodApple) texti.appendChild(host);
+
+  // Hlaðvörp sem eru bæði á Spotify og Apple Podcasts: tveir hlekkir, einn fyrir hvora veitu.
+  if (g.slodApple && /^https?:\/\//i.test(g.slodApple)) {
+    const veitur = document.createElement("div");
+    veitur.className = "ahugavert-veitur";
+    [
+      ["spotify", "Spotify", g.slod],
+      ["apple", "Apple", g.slodApple]
+    ].forEach(([lykill, nafn, slod]) => {
+      const a = document.createElement("a");
+      a.className = "ahugavert-veita";
+      a.href = slod;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.innerHTML = `${AHUGAVERT_LOGO[lykill]}<span></span>`;
+      a.querySelector("span").textContent = nafn;
+      a.title = lykill === "apple" ? "Opna í Apple Podcasts" : "Opna á Spotify";
+      a.setAttribute("aria-label", a.title);
+      veitur.appendChild(a);
+    });
+    texti.appendChild(veitur);
+  }
 
   if (g.id && AHUGAVERT_TEK_FLOKKAR.includes(g.flokkur)) {
     const tekBtn = document.createElement("button");

@@ -3403,6 +3403,7 @@ ahugavertForm.addEventListener("submit", async (e) => {
       lysing: document.getElementById("ahugavertLysing").value.trim(),
       flokkur: document.getElementById("ahugavertFlokkur").value.trim() || "Annað",
       takn: document.getElementById("ahugavertTakn").value.trim(),
+      slodApple: document.getElementById("ahugavertApple").value.trim(),
       createdAt: serverTimestamp()
     });
     ahugavertStada.textContent = "Hlekk bætt við.";
