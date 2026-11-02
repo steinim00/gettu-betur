@@ -2689,11 +2689,12 @@ body.beta #glosurSvaedi > .hluti-titill {
   color: var(--litur-rangt);
 }
 
-.mitt-efni-tomt {
-  color: var(--litur-daufur);
-  margin: 0;
-}
-
 .mitt-efni[hidden] {
   display: none;
+}
+
+.ahugavert-logo img {
+  height: 30px;
+  width: auto;
+  display: block;
 }

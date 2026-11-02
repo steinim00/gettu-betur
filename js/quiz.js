@@ -752,7 +752,7 @@ const AHUGAVERT_FLOKKAR = {
 };
 // Lógó flokkanna (innbyggð SVG) í stað emoji-tákna í fyrirsögnum.
 const AHUGAVERT_LOGO = {
-  ruv: '<svg viewBox="0 0 46 26" role="img" aria-label="RÚV"><rect width="46" height="26" rx="7" fill="#161616"/><text x="23" y="18.5" text-anchor="middle" font-family="Jost, Arial, sans-serif" font-weight="800" font-size="16" fill="#fff">RÚV</text></svg>',
+  ruv: '<img src="images/ahugavert/ruv-logo.png" alt="RÚV">',
   youtube: '<svg viewBox="0 0 36 26" role="img" aria-label="YouTube"><rect width="36" height="26" rx="7" fill="#ff0000"/><path d="M14.5 7.5l9 5.5-9 5.5z" fill="#fff"/></svg>',
   spotify: '<svg viewBox="0 0 26 26" role="img" aria-label="Spotify"><circle cx="13" cy="13" r="13" fill="#1db954"/><g fill="none" stroke="#161616" stroke-linecap="round"><path d="M6 9.2c4.4-1.3 9.8-.9 13.9 1.5" stroke-width="2.1"/><path d="M6.8 13.2c3.7-1.1 8.1-.7 11.5 1.2" stroke-width="1.8"/><path d="M7.6 16.9c3-.8 6.4-.5 9.1 1.1" stroke-width="1.5"/></g></svg>'
 };
@@ -953,7 +953,6 @@ async function hladaAhugavertFyrirNemendur() {
 // flýtileið á hlekkinn og möguleika á að taka það af.
 async function birtaMittEfni(tek) {
   ahugavertTek = tek;
-  mittEfniSvaedi.hidden = false;
   try {
     await sotaAhugavertGogn();
   } catch (villa) {
@@ -963,11 +962,9 @@ async function birtaMittEfni(tek) {
   }
   const valin = ahugavertGogn.filter((g) => ahugavertTek[g.id]);
   mittEfniListi.innerHTML = "";
-  if (valin.length === 0) {
-    mittEfniListi.innerHTML =
-      '<p class="mitt-efni-tomt">Þú hefur ekki valið neitt ennþá. Ýttu á „Tek þetta“ við rásir og hlaðvörp í Áhugavert efni.</p>';
-    return;
-  }
+  // Hlutinn sést aðeins ef nemandinn hefur valið eitthvað.
+  mittEfniSvaedi.hidden = valin.length === 0;
+  if (valin.length === 0) return;
   valin.forEach((g) => {
     const kort = document.createElement("div");
     kort.className = `mitt-efni-kort litur-${(AHUGAVERT_FLOKKAR[g.flokkur] || {}).litur || "graent"}`;
