@@ -3263,3 +3263,91 @@ body.beta .verkefna-hlid .hradaspurning-kort,
 body.beta .verkefna-hlid .spurning-kort {
   margin-bottom: 12px;
 }
+
+/* Bíólisti: "Búinn að sjá" og stjörnugjöf */
+.biolisti-sed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.biolisti-sed:empty {
+  display: none;
+}
+
+.biolisti-sed-takki {
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--litur-svart);
+  background: transparent;
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+.biolisti-sed-takki.sed {
+  background: var(--litur-svart);
+  color: #fff;
+}
+
+.biolisti-stjornur {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+  z-index: 2;
+}
+
+.biolisti-stjarna,
+.biolisti-stjarna-null {
+  border: none;
+  background: transparent;
+  padding: 0 2px;
+  font-family: inherit;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.biolisti-stjarna {
+  font-size: 1.5rem;
+  color: #cfcfc6;
+  transition: transform 0.1s ease, color 0.1s ease;
+}
+
+.biolisti-stjarna.full {
+  color: #f5a800;
+}
+
+.biolisti-stjarna:hover {
+  transform: scale(1.18);
+}
+
+.biolisti-stjarna-null {
+  width: 26px;
+  height: 26px;
+  margin-right: 4px;
+  border-radius: 50%;
+  border: 1.5px solid var(--litur-jadar);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--litur-daufur);
+}
+
+.biolisti-stjarna-null.valin {
+  background: var(--litur-svart);
+  border-color: var(--litur-svart);
+  color: #fff;
+}
+
+.biolisti-stjornur-texti {
+  margin-left: 6px;
+  color: var(--litur-daufur);
+  font-size: 0.78rem;
+  font-weight: 600;
+}

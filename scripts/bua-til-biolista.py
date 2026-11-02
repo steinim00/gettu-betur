@@ -94,7 +94,6 @@ SOGU = [
  ("The Big Lebowski", 1998, "", "Költmynd Coen-bræðra. Kráin í Reykjavík heitir eftir henni.", "Joel og Ethan Coen; Jeff Bridges"),
  ("The Lord of the Rings: The Fellowship of the Ring", 2001, "Hringadróttinssaga", "Fyrsta myndin í þríleik Peter Jackson.", "Peter Jackson"),
  ("Avatar", 2009, "", "Tekjuhæsta mynd sögunnar (2020).", "James Cameron"),
- ("Harry Potter and the Sorcerer's Stone|Harry Potter and the Philosopher's Stone", 2001, "Harry Potter og viskusteinninn", "Fyrsta myndin um galdrastrákinn Harry Potter, byggð á bók J.K. Rowling - upphaf einnar tekjuhæstu kvikmyndaraðar sögunnar.", "Chris Columbus; Daniel Radcliffe"),
 ]
 
 basics_path, ratings_path = sys.argv[1], sys.argv[2]

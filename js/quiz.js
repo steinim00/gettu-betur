@@ -610,6 +610,8 @@ setInterval(vistaSkjatima, 60000);
 vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
   notandi = user;
   erAdminNotandi = gogn?.role === "admin";
+  biolistiSed = gogn?.biolistiSed || {};
+  notandaKyn = gogn?.kyn || kynNemandaUrNafni(gogn?.nafn);
   kveikjaBeta(gogn, user);
   // "Hver er" flipinn sést aðeins hjá admin (ekki í "Sjá eins og nemandi").
   hverErBtn.hidden = !erKennileitaYfirferd();
@@ -1091,6 +1093,95 @@ mittEfniAllirBtn.addEventListener("click", () => betaFaraI("ahugavert"));
 // Gögnin eru í data/biolisti.json (búin til með scripts/bua-til-biolista.py).
 let biolistiGogn = null;
 let biolistiFlokkur = "Byggt á sönnum atburðum";
+// Hvað nemandinn hefur séð og gefið stjörnur (users/{uid}.biolistiSed.{imdbID}.stjornur, 0-5 eða null).
+let biolistiSed = {};
+let notandaKyn;
+
+// Kyn eftir fyrsta nafni (Hinrik og Sólon strákar, Hekla og Júlía stelpur) - sama og kynNemanda í admin.js.
+function kynNemandaUrNafni(nafn) {
+  const fyrsta = (nafn || "").trim().split(/\s+/)[0] || "";
+  const n = fyrsta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (["hinrik", "solon", "thorsteinn", "steini"].includes(n)) return "kk";
+  if (["hekla", "julia"].includes(n)) return "kvk";
+  return undefined;
+}
+
+function sedTexti() {
+  return notandaKyn === "kk" ? "Búinn að sjá" : notandaKyn === "kvk" ? "Búin að sjá" : "Búin(n) að sjá";
+}
+
+async function vistaBiolistaSed(imdb, gildi) {
+  try {
+    await updateDoc(doc(db, "users", notandi.uid), { [`biolistiSed.${imdb}`]: gildi === null ? deleteField() : gildi });
+  } catch (villa) {
+    console.error(villa);
+    alert("Tókst ekki að vista - reyndu aftur.");
+  }
+}
+
+function byggjaSedHluta(m) {
+  const kassi = document.createElement("div");
+  kassi.className = "biolisti-sed";
+  if (!m.imdb || !notandi) return kassi;
+
+  const teikna = () => {
+    kassi.innerHTML = "";
+    const sed = biolistiSed[m.imdb];
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "biolisti-sed-takki" + (sed ? " sed" : "");
+    btn.setAttribute("aria-pressed", String(!!sed));
+    btn.textContent = `${sed ? "✅" : "☐"} ${sedTexti()}`;
+    btn.addEventListener("click", () => {
+      if (biolistiSed[m.imdb]) {
+        delete biolistiSed[m.imdb];
+        vistaBiolistaSed(m.imdb, null);
+      } else {
+        biolistiSed[m.imdb] = { stjornur: null };
+        vistaBiolistaSed(m.imdb, { stjornur: null });
+      }
+      teikna();
+    });
+    kassi.appendChild(btn);
+
+    if (sed) {
+      const stjornur = document.createElement("div");
+      stjornur.className = "biolisti-stjornur";
+      stjornur.setAttribute("role", "group");
+      stjornur.setAttribute("aria-label", "Þín einkunn, 0 til 5 stjörnur");
+      const nuna = typeof sed.stjornur === "number" ? sed.stjornur : null;
+      const veldu = (n) => {
+        biolistiSed[m.imdb] = { stjornur: n };
+        vistaBiolistaSed(m.imdb, { stjornur: n });
+        teikna();
+      };
+      const nullBtn = document.createElement("button");
+      nullBtn.type = "button";
+      nullBtn.className = "biolisti-stjarna-null" + (nuna === 0 ? " valin" : "");
+      nullBtn.textContent = "0";
+      nullBtn.title = "0 stjörnur";
+      nullBtn.addEventListener("click", () => veldu(0));
+      stjornur.appendChild(nullBtn);
+      for (let i = 1; i <= 5; i++) {
+        const st = document.createElement("button");
+        st.type = "button";
+        st.className = "biolisti-stjarna" + (nuna !== null && i <= nuna ? " full" : "");
+        st.textContent = "★";
+        st.title = `${i} ${i === 1 ? "stjarna" : "stjörnur"}`;
+        st.setAttribute("aria-label", st.title);
+        st.addEventListener("click", () => veldu(i));
+        stjornur.appendChild(st);
+      }
+      const texti = document.createElement("span");
+      texti.className = "biolisti-stjornur-texti";
+      texti.textContent = nuna === null ? "Gefðu stjörnur" : `${nuna}/5`;
+      stjornur.appendChild(texti);
+      kassi.appendChild(stjornur);
+    }
+  };
+  teikna();
+  return kassi;
+}
 
 function formatLengd(minutur) {
   if (!minutur) return "";
@@ -1168,7 +1259,7 @@ function birtaBiolista() {
     const folk = document.createElement("span");
     folk.className = "biolisti-folk";
     folk.textContent = m.folk || "";
-    texti.append(titill, undir, merki, lysing, folk);
+    texti.append(titill, undir, merki, lysing, folk, byggjaSedHluta(m));
 
     // "Um": allur textinn úr glærunum um myndina (aðeins sögufrægustu).
     if (m.um) {
