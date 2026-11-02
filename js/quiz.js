@@ -53,6 +53,7 @@ const biolistiRodaHnappur = document.getElementById("biolistiRodaHnappur");
 const biolistiRodaGildi = document.getElementById("biolistiRodaGildi");
 const biolistiRodaListi = document.getElementById("biolistiRodaListi");
 const biolistiListi = document.getElementById("biolistiListi");
+const biolistiSiur = document.getElementById("biolistiSiur");
 const ahugavertListi = document.getElementById("ahugavertListi");
 const mittEfniSvaedi = document.getElementById("mittEfniSvaedi");
 const mittEfniListi = document.getElementById("mittEfniListi");
@@ -1215,8 +1216,47 @@ function birtaBiolista() {
     biolistiFlipar.appendChild(flipi);
   });
 
-  const radad = [...(flokkar[biolistiFlokkur] || [])].sort(BIOLISTI_RODUN[biolistiRodun].radar);
-  biolistiListi.innerHTML = "";
+  const iFlokki = flokkar[biolistiFlokkur] || [];
+
+  // Síur: hnappur fyrir hverja tegund sem er til í flokknum (með fjölda).
+  const talning = new Map();
+  iFlokki.forEach((m) => (m.tegundir || []).forEach((t) => talning.set(t, (talning.get(t) || 0) + 1)));
+  biolistiSiur.innerHTML = "";
+  [...talning.entries()]
+    .filter(([t]) => BIOLISTI_TEGUNDIR[t])
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([t, fjoldi]) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "biolisti-sia" + (biolistiValdarTegundir.has(t) ? " valin" : "");
+      btn.setAttribute("aria-pressed", String(biolistiValdarTegundir.has(t)));
+      btn.innerHTML = "<span></span><b></b>";
+      btn.querySelector("span").textContent = BIOLISTI_TEGUNDIR[t];
+      btn.querySelector("b").textContent = fjoldi;
+      btn.addEventListener("click", () => {
+        if (biolistiValdarTegundir.has(t)) biolistiValdarTegundir.delete(t);
+        else biolistiValdarTegundir.add(t);
+        birtaBiolista();
+      });
+      biolistiSiur.appendChild(btn);
+    });
+  if (biolistiValdarTegundir.size > 0) {
+    const hreinsa = document.createElement("button");
+    hreinsa.type = "button";
+    hreinsa.className = "biolisti-sia hreinsa";
+    hreinsa.textContent = "✕ Hreinsa";
+    hreinsa.addEventListener("click", () => {
+      biolistiValdarTegundir.clear();
+      birtaBiolista();
+    });
+    biolistiSiur.appendChild(hreinsa);
+  }
+
+  const siadar = biolistiValdarTegundir.size
+    ? iFlokki.filter((m) => (m.tegundir || []).some((t) => biolistiValdarTegundir.has(t)))
+    : iFlokki;
+  const radad = [...siadar].sort(BIOLISTI_RODUN[biolistiRodun].radar);
+  biolistiListi.innerHTML = radad.length === 0 ? "<p>Engar myndir í þessum flokki passa við valdar tegundir.</p>" : "";
   radad.forEach((m) => {
     const kort = document.createElement("div");
     kort.className = "biolisti-kort";
@@ -1321,6 +1361,33 @@ const BIOLISTI_RODUN = {
   nafn: { texti: "Nafn - a til ö", radar: (a, b) => a.titill.localeCompare(b.titill, "is") }
 };
 let biolistiRodun = "ar-elst";
+
+// Tegundir (IMDb genres) á íslensku - síur í Bíólista. Margar tegundir saman sýna myndir sem passa við einhverja þeirra.
+const BIOLISTI_TEGUNDIR = {
+  Animation: "Teiknimyndir",
+  Action: "Hasarmyndir",
+  Thriller: "Spennumyndir",
+  Comedy: "Gamanmyndir",
+  Drama: "Drama",
+  Romance: "Rómantík",
+  Horror: "Hrollvekjur",
+  "Sci-Fi": "Vísindaskáldskapur",
+  Fantasy: "Fantasía",
+  Adventure: "Ævintýramyndir",
+  Crime: "Glæpamyndir",
+  Mystery: "Ráðgátur",
+  War: "Stríðsmyndir",
+  History: "Sögulegar",
+  Biography: "Ævisögur",
+  Western: "Vestrar",
+  Music: "Tónlist",
+  Musical: "Söngleikir",
+  Family: "Fjölskyldumyndir",
+  Sport: "Íþróttir",
+  Documentary: "Heimildarmyndir",
+  "Film-Noir": "Film noir"
+};
+const biolistiValdarTegundir = new Set();
 
 function lokaRodunarLista() {
   biolistiRodaListi.hidden = true;

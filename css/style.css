@@ -3478,3 +3478,66 @@ body.beta .verkefna-hlid .spurning-kort {
     width: 100%;
   }
 }
+
+/* Bíólisti: síur eftir tegund */
+.biolisti-siur {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.biolisti-sia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.biolisti-sia b {
+  color: var(--litur-daufur);
+  font-size: 0.72rem;
+}
+
+.biolisti-sia:hover {
+  border-color: var(--litur-svart);
+}
+
+.biolisti-sia.valin {
+  background: var(--litur-svart);
+  border-color: var(--litur-svart);
+  color: #fff;
+}
+
+.biolisti-sia.valin b {
+  color: var(--litur-lime);
+}
+
+.biolisti-sia.hreinsa {
+  border-style: dashed;
+  color: var(--litur-daufur);
+}
+
+@media (max-width: 600px) {
+  /* Ein lína sem skrunast til hliðar svo síurnar ýti ekki listanum niður */
+  .biolisti-siur {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 -16px 12px;
+    padding: 0 16px 4px;
+    scrollbar-width: none;
+  }
+
+  .biolisti-siur::-webkit-scrollbar {
+    display: none;
+  }
+}

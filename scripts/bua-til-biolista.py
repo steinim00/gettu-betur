@@ -114,7 +114,7 @@ with gzip.open(basics_path, "rt", encoding="utf8", newline="") as f:
             continue
         for t in {pt.lower(), ot.lower()}:
             if t in wanted:
-                cand.setdefault(t, []).append((tc, tt, sy, rt, pt))
+                cand.setdefault(t, []).append((tc, tt, sy, rt, pt, genres))
 
 ids = {c[0] for v in cand.values() for c in v}
 ratings = {}
@@ -131,7 +131,7 @@ for flokkur, lst in (("Byggt á sönnum atburðum", SONN), ("Sögufrægustu", SO
     for nafn, ar, isl, lysing, folk in lst:
         best = None
         for n in nafn.split("|"):
-            for tc, tt, sy, rt, pt in cand.get(n.lower(), []):
+            for tc, tt, sy, rt, pt, genres in cand.get(n.lower(), []):
                 try:
                     y = int(sy)
                 except ValueError:
@@ -140,19 +140,20 @@ for flokkur, lst in (("Byggt á sönnum atburðum", SONN), ("Sögufrægustu", SO
                     continue
                 votes = ratings.get(tc, (0, 0))[1]
                 if not best or votes > best[0]:
-                    best = (votes, tc, tt, y, rt, pt)
+                    best = (votes, tc, tt, y, rt, pt, genres)
         titill = nafn.split("|")[-1] if "|" in nafn else nafn
         if not best:
             manglar.append((flokkur, nafn, ar))
             out[flokkur].append({"titill": titill, "islenskt": isl, "ar": ar, "lysing": lysing, "folk": folk})
             continue
-        votes, tc, tt, y, rt, pt = best
+        votes, tc, tt, y, rt, pt, genres = best
         rating = ratings.get(tc, (None, 0))[0]
         out[flokkur].append({
             "titill": titill if "|" not in nafn else (pt if pt.lower() in nafn.lower() else titill),
             "islenskt": isl, "ar": y, "lysing": lysing, "folk": folk,
             "imdb": tc, "einkunn": rating, "atkvaedi": votes,
-            "minutur": int(rt) if rt.isdigit() else None
+            "minutur": int(rt) if rt.isdigit() else None,
+            "tegundir": [g for g in genres.split(",") if g and g not in ("Short", "\\N")]
         })
 # "Um" textinn (úr glærunum "61 áhrifamestu kvikmyndir sögunnar") - sama röð og SOGU.
 um = json.load(open("scripts/biolisti-um.json", encoding="utf8"))
