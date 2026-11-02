@@ -3682,3 +3682,23 @@ body.beta #minStadaSvaedi h3 {
 #afromISpurningar {
   border-radius: 999px !important;
 }
+
+/* Notendur: Liðið/Aðrir og aðgerðahnappar á sömu línu */
+.notendur-stjorn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.notendur-stjorn .undirflipar {
+  margin: 0;
+}
+
+.notendur-adgerdir {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
