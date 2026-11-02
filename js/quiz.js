@@ -2299,28 +2299,24 @@ async function hladaVerkefnaListi() {
   hradaspurningarSvaedi.hidden = true;
 
   // Admin sér líka óvirk verkefni (forskoðun) - allir aðrir bara virk.
-  const snap = await getDocs(
-    erAdminNotandi ? collection(db, "verkefni") : query(collection(db, "verkefni"), where("active", "==", true))
-  );
+  // Verkefni, spurningayfirlit og svörin sótt samhliða. Nemendur lesa lítið yfirlitsskjal í stað
+  // allra spurninganna (sjá saekjaSpurningaYfirlit) - mun ódýrara og fljótara.
+  const [snap, yfirlit, svaradIds] = await Promise.all([
+    getDocs(erAdminNotandi ? collection(db, "verkefni") : query(collection(db, "verkefni"), where("active", "==", true))),
+    erAdminNotandi ? getDocs(collection(db, "questions")).then((s) => s.docs.map((d) => [d.id, d.data().verkefniId])) : saekjaSpurningaYfirlit().then(Object.entries),
+    saekjaSvaradIds()
+  ]);
 
   if (snap.empty) {
     verkefnaListi.innerHTML = "<p>Engin verkefni eru virk eins og er.</p>";
     return;
   }
 
-  // Ein fyrirspurn fyrir allar virkar spurningar, flokkuð eftir verkefni í JS -
-  // mun ódýrara en að spyrja Firestore einu sinni fyrir hvert verkefni.
-  const spurningarSnap = erAdminNotandi
-    ? (await getDocs(collection(db, "questions"))).docs
-    : await saekjaVirkarSpurningar();
   const spurningaIdEftirVerkefni = new Map();
-  spurningarSnap.forEach((qDoc) => {
-    const vid = qDoc.data().verkefniId;
+  yfirlit.forEach(([id, vid]) => {
     if (!spurningaIdEftirVerkefni.has(vid)) spurningaIdEftirVerkefni.set(vid, []);
-    spurningaIdEftirVerkefni.get(vid).push(qDoc.id);
+    spurningaIdEftirVerkefni.get(vid).push(id);
   });
-
-  const svaradIds = await saekjaSvaradIds();
 
   verkefnaListi.innerHTML = "";
   hradaspurningarListi.innerHTML = "";
@@ -2508,6 +2504,12 @@ faraBeintISpurningarBtn.addEventListener("click", faraISpurningarFraGlaerum);
 // sér alltaf ferskar spurningar. Svöruðu-spurninga-listinn er sóttur
 // stigvaxandi: aðeins ný svör frá síðustu heimsókn eru lesin.
 const SPURNINGA_GEYMSLA_LYKILL = "gb_virkar_spurningar_v1";
+try {
+  // Gamla geymslan (allar spurningar í einu) er ekki lengur notuð nema yfirlitsskjalið vanti - hún tók mikið pláss.
+  if (!localStorage.getItem("gb_spurningayfirlit_v1")) localStorage.removeItem(SPURNINGA_GEYMSLA_LYKILL);
+} catch (villa) {
+  console.warn(villa);
+}
 const SPURNINGA_GEYMSLA_MS = 30 * 60 * 1000;
 let virkarSpurningarMinni = null;
 
@@ -2553,13 +2555,78 @@ async function saekjaVirkarSpurningar() {
   return snap.docs;
 }
 
+// Yfirlit yfir virkar spurningar (spurningaID -> verkefniID) - eitt lítið skjal (meta/virkarSpurningar)
+// sem admin heldur uppfærðu. Verkefnalistinn þarf bara fjöldann, svo nemendur sækja ekki allar
+// spurningarnar fyrr en þeir opna verkefni (sjá saekjaVirkarVerkefnis).
+const YFIRLIT_GEYMSLA_LYKILL = "gb_spurningayfirlit_v1";
+let spurningaYfirlitMinni = null;
+async function saekjaSpurningaYfirlit() {
+  if (spurningaYfirlitMinni && Date.now() - spurningaYfirlitMinni.t < SPURNINGA_GEYMSLA_MS) return spurningaYfirlitMinni.map;
+  try {
+    const c = JSON.parse(localStorage.getItem(YFIRLIT_GEYMSLA_LYKILL) || "null");
+    if (c && Date.now() - c.t < SPURNINGA_GEYMSLA_MS) {
+      spurningaYfirlitMinni = { t: c.t, map: c.m };
+      return c.m;
+    }
+  } catch (villa) {
+    console.warn(villa);
+  }
+  let map;
+  const snap = await getDoc(doc(db, "meta", "virkarSpurningar")).catch(() => null);
+  if (snap && snap.exists()) {
+    map = snap.data().spurningar || {};
+  } else {
+    // Yfirlitið er ekki til ennþá - reikna það úr öllum virkum spurningum (hægara).
+    map = {};
+    (await saekjaVirkarSpurningar()).forEach((d) => (map[d.id] = d.data().verkefniId));
+  }
+  spurningaYfirlitMinni = { t: Date.now(), map };
+  try {
+    localStorage.setItem(YFIRLIT_GEYMSLA_LYKILL, JSON.stringify({ t: Date.now(), m: map }));
+  } catch (villa) {
+    console.warn(villa);
+  }
+  return map;
+}
+
+// Virkar spurningar EINS verkefnis, geymdar í vafranum í 30 mín.
+const verkefnaSpurningarMinni = new Map();
+async function saekjaVirkarVerkefnis(verkefniId) {
+  const minni = verkefnaSpurningarMinni.get(verkefniId);
+  if (minni && Date.now() - minni.t < SPURNINGA_GEYMSLA_MS) return minni.docs;
+  const lykill = `gb_vspurn_v1_${verkefniId}`;
+  try {
+    const c = JSON.parse(localStorage.getItem(lykill) || "null");
+    if (c && Date.now() - c.t < SPURNINGA_GEYMSLA_MS) {
+      const docs = c.d.map(([id, g]) => {
+        const gogn = endurlifgaSpurningu(g);
+        return { id, data: () => gogn };
+      });
+      verkefnaSpurningarMinni.set(verkefniId, { t: c.t, docs });
+      return docs;
+    }
+  } catch (villa) {
+    console.warn(villa);
+  }
+  const snap = await getDocs(
+    query(collection(db, "questions"), where("verkefniId", "==", verkefniId), where("active", "==", true))
+  );
+  verkefnaSpurningarMinni.set(verkefniId, { t: Date.now(), docs: snap.docs });
+  try {
+    localStorage.setItem(lykill, JSON.stringify({ t: Date.now(), d: snap.docs.map((d) => [d.id, thjappaSpurningu(d.data())]) }));
+  } catch (villa) {
+    console.warn(villa);
+  }
+  return snap.docs;
+}
+
 // Spurningar eins verkefnis: virkar úr geymslunni fyrir nemendur, allar (líka
 // óvirkar) beint úr gagnagrunninum fyrir admin.
 async function saekjaSpurningarVerkefnis(verkefniId) {
   if (erAdminNotandi) {
     return (await getDocs(query(collection(db, "questions"), where("verkefniId", "==", verkefniId)))).docs;
   }
-  return (await saekjaVirkarSpurningar()).filter((d) => d.data().verkefniId === verkefniId);
+  return saekjaVirkarVerkefnis(verkefniId);
 }
 
 let sidastiNotandaGogn = null;
@@ -2618,9 +2685,8 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
     const verkefnaSnap = await getDocs(query(collection(db, "verkefni"), where("active", "==", true)));
     const aukaVerkefniIds = uthlutadVerkefniFyrirNotanda(verkefnaSnap.docs).map((d) => d.id);
     if (aukaVerkefniIds.length > 0) {
-      const aukaSett = new Set(aukaVerkefniIds);
-      const virkar = await saekjaVirkarSpurningar();
-      spurningaDocs = spurningaDocs.concat(virkar.filter((d) => aukaSett.has(d.data().verkefniId)));
+      const aukaSpurningar = await Promise.all(aukaVerkefniIds.map((vid) => saekjaVirkarVerkefnis(vid)));
+      spurningaDocs = spurningaDocs.concat(aukaSpurningar.flat());
     }
   }
 
@@ -2973,6 +3039,21 @@ function birtaEinaSpurningu(fokus = false) {
   }
 }
 
+// Rangt svar skipt út fyrir rétt: gamla svarinu er eytt og nýtt skráð (attempts eru óbreytanlegar).
+async function skraRettEftirRangt(questionId, svar, spurning) {
+  try {
+    const attemptRef = doc(db, "users", notandi.uid, "attempts", questionId);
+    await deleteDoc(attemptRef);
+    await setDoc(attemptRef, { svar, answeredAt: serverTimestamp() });
+    const breytingar = { fjoldiRett: increment(1), [`endurtaka.${questionId}`]: deleteField() };
+    if (spurning?.verkefniId) breytingar[`verkefnaStada.${spurning.verkefniId}.rett`] = increment(1);
+    await updateDoc(doc(db, "users", notandi.uid), breytingar);
+    endurtaka.delete(questionId);
+  } catch (villa) {
+    console.error(villa);
+  }
+}
+
 // Endurtekin spurning: svarið skráist ekki sem nýtt svar nema það sé rétt - þá
 // kemur það í stað ranga svarsins (attempts eru óbreytanlegar svo því gamla er
 // eytt og nýtt skráð) og telst rétt í samtölunum.
@@ -3103,12 +3184,9 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad, valkostir = {}) {
   return korti;
 }
 
-// Það "svar" sem þegar er skráð í Firestore er óbreytanlegt (sjá
-// firestore.rules - attempts leyfa ekki update/delete), svo "rétta svarið"
-// sem þegar var skráð helst óhaggað. Þessi reitur er hrein æfing: ber svarið
-// saman við réttu svörin í vafranum sjálfum, skrifar ekkert, og lætur
-// nemandann vita (skýrt orðað) að þetta breyti ekki skráðu niðurstöðunni.
-function birtaAeftinguEftirRangt(svaedi, rettSvor) {
+// "Reyndu aftur" reiturinn: ef nemandinn svarar núna rétt kemur nýja svarið í
+// stað ranga svarsins (eins og í svaraEndurtekningu) og spurningin telst rétt.
+function birtaAeftinguEftirRangt(svaedi, rettSvor, questionId, spurning, korti) {
   svaedi.innerHTML = "";
   svaedi.hidden = false;
   svaedi.style.marginTop = "10px";
@@ -3130,6 +3208,7 @@ function birtaAeftinguEftirRangt(svaedi, rettSvor) {
 
   const aefingaNidurstada = document.createElement("p");
   aefingaNidurstada.className = "spurning-nidurstada";
+  let skradRett = false;
 
   // Svarið er ekki ljóstrað upp fyrr en nemandinn biður sjálfur um það - annars
   // væri "reyndu aftur" tilgangslaust (svarið stæði þegar fyrir ofan).
@@ -3150,9 +3229,17 @@ function birtaAeftinguEftirRangt(svaedi, rettSvor) {
     if (!svar) return;
     aefingaNidurstada.className = "spurning-nidurstada";
     if (erSvarRett(svar, rettSvor)) {
-      aefingaNidurstada.textContent = "Rétt núna! 🎉 (æfing - breytir ekki skráðu svari)";
+      aefingaNidurstada.textContent = "Rétt núna! 🎉 Þetta telst nú rétt.";
       aefingaNidurstada.classList.add("rett");
       synaSvarBtn.remove();
+      form.querySelectorAll("input, button").forEach((e) => (e.disabled = true));
+      if (questionId && notandi && !skradRett) {
+        skradRett = true;
+        skraRettEftirRangt(questionId, svar, spurning).then(() => {
+          korti?.classList.add("svarad");
+          hladaMinumStodum();
+        });
+      }
     } else {
       aefingaNidurstada.textContent = "Ennþá ekki rétt - prófaðu aftur.";
       aefingaNidurstada.classList.add("rangt");
@@ -3268,7 +3355,7 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaS
     // birtaAeftinguEftirRangt).
     nidurstada.textContent = "Rangt svar. Reyndu aftur hér fyrir neðan!";
     nidurstada.classList.add("rangt");
-    birtaAeftinguEftirRangt(aefingaSvaedi, rettSvor);
+    birtaAeftinguEftirRangt(aefingaSvaedi, rettSvor, questionId, spurning, korti);
   } else {
     nidurstada.textContent = `Rangt svar. Rétt svar: ${rettSvor[0] ?? "—"}`;
     nidurstada.classList.add("rangt");

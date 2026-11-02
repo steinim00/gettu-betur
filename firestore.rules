@@ -124,5 +124,13 @@ service cloud.firestore {
       allow read: if innskradur();
       allow write: if erAdmin();
     }
+
+    // Yfirlit yfir virkar spurningar (meta/virkarSpurningar: { spurningar: { spurningaID: verkefniID } }).
+    // Nemendur lesa eitt lítið skjal í stað allra spurninganna til að sjá fjölda í verkefnalistanum.
+    // Admin uppfærir það sjálfkrafa (js/admin.js, samstillaSpurningayfirlit).
+    match /meta/{id} {
+      allow read: if innskradur();
+      allow write: if erAdmin();
+    }
   }
 }

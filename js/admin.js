@@ -7,6 +7,7 @@ import {
   deleteDoc,
   getDoc,
   getDocs,
+  setDoc,
   query,
   where,
   documentId,
@@ -196,10 +197,41 @@ async function hladaAllt() {
       hladaVerkefnayfirlit(),
       hladaSpurningayfirlit(),
       hladaGraenadeildarAefingar(),
-      hladaSerflokkar()
+      hladaSerflokkar(),
+      samstillaSpurningayfirlit()
     ]);
   } finally {
     deiltLestur = null;
+  }
+}
+
+// Nemendur sækja ekki allar spurningarnar til að sjá verkefnalistann - þeir lesa eitt lítið
+// skjal (meta/virkarSpurningar) með spurningaID -> verkefniID fyrir virkar spurningar.
+// Hér er það uppfært þegar það er orðið úrelt (borið saman við síðustu samstillingu í þessum vafra).
+async function samstillaSpurningayfirlit() {
+  try {
+    const snap = await lesaSafn("questions");
+    const spurningar = {};
+    snap.docs
+      .filter((d) => d.data().active === true && d.data().verkefniId)
+      .sort((x, y) => (x.id < y.id ? -1 : 1))
+      .forEach((d) => (spurningar[d.id] = d.data().verkefniId));
+    const innihald = JSON.stringify(spurningar);
+    let sidast = null;
+    try {
+      sidast = localStorage.getItem("gb_spurningayfirlit_samstillt");
+    } catch (villa) {
+      console.warn(villa);
+    }
+    if (sidast === innihald) return;
+    await setDoc(doc(db, "meta", "virkarSpurningar"), { spurningar, updatedAt: serverTimestamp() });
+    try {
+      localStorage.setItem("gb_spurningayfirlit_samstillt", innihald);
+    } catch (villa) {
+      console.warn(villa);
+    }
+  } catch (villa) {
+    console.error("Tókst ekki að samstilla spurningayfirlit", villa);
   }
 }
 
