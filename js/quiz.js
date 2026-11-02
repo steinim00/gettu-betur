@@ -696,22 +696,19 @@ async function opnaProfUrSlod(profId) {
 utskraBtn.addEventListener("click", () => skraUt());
 
 // --- Nýja útlitið (beta) ---
-// Hliðarvalmynd á tölvu og valmyndarstika neðst á síma, líkt og stjórnborðið.
-// Birtist aðeins admin í "Sjá eins og nemandi" (?forskodun=1) þar til það
-// verður birt nemendum. "&utlit=gamalt" sýnir gamla útlitið til samanburðar.
+// Hliðarvalmynd á tölvu og þriggja lína valmynd í haus á síma, líkt og stjórnborðið.
 function kveikjaBeta(gogn, user) {
   const params = new URLSearchParams(window.location.search);
-  // Nemendur fá nýja útlitið sjálfkrafa. Admin sér það undir "Sjá eins og nemandi" (?forskodun=1);
-  // "&utlit=gamalt" sýnir gamla útlitið til samanburðar. Admin sem skoðar síðuna beint heldur gamla útlitinu
-  // (þar eru stjórntæki eins og "Hver er").
+  // Allir innskráðir fá nýja útlitið (admin líka). "?utlit=gamalt" sýnir gamla útlitið admin til samanburðar.
   const erAdmin = gogn?.role === "admin";
-  const adminForskodun = erAdmin && params.get("forskodun") === "1" && params.get("utlit") !== "gamalt";
-  if (!user || !(!erAdmin || adminForskodun)) return;
+  if (!user || (erAdmin && params.get("utlit") === "gamalt")) return;
   betaVirkt = true;
   document.body.classList.add("beta");
   betaHlid.hidden = false;
   betaHaus.hidden = false;
   betaValmyndTakki.hidden = false;
+  // "Hver er" og "Stjórnborð" sjást aðeins admin (ekki í "Sjá eins og nemandi").
+  document.querySelectorAll(".beta-admin").forEach((e) => (e.hidden = !erKennileitaYfirferd()));
   betaNotandaNafn.textContent = gogn.nafn || user.email;
   const fornafn = (gogn.nafn || user.email || "").split(" ")[0];
   BETA_FYRIRSAGNIR.heim[0] = `Hæ, ${fornafn} 👋`;
@@ -726,20 +723,21 @@ const BETA_FYRIRSAGNIR = {
   verkefni: ["Verkefni", ""],
   glosur: ["Glósur", ""],
   ahugavert: ["Áhugavert efni", ""],
-  biolisti: ["Bíólisti", ""]
+  biolisti: ["Bíólisti", ""],
+  hverer: ["Hver er", ""]
 };
 const BETA_LEIDIR = {
   minstada: "heim",
   verkefni: "verkefni",
   glaerur: "verkefni",
   spurningar: "verkefni",
-  hverEr: "verkefni",
+  hverEr: "hverer",
   glosur: "glosur",
   ahugavert: "ahugavert",
   biolisti: "biolisti"
 };
 
-const BETA_SIDUR = ["heim", "verkefni", "glosur", "ahugavert", "biolisti"];
+const BETA_SIDUR = ["heim", "verkefni", "glosur", "ahugavert", "biolisti", "hverer"];
 let betaUpphafsLeid = "heim";
 let betaFyrstaHledsla = true;
 
@@ -760,7 +758,7 @@ function uppfaeraBetaNav(svaedi) {
   const leid = BETA_LEIDIR[svaedi] || "heim";
   betaSetjaHash(leid);
   betaNav.querySelectorAll("button[data-leid]").forEach((b) => b.classList.toggle("virkur", b.dataset.leid === leid));
-  const fyrirsogn = BETA_FYRIRSAGNIR[svaedi === "minstada" ? "heim" : svaedi];
+  const fyrirsogn = BETA_FYRIRSAGNIR[svaedi === "minstada" ? "heim" : svaedi === "hverEr" ? "hverer" : svaedi];
   betaHaus.hidden = !fyrirsogn;
   if (fyrirsogn) {
     betaFyrirsogn.textContent = fyrirsogn[0];
@@ -778,6 +776,10 @@ function betaFaraI(leid) {
   } else if (leid === "biolisti") {
     synaSvaedi("biolisti");
     hladaBiolista();
+  } else if (leid === "hverer") {
+    if (erKennileitaYfirferd()) hverErBtn.click();
+  } else if (leid === "stjornbord") {
+    if (erKennileitaYfirferd()) window.location.href = "stjornbord.html";
   } else if (leid === "utskra") utskraBtn.click();
 }
 // Á síma opnast valmyndin með þriggja lína takka í hausnum

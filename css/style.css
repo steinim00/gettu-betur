@@ -4049,3 +4049,7 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
     overflow: hidden;
   }
 }
+
+.stjorn-nav button.beta-admin[hidden] {
+  display: none;
+}
