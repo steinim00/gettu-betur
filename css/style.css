@@ -4053,3 +4053,36 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
 .stjorn-nav button.beta-admin[hidden] {
   display: none;
 }
+
+/* Bíólisti: "Búinn að sjá" og "Um" í sömu línu; stjörnurnar fyrir neðan ef plássið þrýtur */
+.biolisti-adgerdir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.biolisti-adgerdir .biolisti-sed {
+  display: contents;
+}
+
+.biolisti-adgerdir .biolisti-sed-takki {
+  order: 1;
+}
+
+.biolisti-adgerdir .biolisti-um-takki {
+  order: 2;
+  margin-top: 0;
+  align-self: center;
+}
+
+.biolisti-adgerdir .biolisti-stjornur {
+  order: 3;
+}
+
+@media (max-width: 600px) {
+  .biolisti-adgerdir .biolisti-stjornur {
+    flex-basis: 100%;
+  }
+}

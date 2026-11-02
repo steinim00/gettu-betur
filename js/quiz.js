@@ -1333,7 +1333,11 @@ function birtaBiolista() {
     const folk = document.createElement("span");
     folk.className = "biolisti-folk";
     folk.textContent = m.folk || "";
-    texti.append(titill, undir, merki, lysing, folk, byggjaSedHluta(m));
+    // "Búinn að sjá" og "Um" eru í sömu línu (stjörnugjöfin fer í línuna fyrir neðan ef hún passar ekki).
+    const adgerdir = document.createElement("div");
+    adgerdir.className = "biolisti-adgerdir";
+    adgerdir.appendChild(byggjaSedHluta(m));
+    texti.append(titill, undir, merki, lysing, folk, adgerdir);
 
     // "Um": allur textinn úr glærunum um myndina (aðeins sögufrægustu).
     if (m.um) {
@@ -1357,7 +1361,7 @@ function birtaBiolista() {
         umBtn.textContent = opid ? "Loka" : "Um";
         kort.classList.toggle("opid", opid);
       });
-      texti.appendChild(umBtn);
+      adgerdir.appendChild(umBtn);
       kort.append(plagat, texti, umTexti);
     } else {
       kort.append(plagat, texti);
