@@ -48,6 +48,9 @@ const betaNotandaNafn = document.getElementById("betaNotandaNafn");
 const betaUtskraBtn = document.getElementById("betaUtskraBtn");
 const ahugavertSvaedi = document.getElementById("ahugavertSvaedi");
 const ahugavertListi = document.getElementById("ahugavertListi");
+const mittEfniSvaedi = document.getElementById("mittEfniSvaedi");
+const mittEfniListi = document.getElementById("mittEfniListi");
+const mittEfniAllirBtn = document.getElementById("mittEfniAllirBtn");
 let betaVirkt = false;
 const glosurSvaedi = document.getElementById("glosurSvaedi");
 const tilbakaFraGlosum = document.getElementById("tilbakaFraGlosum");
@@ -920,26 +923,107 @@ function birtaAhugavert(leit = "") {
   });
 }
 
-async function hladaAhugavertFyrirNemendur() {
+// Sækir hlekkina einu sinni (deilt milli Áhugavert efni flipans og "Efnið sem ég tek" á Heim).
+async function sotaAhugavertGogn() {
   if (ahugavertHladid) return;
+  const snap = await getDocs(collection(db, "ahugavert"));
+  ahugavertGogn = snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((g) => /^https?:\/\//i.test(g.slod || ""))
+    .sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
+  ahugavertHladid = true;
+}
+
+async function hladaAhugavertFyrirNemendur() {
   ahugavertListi.innerHTML = skeletonKort(3);
   try {
-    const snap = await getDocs(collection(db, "ahugavert"));
     if (notandi) {
       const uSnap = await getDoc(doc(db, "users", notandi.uid));
       ahugavertTek = uSnap.data()?.ahugavertTek || {};
     }
-    ahugavertGogn = snap.docs
-      .map((d) => ({ id: d.id, ...d.data() }))
-      .filter((g) => /^https?:\/\//i.test(g.slod || ""))
-      .sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
-    ahugavertHladid = true;
+    await sotaAhugavertGogn();
     birtaAhugavert();
   } catch (villa) {
     console.error(villa);
     ahugavertListi.innerHTML = "<p>Tókst ekki að sækja efnið. Reyndu aftur síðar.</p>";
   }
 }
+
+// "Efnið sem ég tek" á Heim: það sem nemandinn hefur merkt "Tek þetta", með
+// flýtileið á hlekkinn og möguleika á að taka það af.
+async function birtaMittEfni(tek) {
+  ahugavertTek = tek;
+  mittEfniSvaedi.hidden = false;
+  try {
+    await sotaAhugavertGogn();
+  } catch (villa) {
+    console.error(villa);
+    mittEfniSvaedi.hidden = true;
+    return;
+  }
+  const valin = ahugavertGogn.filter((g) => ahugavertTek[g.id]);
+  mittEfniListi.innerHTML = "";
+  if (valin.length === 0) {
+    mittEfniListi.innerHTML =
+      '<p class="mitt-efni-tomt">Þú hefur ekki valið neitt ennþá. Ýttu á „Tek þetta“ við rásir og hlaðvörp í Áhugavert efni.</p>';
+    return;
+  }
+  valin.forEach((g) => {
+    const kort = document.createElement("div");
+    kort.className = `mitt-efni-kort litur-${(AHUGAVERT_FLOKKAR[g.flokkur] || {}).litur || "graent"}`;
+    const mynd = document.createElement(g.mynd ? "img" : "div");
+    mynd.className = "mitt-efni-mynd";
+    if (g.mynd) {
+      mynd.src = g.mynd;
+      mynd.alt = "";
+      mynd.loading = "lazy";
+    } else {
+      mynd.textContent = g.takn || "🔗";
+    }
+    const texti = document.createElement("div");
+    texti.className = "mitt-efni-texti";
+    const tengill = document.createElement("a");
+    tengill.className = "ahugavert-nafn";
+    tengill.href = g.slod;
+    tengill.target = "_blank";
+    tengill.rel = "noopener noreferrer";
+    const titill = document.createElement("strong");
+    titill.textContent = g.titill;
+    tengill.appendChild(titill);
+    const undir = document.createElement("span");
+    undir.className = "mitt-efni-undir";
+    const logo = /spotify\.com/i.test(g.slod) ? AHUGAVERT_LOGO.spotify : /youtube\.com/i.test(g.slod) ? AHUGAVERT_LOGO.youtube : "";
+    if (logo) {
+      const l = document.createElement("span");
+      l.className = "mitt-efni-logo";
+      l.innerHTML = logo;
+      undir.appendChild(l);
+    }
+    undir.append(g.flokkur || "");
+    texti.append(tengill, undir);
+    const takaAf = document.createElement("button");
+    takaAf.type = "button";
+    takaAf.className = "mitt-efni-takaaf";
+    takaAf.title = "Taka af listanum";
+    takaAf.setAttribute("aria-label", `Taka ${g.titill} af listanum`);
+    takaAf.textContent = "✕";
+    takaAf.addEventListener("click", async () => {
+      delete ahugavertTek[g.id];
+      kort.remove();
+      if (mittEfniListi.children.length === 0) birtaMittEfni(ahugavertTek);
+      try {
+        await updateDoc(doc(db, "users", notandi.uid), { [`ahugavertTek.${g.id}`]: deleteField() });
+      } catch (villa) {
+        console.error(villa);
+        ahugavertTek[g.id] = true;
+        birtaMittEfni(ahugavertTek);
+      }
+    });
+    kort.append(mynd, texti, takaAf);
+    mittEfniListi.appendChild(kort);
+  });
+}
+mittEfniAllirBtn.addEventListener("click", () => betaFaraI("ahugavert"));
 
 function synaSvaedi(svaedi) {
   lokaSkrunarlotu();
@@ -1371,6 +1455,7 @@ async function hladaMinaStodu() {
   const notandaGogn = notandiSnap.data() || {};
 
   birtaVikuAherslu(verkefnaSnap);
+  if (betaVirkt) birtaMittEfni(notandaGogn.ahugavertTek || {});
 
   // Núverandi óvistaður skjátími (síðan á síðustu skrifum) talinn með svo talan sé lifandi.
   const grunnSkjatimi = notandaGogn.screenTimeSeconds || 0;

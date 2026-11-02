@@ -2593,3 +2593,107 @@ body.beta #glosurSvaedi > .hluti-titill {
     bottom: 6px;
   }
 }
+
+/* Efnið sem ég tek (Heim, beta) */
+.mitt-efni {
+  margin: 8px 0 26px;
+}
+
+.mitt-efni-haus h3 {
+  margin: 0;
+}
+
+.mitt-efni-net {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.mitt-efni-kort {
+  --akent: #5d8f1f;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px 10px 10px;
+  border-radius: 18px;
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+.mitt-efni-kort.litur-rautt { --akent: #ff5a5f; }
+.mitt-efni-kort.litur-fjolublatt { --akent: #8b5cf6; }
+.mitt-efni-kort.litur-dokkt { --akent: #161616; }
+
+.mitt-efni-kort:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border-color: var(--akent);
+}
+
+.mitt-efni-mynd {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--litur-jadar);
+  font-size: 1.5rem;
+}
+
+.mitt-efni-texti {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mitt-efni-texti strong {
+  font-size: 0.98rem;
+}
+
+.mitt-efni-undir {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--litur-daufur);
+  font-size: 0.78rem;
+}
+
+.mitt-efni-logo svg {
+  height: 14px;
+  width: auto;
+  display: block;
+}
+
+.mitt-efni-takaaf {
+  position: relative;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--litur-daufur);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.mitt-efni-takaaf:hover {
+  background: var(--litur-jadar);
+  color: var(--litur-rangt);
+}
+
+.mitt-efni-tomt {
+  color: var(--litur-daufur);
+  margin: 0;
+}
+
+.mitt-efni[hidden] {
+  display: none;
+}
