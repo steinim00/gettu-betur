@@ -3670,3 +3670,15 @@ body.beta #minStadaSvaedi h3 {
 *::after {
   border-radius: 0 !important;
 }
+
+/* Undantekning frá rétthyrnda útlitinu: Hraðaspurninga-borðinn á Heim og hnapparnir til að hefja verkefni
+   hafa ávala enda (pill). */
+.viku-ahersla,
+.viku-ahersla button,
+.verkefni-kort button.aðal-hnappur,
+.verkefni-kort button.smabtn,
+.hradaspurning-kort button.aðal-hnappur,
+#faraBeintISpurningarBtn,
+#afromISpurningar {
+  border-radius: 999px !important;
+}
