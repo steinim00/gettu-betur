@@ -1099,11 +1099,16 @@ function birtaBiolista() {
     const kort = document.createElement("div");
     kort.className = "biolisti-kort";
 
-    const einkunn = document.createElement("div");
-    einkunn.className = "biolisti-einkunn";
-    einkunn.title = m.atkvaedi ? `${m.atkvaedi.toLocaleString("is-IS")} atkvæði á IMDb` : "IMDb";
-    einkunn.innerHTML = `<small>IMDb</small><strong></strong>`;
-    einkunn.querySelector("strong").textContent = m.einkunn ? `★ ${m.einkunn.toFixed(1).replace(".", ",")}` : "-";
+    // Plakat (ef það er til) - annars IMDb-gula reitinn sjálfan.
+    const plagat = document.createElement(m.plagat ? "img" : "div");
+    plagat.className = "biolisti-plagat";
+    if (m.plagat) {
+      plagat.src = m.plagat;
+      plagat.alt = `Plakat: ${m.titill}`;
+      plagat.loading = "lazy";
+    } else {
+      plagat.textContent = "🎬";
+    }
 
     const texti = document.createElement("div");
     texti.className = "biolisti-texti";
@@ -1118,20 +1123,54 @@ function birtaBiolista() {
     const undir = document.createElement("span");
     undir.className = "biolisti-undir";
     undir.textContent = [m.islenskt, m.ar].filter(Boolean).join(" · ");
+
+    const merki = document.createElement("div");
+    merki.className = "biolisti-merki";
+    const einkunn = document.createElement("span");
+    einkunn.className = "biolisti-einkunn";
+    einkunn.title = m.atkvaedi ? `${m.atkvaedi.toLocaleString("is-IS")} atkvæði á IMDb` : "IMDb";
+    einkunn.innerHTML = "<small>IMDb</small><b></b>";
+    einkunn.querySelector("b").textContent = m.einkunn ? `★ ${m.einkunn.toFixed(1).replace(".", ",")}` : "-";
+    const lengd = document.createElement("span");
+    lengd.className = "biolisti-lengd";
+    lengd.textContent = `⏱ ${formatLengd(m.minutur) || "-"}`;
+    merki.append(einkunn, lengd);
+
     const lysing = document.createElement("span");
     lysing.className = "biolisti-lysing";
     lysing.textContent = m.lysing || "";
     const folk = document.createElement("span");
     folk.className = "biolisti-folk";
     folk.textContent = m.folk || "";
-    texti.append(titill, undir, lysing, folk);
+    texti.append(titill, undir, merki, lysing, folk);
 
-    const lengd = document.createElement("div");
-    lengd.className = "biolisti-lengd";
-    lengd.innerHTML = `<span>⏱</span><b></b>`;
-    lengd.querySelector("b").textContent = formatLengd(m.minutur) || "-";
-
-    kort.append(einkunn, texti, lengd);
+    // "Um": allur textinn úr glærunum um myndina (aðeins sögufrægustu).
+    if (m.um) {
+      const umBtn = document.createElement("button");
+      umBtn.type = "button";
+      umBtn.className = "biolisti-um-takki";
+      umBtn.textContent = "Um";
+      umBtn.setAttribute("aria-expanded", "false");
+      const umTexti = document.createElement("div");
+      umTexti.className = "biolisti-um";
+      umTexti.hidden = true;
+      m.um.split("\n\n").forEach((mgr) => {
+        const pEl = document.createElement("p");
+        pEl.textContent = mgr;
+        umTexti.appendChild(pEl);
+      });
+      umBtn.addEventListener("click", () => {
+        const opid = umTexti.hidden;
+        umTexti.hidden = !opid;
+        umBtn.setAttribute("aria-expanded", String(opid));
+        umBtn.textContent = opid ? "Loka" : "Um";
+        kort.classList.toggle("opid", opid);
+      });
+      texti.appendChild(umBtn);
+      kort.append(plagat, texti, umTexti);
+    } else {
+      kort.append(plagat, texti);
+    }
     biolistiListi.appendChild(kort);
   });
 }

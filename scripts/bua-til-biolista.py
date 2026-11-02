@@ -153,5 +153,16 @@ for flokkur, lst in (("Byggt á sönnum atburðum", SONN), ("Sögufrægustu", SO
             "imdb": tc, "einkunn": rating, "atkvaedi": votes,
             "minutur": int(rt) if rt.isdigit() else None
         })
+# "Um" textinn (úr glærunum "61 áhrifamestu kvikmyndir sögunnar") - sama röð og SOGU.
+um = json.load(open("scripts/biolisti-um.json", encoding="utf8"))
+assert len(um) == len(out["Sögufrægustu"]), (len(um), len(out["Sögufrægustu"]))
+for f, texti in zip(out["Sögufrægustu"], um):
+    f["um"] = texti
+# Plagöt (images/biolisti/<imdb>.jpg) ef þau eru til.
+import os
+for lst in out.values():
+    for f in lst:
+        if f.get("imdb") and os.path.exists(f"images/biolisti/{f['imdb']}.jpg"):
+            f["plagat"] = f"images/biolisti/{f['imdb']}.jpg"
 json.dump(out, open("data/biolisti.json", "w", encoding="utf8"), ensure_ascii=False, indent=1)
 print({k: len(v) for k, v in out.items()}, "vantar IMDb:", manglar)

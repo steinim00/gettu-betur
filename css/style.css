@@ -2925,3 +2925,125 @@ body.beta #glosurSvaedi > .hluti-titill {
     margin-top: -4px;
   }
 }
+
+/* Bíólisti: plakat, merki og "Um" (yfirskrifar fyrri útgáfu) */
+.biolisti-kort {
+  flex-wrap: wrap;
+}
+
+.biolisti-plagat {
+  flex-shrink: 0;
+  width: 78px;
+  height: 116px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--litur-jadar);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+
+.biolisti-merki {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 2px;
+}
+
+.biolisti-einkunn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 3px 10px 3px 8px;
+  border-radius: 8px;
+  background: #f5c518;
+  color: #161616;
+  line-height: 1;
+}
+
+.biolisti-einkunn small {
+  display: inline;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+}
+
+.biolisti-einkunn b {
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.biolisti-lengd {
+  display: inline-flex;
+  flex-basis: auto;
+  padding: 0;
+  margin: 0;
+  color: var(--litur-daufur);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.biolisti-um-takki {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 5px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--litur-svart);
+  background: transparent;
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+.biolisti-um-takki:hover,
+.biolisti-kort.opid .biolisti-um-takki {
+  background: var(--litur-svart);
+  color: #fff;
+}
+
+.biolisti-um {
+  flex-basis: 100%;
+  margin-top: 6px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--litur-baksvid);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.biolisti-um p {
+  margin: 0 0 10px;
+}
+
+.biolisti-um p:last-child {
+  margin-bottom: 0;
+}
+
+.biolisti-um[hidden] {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .biolisti-plagat {
+    width: 64px;
+    height: 96px;
+  }
+
+  .biolisti-lengd {
+    flex-basis: auto;
+    padding-left: 0;
+    margin-top: 0;
+  }
+}
+
+.biolisti-listi {
+  align-items: start;
+}
