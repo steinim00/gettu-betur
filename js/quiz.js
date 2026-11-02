@@ -698,7 +698,7 @@ const BETA_FYRIRSAGNIR = {
   heim: ["Heim", "Staðan þín í hnotskurn."],
   verkefni: ["Verkefni", "Veldu verkefni eða taktu hraðaspurningar."],
   glosur: ["Glósur", "Þínar einkaglósur um verkefnin."],
-  ahugavert: ["Áhugavert efni", "Alls konar efni sem er nytsamlegt fyrir Gettu Betur."]
+  ahugavert: ["Áhugavert efni", ""]
 };
 const BETA_LEIDIR = {
   minstada: "heim",
@@ -744,9 +744,15 @@ betaUtskraBtn.addEventListener("click", () => utskraBtn.click());
 // birtir í flokkum (flokkur) með tákni (takn) - flokkarnir raðast eftir því
 // hvaða hlekkur var skráður fyrst.
 const AHUGAVERT_FLOKKAR = {
-  "Gamlar keppnir": { takn: "📺", lysing: "Oft eru gamlar spurningar endurnýttar á nokkra ára fresti.", litur: "dökkt" },
-  YouTube: { takn: "▶️", lysing: "Rásir sem gera efni sem skilar sér í spurningum.", litur: "rautt" },
-  "Hlaðvörp": { takn: "🎧", lysing: "Til að hlusta á í strætó, ræktinni eða yfir kvöldmatnum.", litur: "fjolublatt" }
+  "Gamlar keppnir": { takn: "📺", lysing: "Oft eru gamlar spurningar endurnýttar á nokkra ára fresti.", litur: "dökkt", logo: "ruv" },
+  YouTube: { takn: "▶️", lysing: "", litur: "rautt", logo: "youtube" },
+  "Hlaðvörp": { takn: "🎧", lysing: "", litur: "fjolublatt", logo: "spotify" }
+};
+// Lógó flokkanna (innbyggð SVG) í stað emoji-tákna í fyrirsögnum.
+const AHUGAVERT_LOGO = {
+  ruv: '<svg viewBox="0 0 46 26" role="img" aria-label="RÚV"><rect width="46" height="26" rx="7" fill="#161616"/><text x="23" y="18.5" text-anchor="middle" font-family="Jost, Arial, sans-serif" font-weight="800" font-size="16" fill="#fff">RÚV</text></svg>',
+  youtube: '<svg viewBox="0 0 36 26" role="img" aria-label="YouTube"><rect width="36" height="26" rx="7" fill="#ff0000"/><path d="M14.5 7.5l9 5.5-9 5.5z" fill="#fff"/></svg>',
+  spotify: '<svg viewBox="0 0 26 26" role="img" aria-label="Spotify"><circle cx="13" cy="13" r="13" fill="#1db954"/><g fill="none" stroke="#161616" stroke-linecap="round"><path d="M6 9.2c4.4-1.3 9.8-.9 13.9 1.5" stroke-width="2.1"/><path d="M6.8 13.2c3.7-1.1 8.1-.7 11.5 1.2" stroke-width="1.8"/><path d="M7.6 16.9c3-.8 6.4-.5 9.1 1.1" stroke-width="1.5"/></g></svg>'
 };
 const AHUGAVERT_LITIR = ["graent", "blatt", "appelsinugult"];
 let ahugavertGogn = [];
@@ -883,7 +889,14 @@ function birtaAhugavert(leit = "") {
     const haus = document.createElement("div");
     haus.className = "ahugavert-kafli-haus";
     const fyrirsogn = document.createElement("h2");
-    fyrirsogn.textContent = `${upplysingar.takn || "✨"} ${nafn}`;
+    if (upplysingar.logo) {
+      const logo = document.createElement("span");
+      logo.className = "ahugavert-logo";
+      logo.innerHTML = AHUGAVERT_LOGO[upplysingar.logo];
+      fyrirsogn.append(logo, nafn);
+    } else {
+      fyrirsogn.textContent = `${upplysingar.takn || "✨"} ${nafn}`;
+    }
     const fjoldi = document.createElement("span");
     fjoldi.className = "ahugavert-fjoldi";
     fjoldi.textContent = hlekkir.length;

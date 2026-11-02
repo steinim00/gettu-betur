@@ -2536,3 +2536,23 @@ body.beta #glosurSvaedi > .hluti-titill {
   background: var(--akent);
   color: #fff;
 }
+
+.ahugavert-kafli-haus h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ahugavert-logo {
+  display: inline-flex;
+}
+
+.ahugavert-logo svg {
+  height: 26px;
+  width: auto;
+  display: block;
+}
+
+.beta-haus p:empty {
+  display: none;
+}
