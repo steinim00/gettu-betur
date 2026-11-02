@@ -3573,3 +3573,27 @@ body.beta #rangarSpurningarBtn {
 body.beta #minStadaSvaedi h3 {
   margin: 18px 0 8px;
 }
+
+/* Hraðaspurninga-borðinn á Heim er allur takki */
+.viku-ahersla.smellanlegur {
+  cursor: pointer;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+.viku-ahersla.smellanlegur:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.viku-ahersla.smellanlegur:active {
+  transform: translateY(0);
+}
+
+.viku-ahersla.smellanlegur:focus-visible {
+  outline: 3px solid var(--litur-lime);
+  outline-offset: 3px;
+}
+
+.hradaspurning-kort.smellanlegt-kort {
+  cursor: pointer;
+}

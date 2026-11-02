@@ -2152,6 +2152,23 @@ function birtaVikuAherslu(verkefnaSnap) {
 
   borði.appendChild(titill);
   borði.appendChild(hnappar);
+
+  // Allur borðinn er takki (ekki bara hnappurinn inni í honum): smellt hvar sem er opnar spurningarnar.
+  borði.classList.add("smellanlegur");
+  borði.tabIndex = 0;
+  borði.setAttribute("role", "button");
+  borði.setAttribute("aria-label", `${verkefni.title} - fara í spurningar`);
+  const opnaBordann = (e) => {
+    if (e.target.closest("button")) return;
+    opnaSpurningarBeint(vDoc.id, verkefni);
+  };
+  borði.addEventListener("click", opnaBordann);
+  borði.addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ") && e.target === borði) {
+      e.preventDefault();
+      opnaSpurningarBeint(vDoc.id, verkefni);
+    }
+  });
   vikuAherslaSvaedi.appendChild(borði);
   vikuAherslaSvaedi.hidden = false;
 }
@@ -2200,6 +2217,23 @@ function byggjaHradaspurningarKort(vDoc, verkefni, spurningaIds, svaradIds) {
     }
   });
   kort.appendChild(hnappur);
+
+  // Hraðaspurningar-spjaldið er allt takki, eins og borðinn á Heim.
+  if (erHradaVerkefni(verkefni)) {
+    kort.classList.add("smellanlegt-kort");
+    kort.tabIndex = 0;
+    kort.setAttribute("role", "button");
+    kort.setAttribute("aria-label", `${verkefni.title} - byrja`);
+    kort.addEventListener("click", (e) => {
+      if (!e.target.closest("button")) hnappur.click();
+    });
+    kort.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && e.target === kort) {
+        e.preventDefault();
+        hnappur.click();
+      }
+    });
+  }
 
   if (verkefni.formSlod) {
     const formTengill = document.createElement("a");
