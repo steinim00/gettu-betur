@@ -3800,3 +3800,23 @@ body.beta .verkefni-kort .aðal-hnappur {
 body.beta .verkefni-kort .framvinda-bar {
   margin: 2px 0 4px;
 }
+
+/* Þriggja punkta valmyndin: bara punktarnir (enginn kassi), með léttu hover á punktunum */
+button.smabtn.adgerd-valmynd-takki {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color: var(--litur-daufur);
+  padding: 6px 10px;
+  letter-spacing: 1px;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+button.smabtn.adgerd-valmynd-takki:hover,
+button.smabtn.adgerd-valmynd-takki:focus-visible,
+button.smabtn.adgerd-valmynd-takki[aria-expanded="true"] {
+  background: transparent;
+  border: none;
+  color: var(--litur-texti);
+  transform: scale(1.3);
+}
