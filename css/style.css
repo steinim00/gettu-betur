@@ -3872,3 +3872,17 @@ body.beta #nyGlosaForm .glosur-form-takkar .aðal-hnappur {
   margin: 0;
   padding: 10px 22px;
 }
+
+body.beta .viku-ahersla {
+  padding: 8px 18px;
+  margin-bottom: 10px;
+}
+
+body.beta .viku-ahersla h3 {
+  line-height: 1.1;
+  margin: 0;
+}
+
+body.beta #minStadaSvaedi .viku-ahersla h3 {
+  margin: 0;
+}
