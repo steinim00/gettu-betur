@@ -2465,3 +2465,31 @@ body.beta #glosurSvaedi > .hluti-titill {
     font-size: 1.6rem;
   }
 }
+
+.glosur-adgerdir {
+  margin-bottom: 18px;
+}
+
+.glosur-form-takkar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+#nyGlosaForm select,
+#nyGlosaForm textarea {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+#nyGlosaForm[hidden],
+.glosur-adgerdir [hidden] {
+  display: none;
+}

@@ -107,6 +107,20 @@
       <h2>Glósurnar mínar</h2>
       <button type="button" class="smabtn" id="tilbakaFraGlosum">← Öll verkefni</button>
     </div>
+    <div class="glosur-adgerdir">
+      <button type="button" class="aðal-hnappur" id="nyGlosaBtn">➕ Bæta við glósu</button>
+    </div>
+    <form id="nyGlosaForm" class="glosa-box" hidden>
+      <label for="nyGlosaVerkefni">Um hvaða verkefni?</label>
+      <select id="nyGlosaVerkefni" required></select>
+      <label for="nyGlosaTexti">Glósan þín</label>
+      <textarea id="nyGlosaTexti" rows="6" maxlength="4900" required placeholder="Skrifaðu það sem þú vilt muna…"></textarea>
+      <p class="heimild-tilvitnun" id="nyGlosaStada">Aðeins þú sérð þetta. Ein glósa á hvert verkefni.</p>
+      <div class="glosur-form-takkar">
+        <button type="submit" class="aðal-hnappur" id="nyGlosaVistaBtn">Vista glósu</button>
+        <button type="button" class="smabtn" id="nyGlosaHaettaBtn">Hætta við</button>
+      </div>
+    </form>
     <div id="glosurListi"></div>
   </div>
 

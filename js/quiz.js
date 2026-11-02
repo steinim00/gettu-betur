@@ -57,6 +57,13 @@ const glosaBox = document.getElementById("glosaBox");
 const glosaTextarea = document.getElementById("glosaTextarea");
 const vistaGlosuBtn = document.getElementById("vistaGlosuBtn");
 const glosaStada = document.getElementById("glosaStada");
+const nyGlosaBtn = document.getElementById("nyGlosaBtn");
+const nyGlosaForm = document.getElementById("nyGlosaForm");
+const nyGlosaVerkefni = document.getElementById("nyGlosaVerkefni");
+const nyGlosaTexti = document.getElementById("nyGlosaTexti");
+const nyGlosaStada = document.getElementById("nyGlosaStada");
+const nyGlosaVistaBtn = document.getElementById("nyGlosaVistaBtn");
+const nyGlosaHaettaBtn = document.getElementById("nyGlosaHaettaBtn");
 
 const verkefnaSvaedi = document.getElementById("verkefnaSvaedi");
 const verkefnaListi = document.getElementById("verkefnaListi");
@@ -1155,10 +1162,75 @@ vistaGlosuBtn.addEventListener("click", async () => {
   }
 });
 
+// "Bæta við glósu" í Glósur flipanum: velja verkefni og skrifa glósu. Ein glósa
+// á hvert verkefni (skjal-ID = verkefniID), svo glósa sem þegar er til opnast
+// til breytingar í stað þess að búa til nýja.
+let nyGlosaTitlar = new Map();
+
+async function opnaNyjaGlosu() {
+  nyGlosaForm.hidden = false;
+  nyGlosaBtn.hidden = true;
+  nyGlosaTexti.value = "";
+  nyGlosaStada.textContent = "Sæki verkefni…";
+  const snap = await getDocs(query(collection(db, "verkefni"), where("active", "==", true)));
+  const verkefni = snap.docs
+    .filter((d) => synilegtNotanda(d.data()))
+    .sort((a, b) => (a.data().title || "").localeCompare(b.data().title || "", "is"));
+  nyGlosaTitlar = new Map(verkefni.map((d) => [d.id, d.data().title]));
+  nyGlosaVerkefni.innerHTML = "";
+  verkefni.forEach((d) => nyGlosaVerkefni.appendChild(new Option(d.data().title, d.id)));
+  nyGlosaStada.textContent = "Aðeins þú sérð þetta. Ein glósa á hvert verkefni.";
+  await fyllaInnFyrriGlosu();
+  nyGlosaTexti.focus();
+}
+
+async function fyllaInnFyrriGlosu() {
+  const id = nyGlosaVerkefni.value;
+  if (!id) return;
+  const snap = await getDoc(doc(db, "users", notandi.uid, "glosur", id));
+  nyGlosaTexti.value = snap.exists() ? snap.data().texti || "" : "";
+  nyGlosaStada.textContent = nyGlosaTexti.value
+    ? "Þú átt þegar glósu um þetta verkefni - þú ert að breyta henni."
+    : "Aðeins þú sérð þetta. Ein glósa á hvert verkefni.";
+}
+
+function lokaNyrriGlosu() {
+  nyGlosaForm.hidden = true;
+  nyGlosaBtn.hidden = false;
+}
+
+nyGlosaBtn.addEventListener("click", opnaNyjaGlosu);
+nyGlosaHaettaBtn.addEventListener("click", lokaNyrriGlosu);
+nyGlosaVerkefni.addEventListener("change", fyllaInnFyrriGlosu);
+nyGlosaForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const id = nyGlosaVerkefni.value;
+  const texti = nyGlosaTexti.value.trim();
+  if (!notandi || !id || !texti) return;
+  nyGlosaVistaBtn.disabled = true;
+  nyGlosaStada.textContent = "Vista…";
+  try {
+    await setDoc(doc(db, "users", notandi.uid, "glosur", id), {
+      texti,
+      verkefniTitill: nyGlosaTitlar.get(id) || "",
+      updatedAt: serverTimestamp()
+    });
+    lokaNyrriGlosu();
+    hladaGlosur();
+  } catch (villa) {
+    console.error(villa);
+    nyGlosaStada.textContent = "Tókst ekki að vista - reyndu aftur.";
+  } finally {
+    nyGlosaVistaBtn.disabled = false;
+  }
+});
+
 // "Glósurnar mínar" - yfirlit yfir öll verkefni sem notandinn hefur skrifað
 // glósu um, með flýtileið til að breyta eða eyða hverri glósu.
 async function hladaGlosur() {
   if (!notandi) return;
+  nyGlosaBtn.hidden = false;
+  nyGlosaForm.hidden = true;
   glosurListi.innerHTML = skeletonKort(3, 1);
 
   const glosurSnap = await getDocs(collection(db, "users", notandi.uid, "glosur"));
@@ -1166,7 +1238,7 @@ async function hladaGlosur() {
 
   glosurListi.innerHTML = "";
   if (glosur.length === 0) {
-    glosurListi.innerHTML = "<p>Þú hefur ekki skrifað neinar glósur ennþá. Opnaðu glærur verkefnis og skrifaðu glósu þar.</p>";
+    glosurListi.innerHTML = "<p>Þú hefur ekki skrifað neinar glósur ennþá. Ýttu á „Bæta við glósu“ hér fyrir ofan eða opnaðu glærur verkefnis og skrifaðu glósu þar.</p>";
     return;
   }
 
