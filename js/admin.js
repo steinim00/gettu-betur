@@ -3378,6 +3378,27 @@ function athugaTolfraediOpnun() {
   if (!tolfraediHladid && document.getElementById("sida-tolfraedi").classList.contains("virk")) hladaTolfraedi();
 }
 document.getElementById("stjornNav").addEventListener("click", () => setTimeout(athugaTolfraediOpnun, 0));
+
+// Á síma opnast valmyndin með þriggja lína takka í hausnum
+(() => {
+  const hlid = document.querySelector(".stjorn-grind > .stjorn-hlid");
+  const takki = document.getElementById("stjornValmyndTakki");
+  const opna = (opin) => {
+    hlid.classList.toggle("opin", opin);
+    takki.classList.toggle("opin", opin);
+    takki.setAttribute("aria-expanded", String(opin));
+    takki.setAttribute("aria-label", opin ? "Loka valmynd" : "Opna valmynd");
+    document.body.classList.toggle("stjorn-valmynd-opin", opin);
+  };
+  takki.addEventListener("click", () => opna(!hlid.classList.contains("opin")));
+  document.getElementById("stjornNav").addEventListener("click", (e) => {
+    if (e.target.closest("button[data-malsvaedi]")) opna(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") opna(false);
+  });
+  window.matchMedia("(min-width: 901px)").addEventListener("change", () => opna(false));
+})();
 vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, () => athugaTolfraediOpnun());
 
 // --- Áhugavert efni: hlekkir sem nemendur sjá (nýja útlitið, sjá leikur.html) ---
