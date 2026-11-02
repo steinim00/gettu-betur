@@ -162,22 +162,45 @@ vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
   // sjálfvirk endurhleðsla getur klárað daglegan lestrarkvóta Firestore
   // (Spark-áætlun) á örfáum mínútum eftir því sem spurningabankinn stækkar.
   // Sleppir líka endurhleðslu alveg á meðan flipinn er ekki í fókus.
+  // Núna aðeins á 10 mín fresti og aðeins ef admin hefur gert eitthvað á síðunni
+  // síðasta stundarfjórðunginn - annars las gleymdur opinn flipi þúsundir skjala
+  // á klukkustund.
+  let sidastaSnertingAdmin = Date.now();
+  ["click", "keydown", "touchstart", "scroll", "mousemove"].forEach((heiti) => {
+    window.addEventListener(heiti, () => (sidastaSnertingAdmin = Date.now()), { passive: true });
+  });
   setInterval(() => {
-    if (document.visibilityState === "visible") hladaAllt();
-  }, 300000);
+    if (document.visibilityState === "visible" && Date.now() - sidastaSnertingAdmin < 15 * 60 * 1000) hladaAllt();
+  }, 600000);
 });
 
 utskraBtn.addEventListener("click", () => skraUt());
 endurhladaBtn.addEventListener("click", hladaAllt);
 
+// Fullt yfirlit sækir sömu söfnin (notendur, verkefni, spurningar) í mörgum
+// föllum - þau deila hér einni lesningu hvert á meðan hladaAllt er í gangi
+// (Firestore rukkar fyrir hvern lesinn skjal). Önnur köll (t.d. eftir breytingu)
+// lesa alltaf ferskt.
+let deiltLestur = null;
+function lesaSafn(nafn) {
+  if (!deiltLestur) return getDocs(collection(db, nafn));
+  if (!deiltLestur[nafn]) deiltLestur[nafn] = getDocs(collection(db, nafn));
+  return deiltLestur[nafn];
+}
+
 async function hladaAllt() {
-  await Promise.all([
-    hladaNotendayfirlit(),
-    hladaVerkefnayfirlit(),
-    hladaSpurningayfirlit(),
-    hladaGraenadeildarAefingar(),
-    hladaSerflokkar()
-  ]);
+  deiltLestur = {};
+  try {
+    await Promise.all([
+      hladaNotendayfirlit(),
+      hladaVerkefnayfirlit(),
+      hladaSpurningayfirlit(),
+      hladaGraenadeildarAefingar(),
+      hladaSerflokkar()
+    ]);
+  } finally {
+    deiltLestur = null;
+  }
 }
 
 let graenadeildarVerkefniId = "";
@@ -198,7 +221,7 @@ async function hladaGraenadeildarAefingar() {
 async function finnaGraenadeildarVerkefni() {
   if (graenadeildarVerkefniId && graenadeildarSpurningar.length > 0) return;
 
-  const verkefnaSnap = await getDocs(collection(db, "verkefni"));
+  const verkefnaSnap = await lesaSafn("verkefni");
   const fundid = verkefnaSnap.docs.find((d) => {
     const titill = (d.data().title || "").toLowerCase();
     return titill.includes("grænadeildin") || titill.includes("hraðaspurningar");
@@ -212,10 +235,10 @@ async function finnaGraenadeildarVerkefni() {
 
   graenadeildarVerkefniId = fundid.id;
 
-  const spurningarSnap = await getDocs(
-    query(collection(db, "questions"), where("verkefniId", "==", graenadeildarVerkefniId))
-  );
-  graenadeildarSpurningar = spurningarSnap.docs.map((d) => ({ id: d.id, text: d.data().text }));
+  const spurningarSnap = await lesaSafn("questions");
+  graenadeildarSpurningar = spurningarSnap.docs
+    .filter((d) => d.data().verkefniId === graenadeildarVerkefniId)
+    .map((d) => ({ id: d.id, text: d.data().text }));
 }
 
 async function hladaLidsmenn() {
@@ -923,9 +946,9 @@ async function hladaNotendayfirlit() {
   notendaTafla.innerHTML = `<tr><td colspan="9">Sæki gögn…</td></tr>`;
 
   const [notendurSnap, spurningarSnap, verkefnaSnap] = await Promise.all([
-    getDocs(collection(db, "users")),
-    getDocs(collection(db, "questions")),
-    getDocs(collection(db, "verkefni"))
+    lesaSafn("users"),
+    lesaSafn("questions"),
+    lesaSafn("verkefni")
   ]);
 
   const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
@@ -1631,9 +1654,9 @@ document.addEventListener("click", () => {
 
 async function hladaVerkefnayfirlit() {
   const [verkefnaSnap, spurningarSnap, notendaLitaSnap] = await Promise.all([
-    getDocs(collection(db, "verkefni")),
-    getDocs(collection(db, "questions")),
-    getDocs(collection(db, "users"))
+    lesaSafn("verkefni"),
+    lesaSafn("questions"),
+    lesaSafn("users")
   ]);
 
   const fjoldiSpurningaPerVerkefni = new Map();
@@ -2056,9 +2079,9 @@ bokForm.addEventListener("submit", async (e) => {
 
 async function hladaSpurningayfirlit() {
   const [spurningarSnap, svorSnap, verkefnaSnap] = await Promise.all([
-    getDocs(collection(db, "questions")),
+    lesaSafn("questions"),
     getDocs(collection(db, "answers")),
-    getDocs(collection(db, "verkefni"))
+    lesaSafn("verkefni")
   ]);
   const rettSvor = new Map(svorSnap.docs.map((d) => [d.id, d.data().correctAnswers || []]));
   const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
@@ -2089,11 +2112,11 @@ async function hladaSpurningayfirlit() {
   });
 }
 
-// Sækir attempts-undirsöfn nemendanna (ekki admin) einu sinni og geymir í 5
+// Sækir attempts-undirsöfn nemendanna (ekki admin) einu sinni og geymir í 30
 // mínútur - notað til að sýna hversu margir hafa svarað hverri spurningu.
 let svarafjoldaCache = null;
 function saekjaSvarafjolda() {
-  if (svarafjoldaCache && Date.now() - svarafjoldaCache.timi < 5 * 60 * 1000) {
+  if (svarafjoldaCache && Date.now() - svarafjoldaCache.timi < 30 * 60 * 1000) {
     return svarafjoldaCache.loforð;
   }
   const loforð = (async () => {

@@ -14,7 +14,8 @@ import {
   writeBatch,
   deleteField,
   increment,
-  serverTimestamp
+  serverTimestamp,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const notandaNafn = document.getElementById("notandaNafn");
@@ -1389,9 +1390,9 @@ async function hladaVerkefnaListi() {
 
   // Ein fyrirspurn fyrir allar virkar spurningar, flokkuð eftir verkefni í JS -
   // mun ódýrara en að spyrja Firestore einu sinni fyrir hvert verkefni.
-  const spurningarSnap = await getDocs(
-    erAdminNotandi ? collection(db, "questions") : query(collection(db, "questions"), where("active", "==", true))
-  );
+  const spurningarSnap = erAdminNotandi
+    ? (await getDocs(collection(db, "questions"))).docs
+    : await saekjaVirkarSpurningar();
   const spurningaIdEftirVerkefni = new Map();
   spurningarSnap.forEach((qDoc) => {
     const vid = qDoc.data().verkefniId;
@@ -1399,9 +1400,7 @@ async function hladaVerkefnaListi() {
     spurningaIdEftirVerkefni.get(vid).push(qDoc.id);
   });
 
-  const svaradIds = notandi
-    ? new Set((await getDocs(collection(db, "users", notandi.uid, "attempts"))).docs.map((d) => d.id))
-    : new Set();
+  const svaradIds = await saekjaSvaradIds();
 
   verkefnaListi.innerHTML = "";
   hradaspurningarListi.innerHTML = "";
@@ -1583,23 +1582,114 @@ function faraISpurningarFraGlaerum() {
 afromISpurningar.addEventListener("click", faraISpurningarFraGlaerum);
 faraBeintISpurningarBtn.addEventListener("click", faraISpurningarFraGlaerum);
 
+// --- Lestrarsparnaður (Firestore rukkar fyrir hvern lesinn skjal) ---
+// Allar virkar spurningar (um 1.200) eru geymdar í vafranum í hálftíma í stað
+// þess að vera lesnar upp á nýtt við hverja innhleðslu og hvert verkefni. Admin
+// sér alltaf ferskar spurningar. Svöruðu-spurninga-listinn er sóttur
+// stigvaxandi: aðeins ný svör frá síðustu heimsókn eru lesin.
+const SPURNINGA_GEYMSLA_LYKILL = "gb_virkar_spurningar_v1";
+const SPURNINGA_GEYMSLA_MS = 30 * 60 * 1000;
+let virkarSpurningarMinni = null;
+
+function thjappaSpurningu(gogn) {
+  const ut = {};
+  for (const [k, v] of Object.entries(gogn)) ut[k] = v && typeof v.toMillis === "function" ? { __ms: v.toMillis() } : v;
+  return ut;
+}
+
+function endurlifgaSpurningu(gogn) {
+  const ut = {};
+  for (const [k, v] of Object.entries(gogn)) {
+    ut[k] = v && typeof v === "object" && "__ms" in v ? { toMillis: () => v.__ms, toDate: () => new Date(v.__ms) } : v;
+  }
+  return ut;
+}
+
+async function saekjaVirkarSpurningar() {
+  if (virkarSpurningarMinni && Date.now() - virkarSpurningarMinni.t < SPURNINGA_GEYMSLA_MS) return virkarSpurningarMinni.docs;
+  try {
+    const c = JSON.parse(localStorage.getItem(SPURNINGA_GEYMSLA_LYKILL) || "null");
+    if (c && Date.now() - c.t < SPURNINGA_GEYMSLA_MS) {
+      const docs = c.d.map(([id, g]) => {
+        const gogn = endurlifgaSpurningu(g);
+        return { id, data: () => gogn };
+      });
+      virkarSpurningarMinni = { t: c.t, docs };
+      return docs;
+    }
+  } catch (villa) {
+    console.warn(villa);
+  }
+  const snap = await getDocs(query(collection(db, "questions"), where("active", "==", true)));
+  virkarSpurningarMinni = { t: Date.now(), docs: snap.docs };
+  try {
+    localStorage.setItem(
+      SPURNINGA_GEYMSLA_LYKILL,
+      JSON.stringify({ t: Date.now(), d: snap.docs.map((d) => [d.id, thjappaSpurningu(d.data())]) })
+    );
+  } catch (villa) {
+    console.warn(villa);
+  }
+  return snap.docs;
+}
+
+// Spurningar eins verkefnis: virkar úr geymslunni fyrir nemendur, allar (líka
+// óvirkar) beint úr gagnagrunninum fyrir admin.
+async function saekjaSpurningarVerkefnis(verkefniId) {
+  if (erAdminNotandi) {
+    return (await getDocs(query(collection(db, "questions"), where("verkefniId", "==", verkefniId)))).docs;
+  }
+  return (await saekjaVirkarSpurningar()).filter((d) => d.data().verkefniId === verkefniId);
+}
+
+let sidastiNotandaGogn = null;
+async function saekjaSvaradIds() {
+  if (!notandi) return new Set();
+  const lykill = `gb_svorud_${notandi.uid}`;
+  const notandaSnap = await getDoc(doc(db, "users", notandi.uid));
+  sidastiNotandaGogn = notandaSnap.data() || {};
+  const vantar = sidastiNotandaGogn.fjoldiSvarad || 0;
+  let geymt = null;
+  try {
+    geymt = JSON.parse(localStorage.getItem(lykill) || "null");
+  } catch (villa) {
+    console.warn(villa);
+  }
+  let ids;
+  let sidast = 0;
+  if (geymt && Array.isArray(geymt.ids)) {
+    ids = new Set(geymt.ids);
+    sidast = geymt.sidast || 0;
+    const nytt = await getDocs(
+      query(collection(db, "users", notandi.uid, "attempts"), where("answeredAt", ">", Timestamp.fromMillis(sidast)))
+    );
+    nytt.forEach((d) => {
+      ids.add(d.id);
+      sidast = Math.max(sidast, d.data().answeredAt?.toMillis?.() ?? 0);
+    });
+    // Fjöldinn stemmir ekki við teljarann (t.d. "byrja aftur" á öðru tæki) - sækja allt.
+    if (ids.size !== vantar) ids = null;
+  }
+  if (!ids) {
+    const allt = await getDocs(collection(db, "users", notandi.uid, "attempts"));
+    ids = new Set(allt.docs.map((d) => d.id));
+    sidast = allt.docs.reduce((m, d) => Math.max(m, d.data().answeredAt?.toMillis?.() ?? 0), 0);
+  }
+  try {
+    localStorage.setItem(lykill, JSON.stringify({ ids: [...ids], sidast }));
+  } catch (villa) {
+    console.warn(villa);
+  }
+  return ids;
+}
+
 async function hladaSpurningum(hoppaIOsvaradar = false) {
   spurningaListi.innerHTML = skeletonKort(5, 1);
   siduflettingarEfri.hidden = true;
   siduflettingar.hidden = true;
 
   // Admin sér líka óvirkar spurningar (forskoðun) - allir aðrir bara virkar.
-  const spurningarSnap = await getDocs(
-    erAdminNotandi
-      ? query(collection(db, "questions"), where("verkefniId", "==", valdVerkefniId))
-      : query(
-          collection(db, "questions"),
-          where("verkefniId", "==", valdVerkefniId),
-          where("active", "==", true)
-        )
-  );
-
-  let spurningaDocs = spurningarSnap.docs;
+  let spurningaDocs = await saekjaSpurningarVerkefnis(valdVerkefniId);
   if (valdHverErFlokkur) {
     spurningaDocs = spurningaDocs.filter((d) => valdHverErFlokkur.textar.includes(d.data().text));
     if (valdHverErFlokkur.adminEingongu && erKennileitaYfirferd()) hreinsaUtrunninMerki(spurningaDocs);
@@ -1607,21 +1697,14 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
   if (valdVerkefniErHrada && notandi && !erAdminNotandi) {
     const verkefnaSnap = await getDocs(query(collection(db, "verkefni"), where("active", "==", true)));
     const aukaVerkefniIds = uthlutadVerkefniFyrirNotanda(verkefnaSnap.docs).map((d) => d.id);
-    for (let i = 0; i < aukaVerkefniIds.length; i += 30) {
-      const aukaSnap = await getDocs(
-        query(
-          collection(db, "questions"),
-          where("verkefniId", "in", aukaVerkefniIds.slice(i, i + 30)),
-          where("active", "==", true)
-        )
-      );
-      spurningaDocs = spurningaDocs.concat(aukaSnap.docs);
+    if (aukaVerkefniIds.length > 0) {
+      const aukaSett = new Set(aukaVerkefniIds);
+      const virkar = await saekjaVirkarSpurningar();
+      spurningaDocs = spurningaDocs.concat(virkar.filter((d) => aukaSett.has(d.data().verkefniId)));
     }
   }
 
-  svaradIdSett = notandi
-    ? new Set((await getDocs(collection(db, "users", notandi.uid, "attempts"))).docs.map((d) => d.id))
-    : new Set();
+  svaradIdSett = await saekjaSvaradIds();
 
   // Aðeins hægt að "byrja aftur" innan eins verkefnis - ekki á rangar-spurningar
   // yfirlitinu (valdVerkefniId er þá null) og ekki fyrir gesti.
@@ -1861,7 +1944,7 @@ function birtaSpurningar() {
 
 async function hladaEndurtokuStodu() {
   try {
-    const gogn = (await getDoc(doc(db, "users", notandi.uid))).data() || {};
+    const gogn = sidastiNotandaGogn || (await getDoc(doc(db, "users", notandi.uid))).data() || {};
     svaradTalning = gogn.fjoldiSvarad || 0;
     endurtaka = new Map(Object.entries(gogn.endurtaka || {}));
   } catch (villa) {
