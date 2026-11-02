@@ -712,10 +712,6 @@ function kveikjaBeta(gogn, user) {
   betaHlid.hidden = false;
   betaHaus.hidden = false;
   betaValmyndTakki.hidden = false;
-  // "BETA" merkið og "Sjá gamla útlitið" sjást aðeins admin í forskoðun.
-  document.querySelector(".beta-merki-haus").hidden = !erAdmin;
-  document.querySelector("#betaHlid > .beta-merki").hidden = !erAdmin;
-  document.querySelector(".beta-gamalt").hidden = !erAdmin;
   betaNotandaNafn.textContent = gogn.nafn || user.email;
   const fornafn = (gogn.nafn || user.email || "").split(" ")[0];
   BETA_FYRIRSAGNIR.heim[0] = `Hæ, ${fornafn} 👋`;
