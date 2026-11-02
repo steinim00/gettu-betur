@@ -3820,3 +3820,55 @@ button.smabtn.adgerd-valmynd-takki[aria-expanded="true"] {
   color: var(--litur-texti);
   transform: scale(1.3);
 }
+
+/* Hraðaspurningar á Heim: bara nafnið, stærra, og spjaldið allt takki */
+body.beta .viku-ahersla {
+  padding: 14px 18px;
+}
+
+body.beta .viku-ahersla h3 {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+body.beta .viku-ahersla .viku-ahersla-hnappar {
+  display: none;
+}
+
+/* Glósur (nýja útlitið): þéttari glósuspjöld, hnappar með bili og form án óþarfa hæðar */
+body.beta #glosurListi .spurning-kort {
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+body.beta #glosurListi .spurning-kort h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+body.beta #glosurListi .spurning-kort p {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+body.beta #glosurListi .spurning-kort .smabtn {
+  margin-right: 8px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+}
+
+body.beta #nyGlosaForm {
+  padding: 16px;
+}
+
+body.beta #nyGlosaForm .glosur-form-takkar {
+  align-items: center;
+}
+
+body.beta #nyGlosaForm .glosur-form-takkar .aðal-hnappur {
+  width: auto;
+  margin: 0;
+  padding: 10px 22px;
+}

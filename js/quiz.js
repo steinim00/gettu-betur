@@ -2167,6 +2167,7 @@ function birtaVikuAherslu(verkefnaSnap) {
   if (!erProfVerkefni(verkefni)) hnappar.appendChild(glaeruBtn);
 
   borði.appendChild(titill);
+  // Allur borðinn er takki - aðeins nafnið sést (hnapparnir sjást ekki í nýja útlitinu, sjá CSS).
   borði.appendChild(hnappar);
 
   // Allur borðinn er takki (ekki bara hnappurinn inni í honum): smellt hvar sem er opnar spurningarnar.
