@@ -746,7 +746,7 @@ betaUtskraBtn.addEventListener("click", () => utskraBtn.click());
 // birtir í flokkum (flokkur) með tákni (takn) - flokkarnir raðast eftir því
 // hvaða hlekkur var skráður fyrst.
 const AHUGAVERT_FLOKKAR = {
-  "Gamlar keppnir": { takn: "📺", lysing: "", litur: "dökkt", logo: "ruv" },
+  "Gamlar keppnir": { takn: "📺", lysing: "", litur: "dokkt", logo: "ruv" },
   YouTube: { takn: "▶️", lysing: "", litur: "rautt", logo: "youtube" },
   "Hlaðvörp": { takn: "🎧", lysing: "", litur: "fjolublatt", logo: "spotify" }
 };
@@ -763,8 +763,39 @@ let ahugavertHladid = false;
 
 // "Tek þetta" er aðeins á hlekkjum í þessum flokkum - nemandinn merkir hvað hann
 // ætlar að taka (geymt á users/{uid}.ahugavertTek.{hlekkjaID}).
-const AHUGAVERT_TEK_FLOKKAR = ["YouTube", "Hlaðvörp"];
+const AHUGAVERT_TEK_FLOKKAR = ["Gamlar keppnir", "YouTube", "Hlaðvörp"];
 let ahugavertTek = {};
+
+function byggjaTekHnapp(g) {
+  const tekBtn = document.createElement("button");
+  tekBtn.type = "button";
+  tekBtn.className = "ahugavert-tek";
+  const uppfaera = () => {
+    const tek = !!ahugavertTek[g.id];
+    tekBtn.classList.toggle("tek", tek);
+    tekBtn.setAttribute("aria-pressed", String(tek));
+    tekBtn.textContent = tek ? "✅ Tek þetta" : "☐ Tek þetta";
+  };
+  uppfaera();
+  tekBtn.addEventListener("click", async () => {
+    const nyttGildi = !ahugavertTek[g.id];
+    if (nyttGildi) ahugavertTek[g.id] = true;
+    else delete ahugavertTek[g.id];
+    uppfaera();
+    try {
+      await updateDoc(doc(db, "users", notandi.uid), {
+        [`ahugavertTek.${g.id}`]: nyttGildi ? true : deleteField()
+      });
+    } catch (villa) {
+      console.error(villa);
+      if (nyttGildi) delete ahugavertTek[g.id];
+      else ahugavertTek[g.id] = true;
+      uppfaera();
+      alert("Tókst ekki að vista - reyndu aftur.");
+    }
+  });
+  return tekBtn;
+}
 
 function byggjaAhugavertKort(g, litur) {
   const kort = document.createElement("div");
@@ -817,6 +848,11 @@ function byggjaAhugavertKort(g, litur) {
   // Keppnir sýna aðeins myndina með ártalinu - engan texta undir.
   if (erKeppni && g.mynd) {
     kort.append(takn, tengill);
+    if (g.id && AHUGAVERT_TEK_FLOKKAR.includes(g.flokkur)) {
+      const tekBtn = byggjaTekHnapp(g);
+      tekBtn.classList.add("ahugavert-tek-litill");
+      kort.appendChild(tekBtn);
+    }
     return kort;
   }
   if (g.lysing) {
@@ -855,36 +891,7 @@ function byggjaAhugavertKort(g, litur) {
     texti.appendChild(veitur);
   }
 
-  if (g.id && AHUGAVERT_TEK_FLOKKAR.includes(g.flokkur)) {
-    const tekBtn = document.createElement("button");
-    tekBtn.type = "button";
-    tekBtn.className = "ahugavert-tek";
-    const uppfaera = () => {
-      const tek = !!ahugavertTek[g.id];
-      tekBtn.classList.toggle("tek", tek);
-      tekBtn.setAttribute("aria-pressed", String(tek));
-      tekBtn.textContent = tek ? "✅ Tek þetta" : "☐ Tek þetta";
-    };
-    uppfaera();
-    tekBtn.addEventListener("click", async () => {
-      const nyttGildi = !ahugavertTek[g.id];
-      if (nyttGildi) ahugavertTek[g.id] = true;
-      else delete ahugavertTek[g.id];
-      uppfaera();
-      try {
-        await updateDoc(doc(db, "users", notandi.uid), {
-          [`ahugavertTek.${g.id}`]: nyttGildi ? true : deleteField()
-        });
-      } catch (villa) {
-        console.error(villa);
-        if (nyttGildi) delete ahugavertTek[g.id];
-        else ahugavertTek[g.id] = true;
-        uppfaera();
-        alert("Tókst ekki að vista - reyndu aftur.");
-      }
-    });
-    texti.appendChild(tekBtn);
-  }
+  if (g.id && AHUGAVERT_TEK_FLOKKAR.includes(g.flokkur)) texti.appendChild(byggjaTekHnapp(g));
 
   const orEl = document.createElement("div");
   orEl.className = "ahugavert-or";
@@ -1008,7 +1015,7 @@ async function birtaMittEfni(tek) {
     tengill.target = "_blank";
     tengill.rel = "noopener noreferrer";
     const titill = document.createElement("strong");
-    titill.textContent = g.titill;
+    titill.textContent = /^\d{4}$/.test(g.titill || "") ? `Gettu betur ${g.titill}` : g.titill;
     tengill.appendChild(titill);
     const undir = document.createElement("span");
     undir.className = "mitt-efni-undir";

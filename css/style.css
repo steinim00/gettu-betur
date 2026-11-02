@@ -2243,7 +2243,7 @@ body.beta #glosurSvaedi > .hluti-titill {
   border-color: var(--akent);
 }
 
-.ahugavert-kort.litur-dokkt { --akent: #161616; --akent-bak: #161616; }
+.ahugavert-kort.litur-dokkt { --akent: #161616; --akent-bak: #e6e6e0; }
 .ahugavert-kort.litur-rautt { --akent: #ff5a5f; --akent-bak: #ffe3e4; }
 .ahugavert-kort.litur-fjolublatt { --akent: #8b5cf6; --akent-bak: #ece4ff; }
 .ahugavert-kort.litur-graent { --akent: #5d8f1f; --akent-bak: #e6f6c9; }
@@ -2739,4 +2739,14 @@ body.beta #glosurSvaedi > .hluti-titill {
   color: inherit;
   font-size: inherit;
   line-height: 1;
+}
+
+/* "Tek þetta" á keppnisspjöldum: lítill hnappur undir myndinni */
+.ahugavert-tek-litill {
+  align-self: stretch;
+  margin: 8px;
+  padding: 5px 6px;
+  font-size: 0.74rem;
+  text-align: center;
+  white-space: nowrap;
 }
