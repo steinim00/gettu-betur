@@ -2082,3 +2082,206 @@ tr.smellanleg-rod:hover td {
   font-size: 0.85rem;
   font-weight: 600;
 }
+
+/* --- Nýja útlitið (beta): body.beta, sjá kveikjaBeta í js/quiz.js --- */
+.beta-merki {
+  align-self: flex-start;
+  margin: -14px 10px 18px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--litur-lime);
+  color: #202b0a;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.beta-merki-haus {
+  margin: 0;
+}
+
+.beta-hlid[hidden],
+.beta-merki[hidden],
+.beta-haus[hidden],
+.beta-flytileidir[hidden] {
+  display: none;
+}
+
+.beta-nav-utskra {
+  display: none !important;
+}
+
+.beta-hlid .texti-stutt {
+  display: none;
+}
+
+.beta-gamalt {
+  color: #f3f3ee;
+  border-color: rgba(255, 255, 255, 0.2);
+  text-align: center;
+  text-decoration: none;
+  margin-bottom: 8px;
+}
+
+.stjorn-reikningur #betaNotandaNafn {
+  color: #c9c9c2;
+  font-size: 0.85rem;
+  padding: 0 14px 8px;
+}
+
+body.beta {
+  display: flex;
+}
+
+body.beta header.sida-haus {
+  display: none;
+}
+
+body.beta main {
+  flex: 1;
+  min-width: 0;
+  max-width: 1100px;
+  margin: 0;
+  padding: 32px 40px 80px;
+}
+
+body.beta main:has(.verkefna-yfirlit) {
+  max-width: 1100px;
+}
+
+body.beta #minStadaSvaedi > .hluti-titill,
+body.beta #tilbakaFraMinniStodu,
+body.beta #tilbakaFraGlosum,
+body.beta #glosurSvaedi > .hluti-titill h2 {
+  display: none;
+}
+
+body.beta #glosurSvaedi > .hluti-titill {
+  display: none;
+}
+
+.ahugavert-net {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.ahugavert-kort {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  color: var(--litur-texti);
+  text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.ahugavert-kort:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+}
+
+.ahugavert-kort strong {
+  font-size: 1.05rem;
+}
+
+.ahugavert-kort span {
+  color: var(--litur-daufur);
+  font-size: 0.9rem;
+}
+
+.ahugavert-kort .ahugavert-host {
+  font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  body.beta {
+    display: block;
+  }
+
+  body.beta header.sida-haus {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 120;
+  }
+
+  body.beta .notandi-svaedi {
+    display: none;
+  }
+
+  body.beta main {
+    padding: 20px 16px calc(96px + env(safe-area-inset-bottom));
+  }
+
+  /* Valmyndarstikan neðst á símanum */
+  .beta-hlid {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    z-index: 150;
+    flex-direction: row;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .beta-hlid .merki,
+  .beta-hlid > .beta-merki,
+  .beta-hlid .stjorn-reikningur {
+    display: none;
+  }
+
+  .beta-hlid .stjorn-nav {
+    flex-direction: row;
+    gap: 2px;
+    overflow: visible;
+    width: 100%;
+  }
+
+  .beta-hlid .stjorn-nav button,
+  .beta-hlid .stjorn-nav button.beta-nav-utskra {
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    width: auto;
+    padding: 7px 2px;
+    border-radius: 14px;
+    text-align: center;
+  }
+
+  .beta-hlid .stjorn-nav button.beta-nav-utskra {
+    display: flex !important;
+  }
+
+  .beta-hlid .stjorn-nav button .takn {
+    font-size: 1.25rem;
+    width: auto;
+  }
+
+  .beta-hlid .stjorn-nav button span.texti-langt {
+    display: none !important;
+  }
+
+  .beta-hlid .stjorn-nav button span.texti-stutt {
+    display: block;
+  }
+
+  .beta-hlid .stjorn-nav button span.texti {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .stjorn-efni-haus h1 {
+    font-size: 1.6rem;
+  }
+}

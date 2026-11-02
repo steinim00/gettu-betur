@@ -37,6 +37,18 @@ const rangarSpurningarBtn = document.getElementById("rangarSpurningarBtn");
 const vikuAherslaSvaedi = document.getElementById("vikuAherslaSvaedi");
 
 const glosurBtn = document.getElementById("glosurBtn");
+
+// Nýja útlitið (beta) - sjá kveikjaBeta.
+const betaHlid = document.getElementById("betaHlid");
+const betaNav = document.getElementById("betaNav");
+const betaHaus = document.getElementById("betaHaus");
+const betaFyrirsogn = document.getElementById("betaFyrirsogn");
+const betaUndirtitill = document.getElementById("betaUndirtitill");
+const betaNotandaNafn = document.getElementById("betaNotandaNafn");
+const betaUtskraBtn = document.getElementById("betaUtskraBtn");
+const ahugavertSvaedi = document.getElementById("ahugavertSvaedi");
+const ahugavertListi = document.getElementById("ahugavertListi");
+let betaVirkt = false;
 const glosurSvaedi = document.getElementById("glosurSvaedi");
 const tilbakaFraGlosum = document.getElementById("tilbakaFraGlosum");
 const glosurListi = document.getElementById("glosurListi");
@@ -584,6 +596,7 @@ setInterval(vistaSkjatima, 60000);
 vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
   notandi = user;
   erAdminNotandi = gogn?.role === "admin";
+  kveikjaBeta(gogn, user);
   // "Hver er" flipinn sést aðeins hjá admin (ekki í "Sjá eins og nemandi").
   hverErBtn.hidden = !erKennileitaYfirferd();
 
@@ -655,10 +668,122 @@ async function opnaProfUrSlod(profId) {
 
 utskraBtn.addEventListener("click", () => skraUt());
 
+// --- Nýja útlitið (beta) ---
+// Hliðarvalmynd á tölvu og valmyndarstika neðst á síma, líkt og stjórnborðið.
+// Birtist aðeins admin í "Sjá eins og nemandi" (?forskodun=1) þar til það
+// verður birt nemendum. "&utlit=gamalt" sýnir gamla útlitið til samanburðar.
+function kveikjaBeta(gogn, user) {
+  const params = new URLSearchParams(window.location.search);
+  if (!user || gogn?.role !== "admin" || params.get("forskodun") !== "1" || params.get("utlit") === "gamalt") return;
+  betaVirkt = true;
+  document.body.classList.add("beta");
+  betaHlid.hidden = false;
+  betaHaus.hidden = false;
+  document.querySelector(".beta-merki-haus").hidden = false;
+  document.querySelector(".beta-flytileidir").hidden = false;
+  betaNotandaNafn.textContent = gogn.nafn || user.email;
+  const fornafn = (gogn.nafn || user.email || "").split(" ")[0];
+  BETA_FYRIRSAGNIR.heim[0] = `Hæ, ${fornafn} 👋`;
+}
+
+const BETA_FYRIRSAGNIR = {
+  heim: ["Heim", "Staðan þín í hnotskurn."],
+  verkefni: ["Verkefni", "Veldu verkefni eða taktu hraðaspurningar."],
+  glosur: ["Glósur", "Þínar einkaglósur um verkefnin."],
+  ahugavert: ["Áhugavert efni", "Hlekkir og efni sem gaman er að skoða."]
+};
+const BETA_LEIDIR = {
+  minstada: "heim",
+  verkefni: "verkefni",
+  glaerur: "verkefni",
+  spurningar: "verkefni",
+  hverEr: "verkefni",
+  glosur: "glosur",
+  ahugavert: "ahugavert"
+};
+
+function uppfaeraBetaNav(svaedi) {
+  const leid = BETA_LEIDIR[svaedi] || "heim";
+  betaNav.querySelectorAll("button[data-leid]").forEach((b) => b.classList.toggle("virkur", b.dataset.leid === leid));
+  const fyrirsogn = BETA_FYRIRSAGNIR[svaedi === "minstada" ? "heim" : svaedi];
+  betaHaus.hidden = !fyrirsogn;
+  if (fyrirsogn) {
+    betaFyrirsogn.textContent = fyrirsogn[0];
+    betaUndirtitill.textContent = fyrirsogn[1];
+  }
+}
+
+function betaFaraI(leid) {
+  if (leid === "heim") minStadaBtn.click();
+  else if (leid === "verkefni") synaSvaedi("verkefni");
+  else if (leid === "glosur") glosurBtn.click();
+  else if (leid === "ahugavert") {
+    synaSvaedi("ahugavert");
+    hladaAhugavertFyrirNemendur();
+  } else if (leid === "utskra") utskraBtn.click();
+}
+betaNav.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-leid]");
+  if (btn) betaFaraI(btn.dataset.leid);
+});
+document.querySelector(".beta-flytileidir").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-leid]");
+  if (btn) betaFaraI(btn.dataset.leid);
+});
+betaUtskraBtn.addEventListener("click", () => utskraBtn.click());
+
+// "Áhugavert efni": hlekkir sem admin skráir á stjórnborðinu (ahugavert safnið).
+let ahugavertHladid = false;
+async function hladaAhugavertFyrirNemendur() {
+  if (ahugavertHladid) return;
+  ahugavertListi.innerHTML = skeletonKort(3);
+  try {
+    const snap = await getDocs(collection(db, "ahugavert"));
+    const faerslur = snap.docs
+      .map((d) => d.data())
+      .filter((g) => /^https?:\/\//i.test(g.slod || ""))
+      .sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
+    ahugavertListi.innerHTML = "";
+    if (faerslur.length === 0) {
+      ahugavertListi.innerHTML = "<p>Ekkert áhugavert efni ennþá - kíktu aftur seinna.</p>";
+    }
+    faerslur.forEach((g) => {
+      const tengill = document.createElement("a");
+      tengill.className = "ahugavert-kort";
+      tengill.href = g.slod;
+      tengill.target = "_blank";
+      tengill.rel = "noopener noreferrer";
+      const titill = document.createElement("strong");
+      titill.textContent = g.titill || g.slod;
+      tengill.appendChild(titill);
+      if (g.lysing) {
+        const lysing = document.createElement("span");
+        lysing.textContent = g.lysing;
+        tengill.appendChild(lysing);
+      }
+      const host = document.createElement("span");
+      host.className = "ahugavert-host";
+      try {
+        host.textContent = new URL(g.slod).hostname.replace(/^www\./, "") + " ↗";
+      } catch (villa) {
+        host.textContent = "Opna ↗";
+      }
+      tengill.appendChild(host);
+      ahugavertListi.appendChild(tengill);
+    });
+    ahugavertHladid = true;
+  } catch (villa) {
+    console.error(villa);
+    ahugavertListi.innerHTML = "<p>Tókst ekki að sækja efnið. Reyndu aftur síðar.</p>";
+  }
+}
+
 function synaSvaedi(svaedi) {
   lokaSkrunarlotu();
   minStadaSvaedi.hidden = svaedi !== "minstada";
   glosurSvaedi.hidden = svaedi !== "glosur";
+  ahugavertSvaedi.hidden = svaedi !== "ahugavert";
+  if (betaVirkt) uppfaeraBetaNav(svaedi);
   hverErSvaedi.hidden = svaedi !== "hverEr";
   verkefnaSvaedi.hidden = svaedi !== "verkefni";
   glaeruSvaedi.hidden = svaedi !== "glaerur";

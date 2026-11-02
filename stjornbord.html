@@ -26,6 +26,7 @@
       <button type="button" data-malsvaedi="notendur"><span class="takn">👥</span><span class="texti">Notendur</span></button>
       <button type="button" data-malsvaedi="tolfraedi"><span class="takn">📈</span><span class="texti">Tölfræði</span></button>
       <button type="button" data-malsvaedi="graenadeildin"><span class="takn">🏃</span><span class="texti">Grænadeildin</span></button>
+      <button type="button" data-malsvaedi="ahugavert"><span class="takn">💡</span><span class="texti">Áhugavert efni</span></button>
       <button type="button" data-malsvaedi="stillingar"><span class="takn">⚙️</span><span class="texti">Stillingar</span></button>
     </nav>
 
@@ -408,6 +409,30 @@
       </table>
     </div>
 
+    <div class="stjorn-sida" id="sida-ahugavert">
+      <p class="undirtitill-vinstri">
+        Hlekkir sem birtast nemendum í flipanum „Áhugavert efni“ (í nýja útlitinu, sem er enn í beta
+        undir „Sjá eins og nemandi“).
+      </p>
+      <form id="ahugavertForm" class="ny-spurning-form">
+        <label for="ahugavertTitill">Titill</label>
+        <input type="text" id="ahugavertTitill" required>
+
+        <label for="ahugavertSlod">Slóð</label>
+        <input type="url" id="ahugavertSlod" placeholder="https://..." required>
+
+        <label for="ahugavertLysing">Stutt lýsing (valfrjálst)</label>
+        <input type="text" id="ahugavertLysing">
+
+        <button type="submit" class="aðal-hnappur">Bæta við</button>
+      </form>
+      <p id="ahugavertStada"></p>
+      <table id="ahugavertTafla">
+        <thead><tr><th>Titill</th><th>Slóð</th><th>Aðgerð</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
     <div class="stjorn-sida" id="sida-graenadeildin">
       <div class="hluti-titill" style="margin-top:0;">
         <h2>Grænadeildin — æfingar</h2>
@@ -459,7 +484,7 @@
 <script type="module" src="js/admin.js"></script>
 <script>
   (function () {
-    var SIDUR = ["yfirlit", "verkefni", "serflokkar", "notendur", "tolfraedi", "graenadeildin", "stillingar"];
+    var SIDUR = ["yfirlit", "verkefni", "serflokkar", "notendur", "tolfraedi", "graenadeildin", "ahugavert", "stillingar"];
     var FYRIRSAGNIR = {
       yfirlit: ["Yfirlit", "Staðan á Gettu Betur í hnotskurn."],
       verkefni: ["Verkefni og spurningar", "Búa til, skoða og stjórna verkefnum og spurningum þeirra."],
@@ -467,6 +492,7 @@
       notendur: ["Notendur", "Liðið og aðrir notendur - frammistaða og áminningar."],
       tolfraedi: ["Tölfræði", "Nánari tölfræði um nemendurna og hvenær þeir eru á síðunni."],
       graenadeildin: ["Grænadeildin", "Æfingaskráning fyrir liðið."],
+      ahugavert: ["Áhugavert efni", "Hlekkir sem nemendur sjá í flipanum Áhugavert efni."],
       stillingar: ["Stillingar", "GitHub-, Anthropic- og póststillingar og áminningar fyrir þennan vafra."]
     };
 

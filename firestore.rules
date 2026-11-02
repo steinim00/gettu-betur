@@ -117,5 +117,12 @@ service cloud.firestore {
     match /bokalisti/{id} {
       allow read, write: if erAdmin();
     }
+
+    // Áhugavert efni: hlekkir sem admin skráir og allir innskráðir sjá.
+    // { titill, slod, lysing, createdAt }
+    match /ahugavert/{id} {
+      allow read: if innskradur();
+      allow write: if erAdmin();
+    }
   }
 }

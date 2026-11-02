@@ -3332,6 +3332,79 @@ function athugaTolfraediOpnun() {
 document.getElementById("stjornNav").addEventListener("click", () => setTimeout(athugaTolfraediOpnun, 0));
 vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, () => athugaTolfraediOpnun());
 
+// --- Áhugavert efni: hlekkir sem nemendur sjá (nýja útlitið, sjá leikur.html) ---
+const ahugavertForm = document.getElementById("ahugavertForm");
+const ahugavertTafla = document.getElementById("ahugavertTafla").querySelector("tbody");
+const ahugavertStada = document.getElementById("ahugavertStada");
+let ahugavertHladid = false;
+
+async function hladaAhugavert() {
+  const snap = await getDocs(collection(db, "ahugavert"));
+  ahugavertHladid = true;
+  const faerslur = snap.docs.sort((a, b) => (a.data().createdAt?.toMillis?.() ?? 0) - (b.data().createdAt?.toMillis?.() ?? 0));
+  ahugavertTafla.innerHTML = "";
+  if (faerslur.length === 0) {
+    ahugavertTafla.innerHTML = `<tr><td colspan="3">Engir hlekkir ennþá.</td></tr>`;
+    return;
+  }
+  faerslur.forEach((d) => {
+    const gogn = d.data();
+    const tr = document.createElement("tr");
+    const titillTd = document.createElement("td");
+    titillTd.textContent = gogn.titill;
+    const slodTd = document.createElement("td");
+    const tengill = document.createElement("a");
+    tengill.href = gogn.slod;
+    tengill.target = "_blank";
+    tengill.rel = "noopener";
+    tengill.textContent = gogn.slod;
+    slodTd.appendChild(tengill);
+    const adgerdTd = document.createElement("td");
+    const eydaBtn = document.createElement("button");
+    eydaBtn.type = "button";
+    eydaBtn.className = "smabtn";
+    eydaBtn.textContent = "Eyða";
+    eydaBtn.addEventListener("click", async () => {
+      if (!confirm(`Eyða hlekknum "${gogn.titill}"?`)) return;
+      await deleteDoc(d.ref);
+      hladaAhugavert();
+    });
+    adgerdTd.appendChild(eydaBtn);
+    tr.append(titillTd, slodTd, adgerdTd);
+    ahugavertTafla.appendChild(tr);
+  });
+}
+
+ahugavertForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const slod = document.getElementById("ahugavertSlod").value.trim();
+  if (!/^https?:\/\//i.test(slod)) {
+    ahugavertStada.textContent = "Slóðin þarf að byrja á http:// eða https://";
+    return;
+  }
+  try {
+    await addDoc(collection(db, "ahugavert"), {
+      titill: document.getElementById("ahugavertTitill").value.trim(),
+      slod,
+      lysing: document.getElementById("ahugavertLysing").value.trim(),
+      createdAt: serverTimestamp()
+    });
+    ahugavertStada.textContent = "Hlekk bætt við.";
+    ahugavertForm.reset();
+    hladaAhugavert();
+  } catch (villa) {
+    console.error(villa);
+    ahugavertStada.textContent = "Tókst ekki að vista: " + villa.message;
+  }
+});
+
+// Hlaðið þegar flipinn er opnaður (ekki í sjálfvirku endurhleðslunni).
+function athugaAhugavertOpnun() {
+  if (!ahugavertHladid && document.getElementById("sida-ahugavert").classList.contains("virk")) hladaAhugavert();
+}
+document.getElementById("stjornNav").addEventListener("click", () => setTimeout(athugaAhugavertOpnun, 0));
+vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, () => athugaAhugavertOpnun());
+
 // --- Heatmap ofan á lifandi útgáfu leiksins (smellir og skrun) ---
 const hmSida = document.getElementById("hmSida");
 const hmGerd = document.getElementById("hmGerd");

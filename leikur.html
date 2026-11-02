@@ -14,6 +14,7 @@
 
 <header class="sida-haus">
   <a class="merki" href="leikur.html"><img class="merki-icon" src="favicon.svg" alt=""><span>Gettu</span> Betur</a>
+  <span class="beta-merki beta-merki-haus" hidden>BETA</span>
   <div class="notandi-svaedi">
     <button class="smabtn" id="hverErBtn" hidden>🖼 Hver er</button>
     <button class="smabtn" id="minStadaBtn" hidden>Mín staða</button>
@@ -23,7 +24,39 @@
   </div>
 </header>
 
+<!-- Nýja útlitið (beta): hliðarvalmynd á tölvu, valmyndarstika neðst á síma.
+     Birtist aðeins admin í "Sjá eins og nemandi" (?forskodun=1), sjá kveikjaBeta í js/quiz.js. -->
+<aside class="stjorn-hlid beta-hlid" id="betaHlid" hidden>
+  <a class="merki" href="leikur.html?forskodun=1"><img class="merki-icon" src="favicon.svg" alt=""><span>Gettu</span> Betur</a>
+  <span class="beta-merki">BETA</span>
+
+  <nav class="stjorn-nav" id="betaNav">
+    <button type="button" class="virkur" data-leid="heim"><span class="takn">🏠</span><span class="texti">Heim</span></button>
+    <button type="button" data-leid="verkefni"><span class="takn">📁</span><span class="texti">Verkefni</span></button>
+    <button type="button" data-leid="glosur"><span class="takn">📝</span><span class="texti">Glósur</span></button>
+    <button type="button" data-leid="ahugavert"><span class="takn">💡</span><span class="texti texti-langt">Áhugavert efni</span><span class="texti texti-stutt">Áhugavert</span></button>
+    <button type="button" class="beta-nav-utskra" data-leid="utskra"><span class="takn">🚪</span><span class="texti">Út</span></button>
+  </nav>
+
+  <div class="stjorn-reikningur">
+    <a class="smabtn beta-gamalt" href="leikur.html?forskodun=1&utlit=gamalt">Sjá gamla útlitið</a>
+    <span id="betaNotandaNafn"></span>
+    <button type="button" class="utskra-hnappur" id="betaUtskraBtn">Skrá út</button>
+  </div>
+</aside>
+
 <main>
+  <div class="stjorn-efni-haus beta-haus" id="betaHaus" hidden>
+    <div>
+      <h1 id="betaFyrirsogn"></h1>
+      <p id="betaUndirtitill"></p>
+    </div>
+  </div>
+
+  <div id="ahugavertSvaedi" hidden>
+    <div id="ahugavertListi" class="ahugavert-net"></div>
+  </div>
+
   <div id="minStadaSvaedi" hidden>
     <div class="hluti-titill" style="margin-top:0;">
       <h2>Mín staða</h2>
@@ -47,6 +80,11 @@
         <div class="tolu-kort-haus"><span class="tolu-kort-takn">⏱</span> Skjátími</div>
         <div class="tolu-kort-gildi"><span class="tala" id="minarStodurSkjatimi">—</span></div>
       </div>
+    </div>
+    <div class="tolu-kort-net beta-flytileidir" hidden>
+      <button type="button" class="tolu-kort" data-leid="verkefni"><div class="tolu-kort-haus"><span class="tolu-kort-takn">📁</span> Verkefni</div><div class="tolu-kort-gildi">Byrja að æfa →</div></button>
+      <button type="button" class="tolu-kort" data-leid="glosur"><div class="tolu-kort-haus"><span class="tolu-kort-takn">📝</span> Glósur</div><div class="tolu-kort-gildi">Mínar glósur →</div></button>
+      <button type="button" class="tolu-kort" data-leid="ahugavert"><div class="tolu-kort-haus"><span class="tolu-kort-takn">💡</span> Áhugavert efni</div><div class="tolu-kort-gildi">Hlekkir →</div></button>
     </div>
     <button type="button" class="aðal-hnappur" id="rangarSpurningarBtn">🔁 Æfa rangt svaraðar spurningar</button>
 
