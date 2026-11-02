@@ -3541,3 +3541,35 @@ body.beta .verkefna-hlid .spurning-kort {
     display: none;
   }
 }
+
+/* Stjórnborð: minna bil milli hluta */
+.stjorn-efni-haus {
+  margin-bottom: 14px;
+}
+
+.stjorn-sida .hluti-titill {
+  margin-top: 28px;
+}
+
+.stjorn-sida h3 {
+  margin: 22px 0 8px;
+}
+
+.stjorn-sida p:empty {
+  display: none;
+}
+
+.stjorn-sida table,
+.stjorn-sida .spurningaflokkur,
+.stjorn-sida .ny-spurning-form,
+.stjorn-sida .skeleton-kort {
+  margin-bottom: 14px;
+}
+
+body.beta #rangarSpurningarBtn {
+  margin-top: 4px;
+}
+
+body.beta #minStadaSvaedi h3 {
+  margin: 18px 0 8px;
+}
