@@ -54,6 +54,8 @@ const biolistiRodaGildi = document.getElementById("biolistiRodaGildi");
 const biolistiRodaListi = document.getElementById("biolistiRodaListi");
 const biolistiListi = document.getElementById("biolistiListi");
 const biolistiSiur = document.getElementById("biolistiSiur");
+const biolistiSiurTakki = document.getElementById("biolistiSiurTakki");
+const biolistiSiurFjoldi = document.getElementById("biolistiSiurFjoldi");
 const ahugavertListi = document.getElementById("ahugavertListi");
 const mittEfniSvaedi = document.getElementById("mittEfniSvaedi");
 const mittEfniListi = document.getElementById("mittEfniListi");
@@ -1252,6 +1254,7 @@ function birtaBiolista() {
     biolistiSiur.appendChild(hreinsa);
   }
 
+  uppfaeraSiuTakka();
   const siadar = biolistiValdarTegundir.size
     ? iFlokki.filter((m) => (m.tegundir || []).some((t) => biolistiValdarTegundir.has(t)))
     : iFlokki;
@@ -1388,6 +1391,19 @@ const BIOLISTI_TEGUNDIR = {
   "Film-Noir": "Film noir"
 };
 const biolistiValdarTegundir = new Set();
+let biolistiSiurOpnar = false; // síurnar eru faldar í upphafi - "Síur" hnappurinn opnar þær
+
+function uppfaeraSiuTakka() {
+  biolistiSiur.hidden = !biolistiSiurOpnar;
+  biolistiSiurTakki.setAttribute("aria-expanded", String(biolistiSiurOpnar));
+  biolistiSiurTakki.classList.toggle("opid", biolistiSiurOpnar);
+  biolistiSiurFjoldi.hidden = biolistiValdarTegundir.size === 0;
+  biolistiSiurFjoldi.textContent = biolistiValdarTegundir.size;
+}
+biolistiSiurTakki.addEventListener("click", () => {
+  biolistiSiurOpnar = !biolistiSiurOpnar;
+  uppfaeraSiuTakka();
+});
 
 function lokaRodunarLista() {
   biolistiRodaListi.hidden = true;

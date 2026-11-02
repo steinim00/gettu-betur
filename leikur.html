@@ -57,6 +57,10 @@
   <div id="biolistiSvaedi" hidden>
     <div class="biolisti-stjorn">
       <div class="biolisti-flipar" id="biolistiFlipar" role="tablist"></div>
+      <div class="biolisti-verkfaeri">
+      <button type="button" class="biolisti-siur-takki" id="biolistiSiurTakki" aria-expanded="false" aria-controls="biolistiSiur">
+        <span>Síur</span><b id="biolistiSiurFjoldi" hidden></b><i class="rada-orvar" aria-hidden="true"></i>
+      </button>
       <div class="rada-reitur" id="biolistiRoda">
         <button type="button" class="rada-hnappur" id="biolistiRodaHnappur" aria-haspopup="listbox" aria-expanded="false">
           <span class="rada-merki">Raða eftir</span>
@@ -65,8 +69,9 @@
         </button>
         <ul class="rada-listi" id="biolistiRodaListi" role="listbox" hidden></ul>
       </div>
+      </div>
     </div>
-    <div id="biolistiSiur" class="biolisti-siur" role="group" aria-label="Sía eftir tegund"></div>
+    <div id="biolistiSiur" class="biolisti-siur" role="group" aria-label="Sía eftir tegund" hidden></div>
     <div id="biolistiListi" class="biolisti-listi"></div>
     <p class="biolisti-heimild">Einkunnir og lengd eru úr opnum gögnum frá <a href="https://www.imdb.com" target="_blank" rel="noopener">IMDb</a>. Smelltu á mynd til að opna hana á IMDb.</p>
   </div>

@@ -3597,3 +3597,76 @@ body.beta #minStadaSvaedi h3 {
 .hradaspurning-kort.smellanlegt-kort {
   cursor: pointer;
 }
+
+/* Bíólisti: "Síur" hnappur (síurnar eru faldar í upphafi) */
+.biolisti-verkfaeri {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.biolisti-siur-takki {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border: 1px solid #b9b9b0;
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.biolisti-siur-takki:hover,
+.biolisti-siur-takki.opid {
+  border-color: var(--litur-svart);
+  box-shadow: 0 0 0 1px var(--litur-svart);
+}
+
+.biolisti-siur-takki b {
+  min-width: 20px;
+  padding: 1px 6px;
+  background: var(--litur-svart);
+  color: var(--litur-lime);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.biolisti-siur-takki i {
+  margin: 0;
+  transition: transform 0.15s ease;
+}
+
+.biolisti-siur-takki.opid i {
+  transform: rotate(180deg);
+}
+
+.biolisti-siur[hidden] {
+  display: none;
+}
+
+.biolisti-verkfaeri .rada-reitur {
+  margin-left: 0;
+}
+
+@media (max-width: 900px) {
+  .biolisti-verkfaeri {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .biolisti-verkfaeri .rada-reitur {
+    flex: 1;
+    width: auto;
+  }
+}
+
+/* Allt rétthyrnt: engin ávöl horn á allri síðunni */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
