@@ -3339,14 +3339,22 @@ const ahugavertStada = document.getElementById("ahugavertStada");
 let ahugavertHladid = false;
 
 async function hladaAhugavert() {
-  const snap = await getDocs(collection(db, "ahugavert"));
+  const [snap, notendurSnap] = await Promise.all([getDocs(collection(db, "ahugavert")), getDocs(collection(db, "users"))]);
   ahugavertHladid = true;
+  // Hverjir hafa ýtt á "Tek þetta" á hverjum hlekk (users/{uid}.ahugavertTek).
+  const tekidAf = new Map();
+  notendurSnap.forEach((u) => {
+    Object.keys(u.data().ahugavertTek || {}).forEach((id) => {
+      if (!tekidAf.has(id)) tekidAf.set(id, []);
+      tekidAf.get(id).push(u.data().nafn || u.id);
+    });
+  });
   const faerslur = snap.docs.sort((a, b) => (a.data().createdAt?.toMillis?.() ?? 0) - (b.data().createdAt?.toMillis?.() ?? 0));
   const flokkar = [...new Set(faerslur.map((d) => d.data().flokkur).filter(Boolean))];
   document.getElementById("ahugavertFlokkar").innerHTML = flokkar.map((f) => `<option value="${f.replace(/"/g, "&quot;")}">`).join("");
   ahugavertTafla.innerHTML = "";
   if (faerslur.length === 0) {
-    ahugavertTafla.innerHTML = `<tr><td colspan="4">Engir hlekkir ennþá.</td></tr>`;
+    ahugavertTafla.innerHTML = `<tr><td colspan="5">Engir hlekkir ennþá.</td></tr>`;
     return;
   }
   faerslur.forEach((d) => {
@@ -3363,6 +3371,8 @@ async function hladaAhugavert() {
     tengill.rel = "noopener";
     tengill.textContent = gogn.slod;
     slodTd.appendChild(tengill);
+    const tekidTd = document.createElement("td");
+    tekidTd.textContent = (tekidAf.get(d.id) || []).join(", ") || "-";
     const adgerdTd = document.createElement("td");
     const eydaBtn = document.createElement("button");
     eydaBtn.type = "button";
@@ -3374,7 +3384,7 @@ async function hladaAhugavert() {
       hladaAhugavert();
     });
     adgerdTd.appendChild(eydaBtn);
-    tr.append(titillTd, flokkurTd, slodTd, adgerdTd);
+    tr.append(titillTd, flokkurTd, slodTd, tekidTd, adgerdTd);
     ahugavertTafla.appendChild(tr);
   });
 }

@@ -752,17 +752,19 @@ const AHUGAVERT_LITIR = ["graent", "blatt", "appelsinugult"];
 let ahugavertGogn = [];
 let ahugavertHladid = false;
 
+// "Tek þetta" er aðeins á hlekkjum í þessum flokkum - nemandinn merkir hvað hann
+// ætlar að taka (geymt á users/{uid}.ahugavertTek.{hlekkjaID}).
+const AHUGAVERT_TEK_FLOKKAR = ["YouTube", "Hlaðvörp"];
+let ahugavertTek = {};
+
 function byggjaAhugavertKort(g, litur) {
-  const tengill = document.createElement("a");
-  tengill.className = `ahugavert-kort litur-${litur}`;
-  tengill.href = g.slod;
-  tengill.target = "_blank";
-  tengill.rel = "noopener noreferrer";
+  const kort = document.createElement("div");
+  kort.className = `ahugavert-kort litur-${litur}`;
 
   const erKeppni = /^\d{4}$/.test(g.takn || "");
   let takn;
   if (g.mynd && erKeppni) {
-    // Keppnir: borði með mynd úr þættinum og ártalið yfir.
+    // Keppnir: borði með mynd úr þættinum og ártalið yfir (ekkert annað nafn).
     takn = document.createElement("div");
     takn.className = "ahugavert-bordi";
     const mynd = document.createElement("img");
@@ -772,7 +774,7 @@ function byggjaAhugavertKort(g, litur) {
     const ar = document.createElement("span");
     ar.textContent = g.takn;
     takn.append(mynd, ar);
-    tengill.classList.add("ahugavert-med-borda");
+    kort.classList.add("ahugavert-med-borda");
   } else if (g.mynd) {
     takn = document.createElement("img");
     takn.className = "ahugavert-takn ahugavert-takn-mynd";
@@ -788,9 +790,21 @@ function byggjaAhugavertKort(g, litur) {
 
   const texti = document.createElement("div");
   texti.className = "ahugavert-texti";
-  const titill = document.createElement("strong");
-  titill.textContent = g.titill || g.slod;
-  texti.appendChild(titill);
+  // Titillinn er hlekkurinn sjálfur og teygist yfir allt spjaldið (::after).
+  const tengill = document.createElement("a");
+  tengill.className = "ahugavert-nafn";
+  tengill.href = g.slod;
+  tengill.target = "_blank";
+  tengill.rel = "noopener noreferrer";
+  tengill.setAttribute("aria-label", g.titill || g.slod);
+  if (erKeppni) {
+    tengill.classList.add("ahugavert-nafn-falid");
+  } else {
+    const titill = document.createElement("strong");
+    titill.textContent = g.titill || g.slod;
+    tengill.appendChild(titill);
+  }
+  texti.appendChild(tengill);
   if (g.lysing) {
     const lysing = document.createElement("span");
     lysing.textContent = g.lysing;
@@ -805,12 +819,43 @@ function byggjaAhugavertKort(g, litur) {
   }
   texti.appendChild(host);
 
+  if (g.id && AHUGAVERT_TEK_FLOKKAR.includes(g.flokkur)) {
+    const tekBtn = document.createElement("button");
+    tekBtn.type = "button";
+    tekBtn.className = "ahugavert-tek";
+    const uppfaera = () => {
+      const tek = !!ahugavertTek[g.id];
+      tekBtn.classList.toggle("tek", tek);
+      tekBtn.setAttribute("aria-pressed", String(tek));
+      tekBtn.textContent = tek ? "✅ Tek þetta" : "☐ Tek þetta";
+    };
+    uppfaera();
+    tekBtn.addEventListener("click", async () => {
+      const nyttGildi = !ahugavertTek[g.id];
+      if (nyttGildi) ahugavertTek[g.id] = true;
+      else delete ahugavertTek[g.id];
+      uppfaera();
+      try {
+        await updateDoc(doc(db, "users", notandi.uid), {
+          [`ahugavertTek.${g.id}`]: nyttGildi ? true : deleteField()
+        });
+      } catch (villa) {
+        console.error(villa);
+        if (nyttGildi) delete ahugavertTek[g.id];
+        else ahugavertTek[g.id] = true;
+        uppfaera();
+        alert("Tókst ekki að vista - reyndu aftur.");
+      }
+    });
+    texti.appendChild(tekBtn);
+  }
+
   const orEl = document.createElement("div");
   orEl.className = "ahugavert-or";
   orEl.textContent = "↗";
 
-  tengill.append(takn, texti, orEl);
-  return tengill;
+  kort.append(takn, texti, orEl);
+  return kort;
 }
 
 function birtaAhugavert(leit = "") {
@@ -863,8 +908,12 @@ async function hladaAhugavertFyrirNemendur() {
   ahugavertListi.innerHTML = skeletonKort(3);
   try {
     const snap = await getDocs(collection(db, "ahugavert"));
+    if (notandi) {
+      const uSnap = await getDoc(doc(db, "users", notandi.uid));
+      ahugavertTek = uSnap.data()?.ahugavertTek || {};
+    }
     ahugavertGogn = snap.docs
-      .map((d) => d.data())
+      .map((d) => ({ id: d.id, ...d.data() }))
       .filter((g) => /^https?:\/\//i.test(g.slod || ""))
       .sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
     ahugavertHladid = true;

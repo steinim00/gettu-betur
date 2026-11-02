@@ -2493,3 +2493,46 @@ body.beta #glosurSvaedi > .hluti-titill {
 .glosur-adgerdir [hidden] {
   display: none;
 }
+
+/* Titillinn er hlekkurinn og teygist yfir allt spjaldið; "Tek þetta" er fyrir ofan hann. */
+.ahugavert-nafn {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ahugavert-nafn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.ahugavert-tek {
+  position: relative;
+  z-index: 2;
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--akent);
+  background: transparent;
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.14s ease, transform 0.1s ease;
+}
+
+.ahugavert-tek:hover {
+  background: var(--akent-bak);
+}
+
+.ahugavert-tek:active {
+  transform: scale(0.96);
+}
+
+.ahugavert-tek.tek {
+  background: var(--akent);
+  color: #fff;
+}
