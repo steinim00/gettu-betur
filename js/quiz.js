@@ -995,6 +995,8 @@ function birtaAhugavert(leit = "") {
       lysing.textContent = upplysingar.lysing;
       kafli.appendChild(lysing);
     }
+    // Keppnirnar eru raðaðar eftir ártali (nýjasta fyrst), óháð því í hvaða röð þær voru skráðar.
+    if (nafn === "Gamlar keppnir") hlekkir.sort((a, b) => (Number(b.takn) || 0) - (Number(a.takn) || 0));
     const net = document.createElement("div");
     net.className = nafn === "Gamlar keppnir" ? "ahugavert-net ahugavert-net-litid" : "ahugavert-net";
     hlekkir.forEach((g) => net.appendChild(byggjaAhugavertKort(g, litur)));
