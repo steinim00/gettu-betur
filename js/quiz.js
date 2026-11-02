@@ -626,6 +626,11 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
     // stöðu um leið og þau koma inn, frekar en að þurfa að smella á hnapp.
     synaSvaedi("minstada");
     hladaMinaStodu();
+    // Nýja útlitið: farið á síðuna sem slóðin (#...) vísar á.
+    if (betaVirkt) {
+      if (betaUpphafsLeid !== "heim") betaFaraI(betaUpphafsLeid);
+      betaFyrstaHledsla = false;
+    }
 
     // "?forskodun=1" (hlekkurinn "Sjá eins og nemandi" á stjórnborðinu) felur
     // stjórnborðs-sértæku snertifletina svo síðan birtist nákvæmlega eins og
@@ -698,14 +703,18 @@ function kveikjaBeta(gogn, user) {
   betaNotandaNafn.textContent = gogn.nafn || user.email;
   const fornafn = (gogn.nafn || user.email || "").split(" ")[0];
   BETA_FYRIRSAGNIR.heim[0] = `Hæ, ${fornafn} 👋`;
+  // Hver síða hefur sína slóð (#ahugavert o.s.frv.) svo endurhleðsla heldur nemandanum
+  // á sömu síðu og bakkhnappurinn virkar. Upphafssíðan er munuð áður en nokkuð breytir slóðinni.
+  const upphaf = location.hash.replace("#", "");
+  betaUpphafsLeid = BETA_SIDUR.includes(upphaf) ? upphaf : "heim";
 }
 
 const BETA_FYRIRSAGNIR = {
-  heim: ["Heim", "Staðan þín í hnotskurn."],
-  verkefni: ["Verkefni", "Veldu verkefni eða taktu hraðaspurningar."],
-  glosur: ["Glósur", "Þínar einkaglósur um verkefnin."],
+  heim: ["Heim", ""],
+  verkefni: ["Verkefni", ""],
+  glosur: ["Glósur", ""],
   ahugavert: ["Áhugavert efni", ""],
-  biolisti: ["Bíólisti", "Kvikmyndir sem gott er að þekkja - byggðar á sönnum atburðum og þær sögufrægustu."]
+  biolisti: ["Bíólisti", ""]
 };
 const BETA_LEIDIR = {
   minstada: "heim",
@@ -718,8 +727,26 @@ const BETA_LEIDIR = {
   biolisti: "biolisti"
 };
 
+const BETA_SIDUR = ["heim", "verkefni", "glosur", "ahugavert", "biolisti"];
+let betaUpphafsLeid = "heim";
+let betaFyrstaHledsla = true;
+
+function betaSetjaHash(leid) {
+  if (location.hash === `#${leid}`) return;
+  // Fyrsta hleðslan skiptir um færslu (replace) svo bakkhnappurinn fari ekki í tóma stöðu.
+  if (betaFyrstaHledsla) history.replaceState(null, "", `#${leid}`);
+  else history.pushState(null, "", `#${leid}`);
+}
+
+window.addEventListener("hashchange", () => {
+  if (!betaVirkt) return;
+  const leid = location.hash.replace("#", "");
+  if (BETA_SIDUR.includes(leid)) betaFaraI(leid);
+});
+
 function uppfaeraBetaNav(svaedi) {
   const leid = BETA_LEIDIR[svaedi] || "heim";
+  betaSetjaHash(leid);
   betaNav.querySelectorAll("button[data-leid]").forEach((b) => b.classList.toggle("virkur", b.dataset.leid === leid));
   const fyrirsogn = BETA_FYRIRSAGNIR[svaedi === "minstada" ? "heim" : svaedi];
   betaHaus.hidden = !fyrirsogn;

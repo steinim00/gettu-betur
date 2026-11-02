@@ -3047,3 +3047,9 @@ body.beta #glosurSvaedi > .hluti-titill {
 .biolisti-listi {
   align-items: start;
 }
+
+/* Nýja útlitið: síðufyrirsögnin dugar - engar tvítekningar í verkefnayfirlitinu */
+body.beta .verkefna-adal > h2,
+body.beta .verkefna-hlid > h2 {
+  display: none;
+}
