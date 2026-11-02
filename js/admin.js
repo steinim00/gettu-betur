@@ -1023,7 +1023,8 @@ async function hladaNotendayfirlit() {
       // ólíkar (einhver getur verið á síðunni lengi án þess að svara).
       sidastSvarad: notandi.lastActive?.toMillis?.() ?? null,
       lastActive: notandi.lastActive?.toMillis?.() ?? null,
-      verkefnaSundurlidun
+      verkefnaSundurlidun,
+      biolistiSed: notandi.biolistiSed || {}
     });
   }
 
@@ -1034,6 +1035,44 @@ async function hladaNotendayfirlit() {
 // "Nýjustu svör": 15 nýjustu spurningarnar sem nemandi hefur svarað, sóttar í bútum
 // (orderBy answeredAt + limit - aðeins 15 lestrar í hvert sinn, ekki öll svörin).
 // "Sjá meira" sækir 15 til viðbótar.
+// Titlar bíómynda (data/biolisti.json) sóttir einu sinni, til að sýna hvað notendur hafa séð.
+let biolistiTitlarLofordi = null;
+function saekjaBiolistaTitla() {
+  if (!biolistiTitlarLofordi) {
+    biolistiTitlarLofordi = fetch("data/biolisti.json", { cache: "no-cache" })
+      .then((svar) => svar.json())
+      .then((gogn) => {
+        const titlar = new Map();
+        Object.values(gogn).flat().forEach((m) => {
+          if (m.imdb) titlar.set(m.imdb, `${m.titill} (${m.ar})`);
+        });
+        return titlar;
+      })
+      .catch(() => new Map());
+  }
+  return biolistiTitlarLofordi;
+}
+
+function byggjaBiolistaYfirlit(sed) {
+  const kassi = document.createElement("div");
+  kassi.className = "biolisti-admin";
+  const fjoldi = Object.keys(sed).length;
+  kassi.innerHTML = `<h4>🎬 Séð í Bíólista (${fjoldi})</h4><div class="biolisti-admin-listi"></div>`;
+  const listi = kassi.querySelector(".biolisti-admin-listi");
+  saekjaBiolistaTitla().then((titlar) => {
+    Object.entries(sed)
+      .sort((a, b) => (b[1]?.stjornur ?? -1) - (a[1]?.stjornur ?? -1))
+      .forEach(([imdb, gildi]) => {
+        const flis = document.createElement("span");
+        flis.className = "biolisti-admin-flis";
+        const stjornur = typeof gildi?.stjornur === "number" ? `★ ${gildi.stjornur}/5` : "óeinkunnuð";
+        flis.textContent = `${titlar.get(imdb) || imdb} · ${stjornur}`;
+        listi.appendChild(flis);
+      });
+  });
+  return kassi;
+}
+
 const NYJUSTU_SVOR_BITI = 15;
 function byggjaNyjustuSvor(uid) {
   const vefja = document.createElement("div");
@@ -1311,6 +1350,9 @@ function birtaNotendaRadir() {
       });
       sundurlidunTd.appendChild(kortNet);
     }
+
+    // Bíómyndir sem notandinn hefur merkt "séð" (með stjörnum) - sést aðeins ef hann hefur valið einhverja.
+    if (Object.keys(r.biolistiSed || {}).length > 0) sundurlidunTd.appendChild(byggjaBiolistaYfirlit(r.biolistiSed));
 
     const nyjustuSvor = byggjaNyjustuSvor(r.uid);
     sundurlidunTd.appendChild(nyjustuSvor.vefja);

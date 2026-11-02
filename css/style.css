@@ -3359,3 +3359,27 @@ body.beta .verkefna-hlid .spurning-kort {
     gap: 4px;
   }
 }
+
+/* Stjórnborð: bíómyndir sem notandi hefur séð */
+.biolisti-admin {
+  margin-top: 14px;
+}
+
+.biolisti-admin h4 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.biolisti-admin-listi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.biolisti-admin-flis {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  font-size: 0.8rem;
+}
