@@ -3342,16 +3342,20 @@ async function hladaAhugavert() {
   const snap = await getDocs(collection(db, "ahugavert"));
   ahugavertHladid = true;
   const faerslur = snap.docs.sort((a, b) => (a.data().createdAt?.toMillis?.() ?? 0) - (b.data().createdAt?.toMillis?.() ?? 0));
+  const flokkar = [...new Set(faerslur.map((d) => d.data().flokkur).filter(Boolean))];
+  document.getElementById("ahugavertFlokkar").innerHTML = flokkar.map((f) => `<option value="${f.replace(/"/g, "&quot;")}">`).join("");
   ahugavertTafla.innerHTML = "";
   if (faerslur.length === 0) {
-    ahugavertTafla.innerHTML = `<tr><td colspan="3">Engir hlekkir ennþá.</td></tr>`;
+    ahugavertTafla.innerHTML = `<tr><td colspan="4">Engir hlekkir ennþá.</td></tr>`;
     return;
   }
   faerslur.forEach((d) => {
     const gogn = d.data();
     const tr = document.createElement("tr");
     const titillTd = document.createElement("td");
-    titillTd.textContent = gogn.titill;
+    titillTd.textContent = `${gogn.takn ? gogn.takn + " " : ""}${gogn.titill}`;
+    const flokkurTd = document.createElement("td");
+    flokkurTd.textContent = gogn.flokkur || "Annað";
     const slodTd = document.createElement("td");
     const tengill = document.createElement("a");
     tengill.href = gogn.slod;
@@ -3370,7 +3374,7 @@ async function hladaAhugavert() {
       hladaAhugavert();
     });
     adgerdTd.appendChild(eydaBtn);
-    tr.append(titillTd, slodTd, adgerdTd);
+    tr.append(titillTd, flokkurTd, slodTd, adgerdTd);
     ahugavertTafla.appendChild(tr);
   });
 }
@@ -3387,6 +3391,8 @@ ahugavertForm.addEventListener("submit", async (e) => {
       titill: document.getElementById("ahugavertTitill").value.trim(),
       slod,
       lysing: document.getElementById("ahugavertLysing").value.trim(),
+      flokkur: document.getElementById("ahugavertFlokkur").value.trim() || "Annað",
+      takn: document.getElementById("ahugavertTakn").value.trim(),
       createdAt: serverTimestamp()
     });
     ahugavertStada.textContent = "Hlekk bætt við.";

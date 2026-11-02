@@ -2160,41 +2160,170 @@ body.beta #glosurSvaedi > .hluti-titill {
   display: none;
 }
 
+.ahugavert-leit {
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 26px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.ahugavert-kafli {
+  margin-bottom: 36px;
+}
+
+.ahugavert-kafli-haus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ahugavert-kafli-haus h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.ahugavert-fjoldi {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--litur-svart);
+  color: var(--litur-lime);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.ahugavert-kafli-lysing {
+  margin: 4px 0 14px;
+  color: var(--litur-daufur);
+  font-size: 0.92rem;
+}
+
 .ahugavert-net {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 14px;
 }
 
+.ahugavert-net-litid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
 .ahugavert-kort {
+  --akent: #d7ff3e;
+  --akent-bak: rgba(215, 255, 62, 0.28);
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 18px 20px;
-  border-radius: 20px;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 22px;
   background: var(--litur-korti);
   border: 1px solid var(--litur-jadar);
   color: var(--litur-texti);
   text-decoration: none;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  overflow: hidden;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+
+.ahugavert-kort::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--akent);
 }
 
 .ahugavert-kort:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+  border-color: var(--akent);
 }
 
-.ahugavert-kort strong {
-  font-size: 1.05rem;
+.ahugavert-kort.litur-dokkt { --akent: #161616; --akent-bak: #161616; }
+.ahugavert-kort.litur-rautt { --akent: #ff5a5f; --akent-bak: #ffe3e4; }
+.ahugavert-kort.litur-fjolublatt { --akent: #8b5cf6; --akent-bak: #ece4ff; }
+.ahugavert-kort.litur-graent { --akent: #5d8f1f; --akent-bak: #e6f6c9; }
+.ahugavert-kort.litur-blatt { --akent: #2f7de1; --akent-bak: #dcebff; }
+.ahugavert-kort.litur-appelsinugult { --akent: #f08a24; --akent-bak: #ffe9d1; }
+
+.ahugavert-takn {
+  flex-shrink: 0;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: var(--akent-bak);
+  font-size: 1.7rem;
 }
 
-.ahugavert-kort span {
+.ahugavert-takn.ahugavert-ar {
+  width: auto;
+  min-width: 70px;
+  padding: 0 10px;
+  background: var(--litur-svart);
+  color: var(--litur-lime);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.ahugavert-texti {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.ahugavert-texti strong {
+  font-size: 1.02rem;
+}
+
+.ahugavert-texti span {
   color: var(--litur-daufur);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  line-height: 1.35;
 }
 
-.ahugavert-kort .ahugavert-host {
-  font-size: 0.8rem;
+.ahugavert-texti .ahugavert-host {
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  opacity: 0.8;
+}
+
+.ahugavert-or {
+  align-self: flex-start;
+  color: var(--litur-daufur);
+  font-weight: 700;
+  transition: transform 0.14s ease, color 0.14s ease;
+}
+
+.ahugavert-kort:hover .ahugavert-or {
+  transform: translate(2px, -2px);
+  color: var(--akent);
+}
+
+.ahugavert-net-litid .ahugavert-kort {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px;
+}
+
+.ahugavert-net-litid .ahugavert-or {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+}
+
+.ahugavert-tomt {
+  color: var(--litur-daufur);
 }
 
 @media (max-width: 900px) {

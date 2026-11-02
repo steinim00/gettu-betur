@@ -424,11 +424,18 @@
         <label for="ahugavertLysing">Stutt lýsing (valfrjálst)</label>
         <input type="text" id="ahugavertLysing">
 
+        <label for="ahugavertFlokkur">Flokkur (t.d. Gamlar keppnir, YouTube, Hlaðvörp)</label>
+        <input type="text" id="ahugavertFlokkur" list="ahugavertFlokkar" placeholder="Annað">
+        <datalist id="ahugavertFlokkar"></datalist>
+
+        <label for="ahugavertTakn">Tákn (emoji eða stuttur texti, t.d. 🎙️ eða 2023)</label>
+        <input type="text" id="ahugavertTakn" maxlength="8">
+
         <button type="submit" class="aðal-hnappur">Bæta við</button>
       </form>
       <p id="ahugavertStada"></p>
       <table id="ahugavertTafla">
-        <thead><tr><th>Titill</th><th>Slóð</th><th>Aðgerð</th></tr></thead>
+        <thead><tr><th>Titill</th><th>Flokkur</th><th>Slóð</th><th>Aðgerð</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>

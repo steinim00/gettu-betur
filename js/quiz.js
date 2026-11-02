@@ -48,6 +48,7 @@ const betaNotandaNafn = document.getElementById("betaNotandaNafn");
 const betaUtskraBtn = document.getElementById("betaUtskraBtn");
 const ahugavertSvaedi = document.getElementById("ahugavertSvaedi");
 const ahugavertListi = document.getElementById("ahugavertListi");
+const ahugavertLeit = document.getElementById("ahugavertLeit");
 let betaVirkt = false;
 const glosurSvaedi = document.getElementById("glosurSvaedi");
 const tilbakaFraGlosum = document.getElementById("tilbakaFraGlosum");
@@ -690,7 +691,7 @@ const BETA_FYRIRSAGNIR = {
   heim: ["Heim", "Staðan þín í hnotskurn."],
   verkefni: ["Verkefni", "Veldu verkefni eða taktu hraðaspurningar."],
   glosur: ["Glósur", "Þínar einkaglósur um verkefnin."],
-  ahugavert: ["Áhugavert efni", "Hlekkir og efni sem gaman er að skoða."]
+  ahugavert: ["Áhugavert efni", "Alls konar efni sem er nytsamlegt fyrir Gettu Betur."]
 };
 const BETA_LEIDIR = {
   minstada: "heim",
@@ -732,51 +733,121 @@ document.querySelector(".beta-flytileidir").addEventListener("click", (e) => {
 });
 betaUtskraBtn.addEventListener("click", () => utskraBtn.click());
 
-// "Áhugavert efni": hlekkir sem admin skráir á stjórnborðinu (ahugavert safnið).
+// "Áhugavert efni": hlekkir sem admin skráir á stjórnborðinu (ahugavert safnið),
+// birtir í flokkum (flokkur) með tákni (takn) - flokkarnir raðast eftir því
+// hvaða hlekkur var skráður fyrst.
+const AHUGAVERT_FLOKKAR = {
+  "Gamlar keppnir": { takn: "📺", lysing: "Oft eru gamlar spurningar endurnýttar á nokkra ára fresti.", litur: "dökkt" },
+  YouTube: { takn: "▶️", lysing: "Rásir sem gera efni sem skilar sér í spurningum.", litur: "rautt" },
+  "Hlaðvörp": { takn: "🎧", lysing: "Til að hlusta á í strætó, ræktinni eða yfir kvöldmatnum.", litur: "fjolublatt" }
+};
+const AHUGAVERT_LITIR = ["graent", "blatt", "appelsinugult"];
+let ahugavertGogn = [];
 let ahugavertHladid = false;
+
+function byggjaAhugavertKort(g, litur) {
+  const tengill = document.createElement("a");
+  tengill.className = `ahugavert-kort litur-${litur}`;
+  tengill.href = g.slod;
+  tengill.target = "_blank";
+  tengill.rel = "noopener noreferrer";
+
+  const takn = document.createElement("div");
+  takn.className = "ahugavert-takn";
+  takn.textContent = g.takn || "🔗";
+  if (/^\d{4}$/.test(g.takn || "")) takn.classList.add("ahugavert-ar");
+
+  const texti = document.createElement("div");
+  texti.className = "ahugavert-texti";
+  const titill = document.createElement("strong");
+  titill.textContent = g.titill || g.slod;
+  texti.appendChild(titill);
+  if (g.lysing) {
+    const lysing = document.createElement("span");
+    lysing.textContent = g.lysing;
+    texti.appendChild(lysing);
+  }
+  const host = document.createElement("span");
+  host.className = "ahugavert-host";
+  try {
+    host.textContent = new URL(g.slod).hostname.replace(/^www\./, "");
+  } catch (villa) {
+    host.textContent = "Opna";
+  }
+  texti.appendChild(host);
+
+  const orEl = document.createElement("div");
+  orEl.className = "ahugavert-or";
+  orEl.textContent = "↗";
+
+  tengill.append(takn, texti, orEl);
+  return tengill;
+}
+
+function birtaAhugavert(leit = "") {
+  const q = leit.trim().toLowerCase();
+  ahugavertListi.innerHTML = "";
+  const flokkar = new Map();
+  ahugavertGogn.forEach((g) => {
+    const hluti = `${g.titill} ${g.lysing || ""} ${g.flokkur || ""}`.toLowerCase();
+    if (q && !hluti.includes(q)) return;
+    const f = g.flokkur || "Annað";
+    if (!flokkar.has(f)) flokkar.set(f, []);
+    flokkar.get(f).push(g);
+  });
+  if (flokkar.size === 0) {
+    ahugavertListi.innerHTML = `<p class="ahugavert-tomt">${q ? "Ekkert fannst - prófaðu annað leitarorð." : "Ekkert áhugavert efni ennþá - kíktu aftur seinna."}</p>`;
+    return;
+  }
+  let nr = 0;
+  flokkar.forEach((hlekkir, nafn) => {
+    const upplysingar = AHUGAVERT_FLOKKAR[nafn] || {};
+    const litur = upplysingar.litur || AHUGAVERT_LITIR[nr % AHUGAVERT_LITIR.length];
+    nr++;
+    const kafli = document.createElement("section");
+    kafli.className = "ahugavert-kafli";
+    const haus = document.createElement("div");
+    haus.className = "ahugavert-kafli-haus";
+    const fyrirsogn = document.createElement("h2");
+    fyrirsogn.textContent = `${upplysingar.takn || "✨"} ${nafn}`;
+    const fjoldi = document.createElement("span");
+    fjoldi.className = "ahugavert-fjoldi";
+    fjoldi.textContent = hlekkir.length;
+    haus.append(fyrirsogn, fjoldi);
+    kafli.appendChild(haus);
+    if (upplysingar.lysing) {
+      const lysing = document.createElement("p");
+      lysing.className = "ahugavert-kafli-lysing";
+      lysing.textContent = upplysingar.lysing;
+      kafli.appendChild(lysing);
+    }
+    const net = document.createElement("div");
+    net.className = nafn === "Gamlar keppnir" ? "ahugavert-net ahugavert-net-litid" : "ahugavert-net";
+    hlekkir.forEach((g) => net.appendChild(byggjaAhugavertKort(g, litur)));
+    kafli.appendChild(net);
+    ahugavertListi.appendChild(kafli);
+  });
+}
+
 async function hladaAhugavertFyrirNemendur() {
   if (ahugavertHladid) return;
   ahugavertListi.innerHTML = skeletonKort(3);
   try {
     const snap = await getDocs(collection(db, "ahugavert"));
-    const faerslur = snap.docs
+    ahugavertGogn = snap.docs
       .map((d) => d.data())
       .filter((g) => /^https?:\/\//i.test(g.slod || ""))
       .sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
-    ahugavertListi.innerHTML = "";
-    if (faerslur.length === 0) {
-      ahugavertListi.innerHTML = "<p>Ekkert áhugavert efni ennþá - kíktu aftur seinna.</p>";
-    }
-    faerslur.forEach((g) => {
-      const tengill = document.createElement("a");
-      tengill.className = "ahugavert-kort";
-      tengill.href = g.slod;
-      tengill.target = "_blank";
-      tengill.rel = "noopener noreferrer";
-      const titill = document.createElement("strong");
-      titill.textContent = g.titill || g.slod;
-      tengill.appendChild(titill);
-      if (g.lysing) {
-        const lysing = document.createElement("span");
-        lysing.textContent = g.lysing;
-        tengill.appendChild(lysing);
-      }
-      const host = document.createElement("span");
-      host.className = "ahugavert-host";
-      try {
-        host.textContent = new URL(g.slod).hostname.replace(/^www\./, "") + " ↗";
-      } catch (villa) {
-        host.textContent = "Opna ↗";
-      }
-      tengill.appendChild(host);
-      ahugavertListi.appendChild(tengill);
-    });
     ahugavertHladid = true;
+    birtaAhugavert(ahugavertLeit.value);
   } catch (villa) {
     console.error(villa);
     ahugavertListi.innerHTML = "<p>Tókst ekki að sækja efnið. Reyndu aftur síðar.</p>";
   }
 }
+ahugavertLeit.addEventListener("input", () => {
+  if (ahugavertHladid) birtaAhugavert(ahugavertLeit.value);
+});
 
 function synaSvaedi(svaedi) {
   lokaSkrunarlotu();
