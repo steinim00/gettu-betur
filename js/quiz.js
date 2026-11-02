@@ -40,6 +40,7 @@ const glosurBtn = document.getElementById("glosurBtn");
 
 // Nýja útlitið (beta) - sjá kveikjaBeta.
 const betaHlid = document.getElementById("betaHlid");
+const betaValmyndTakki = document.getElementById("betaValmyndTakki");
 const betaNav = document.getElementById("betaNav");
 const betaHaus = document.getElementById("betaHaus");
 const betaFyrirsogn = document.getElementById("betaFyrirsogn");
@@ -710,6 +711,7 @@ function kveikjaBeta(gogn, user) {
   document.body.classList.add("beta");
   betaHlid.hidden = false;
   betaHaus.hidden = false;
+  betaValmyndTakki.hidden = false;
   // "BETA" merkið og "Sjá gamla útlitið" sjást aðeins admin í forskoðun.
   document.querySelector(".beta-merki-haus").hidden = !erAdmin;
   document.querySelector("#betaHlid > .beta-merki").hidden = !erAdmin;
@@ -782,9 +784,25 @@ function betaFaraI(leid) {
     hladaBiolista();
   } else if (leid === "utskra") utskraBtn.click();
 }
+// Á síma opnast valmyndin með þriggja lína takka í hausnum
+function betaValmyndOpin(opin) {
+  betaHlid.classList.toggle("opin", opin);
+  betaValmyndTakki.classList.toggle("opin", opin);
+  betaValmyndTakki.setAttribute("aria-expanded", String(opin));
+  betaValmyndTakki.setAttribute("aria-label", opin ? "Loka valmynd" : "Opna valmynd");
+  document.body.classList.toggle("beta-valmynd-opin", opin);
+}
+betaValmyndTakki.addEventListener("click", () => betaValmyndOpin(!betaHlid.classList.contains("opin")));
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") betaValmyndOpin(false);
+});
+window.matchMedia("(min-width: 901px)").addEventListener("change", () => betaValmyndOpin(false));
 betaNav.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-leid]");
-  if (btn) betaFaraI(btn.dataset.leid);
+  if (btn) {
+    betaValmyndOpin(false);
+    betaFaraI(btn.dataset.leid);
+  }
 });
 document.querySelector(".beta-flytileidir").addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-leid]");

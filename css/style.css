@@ -2111,6 +2111,53 @@ tr.smellanleg-rod:hover td {
   display: none !important;
 }
 
+/* Þriggja lína valmyndartakki - sést aðeins á síma (sjá @media hér að neðan) */
+.beta-valmynd-takki {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-left: auto;
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 140;
+}
+
+.beta-valmynd-takki[hidden] {
+  display: none !important;
+}
+
+.beta-valmynd-takki span {
+  display: block;
+  height: 2px;
+  background: var(--litur-texti);
+  transition: background 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+}
+
+.beta-valmynd-takki.opin span {
+  background: #ffffff;
+}
+
+.beta-valmynd-takki.opin span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.beta-valmynd-takki.opin span:nth-child(2) {
+  opacity: 0;
+}
+
+.beta-valmynd-takki.opin span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+body.beta-valmynd-opin {
+  overflow: hidden;
+}
+
 .beta-hlid .texti-stutt {
   display: none;
 }
@@ -2397,68 +2444,87 @@ body.beta #glosurSvaedi > .hluti-titill {
     padding: 20px 16px calc(96px + env(safe-area-inset-bottom));
   }
 
-  /* Valmyndarstikan neðst á símanum */
+  body.beta main {
+    padding: 20px 16px 40px;
+  }
+
+  body.beta header.sida-haus {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  body.beta .beta-valmynd-takki:not([hidden]) {
+    display: flex;
+  }
+
+  /* Valmyndin er yfirlag á öllum skjánum sem rennur inn frá hægri (eins og á N-STI) */
   .beta-hlid {
     position: fixed;
-    top: auto;
-    bottom: 0;
+    top: 0;
     left: 0;
-    right: 0;
-    width: 100%;
-    height: auto;
-    z-index: 150;
-    flex-direction: row;
-    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    width: 100vw;
+    height: 100vh;
+    z-index: 110;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    padding: 84px 24px calc(24px + env(safe-area-inset-bottom));
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.3s ease, visibility 0.3s;
+    overflow-y: auto;
+  }
+
+  .beta-hlid.opin {
+    transform: translateX(0);
+    visibility: visible;
   }
 
   .beta-hlid .merki,
-  .beta-hlid > .beta-merki,
-  .beta-hlid .stjorn-reikningur {
+  .beta-hlid > .beta-merki {
     display: none;
   }
 
   .beta-hlid .stjorn-nav {
-    flex-direction: row;
-    gap: 2px;
-    overflow: visible;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 4px;
     width: 100%;
+    overflow: visible;
+  }
+
+  /* Hausinn verður dökkur þegar valmyndin er opin svo merkið og X sjáist */
+  body.beta-valmynd-opin header.sida-haus {
+    background: var(--litur-svart);
+    border-bottom-color: transparent;
+  }
+
+  body.beta-valmynd-opin header.sida-haus .merki {
+    color: #ffffff;
   }
 
   .beta-hlid .stjorn-nav button,
   .beta-hlid .stjorn-nav button.beta-nav-utskra {
-    flex: 1 1 0;
-    flex-direction: column;
-    justify-content: center;
-    gap: 2px;
-    width: auto;
-    padding: 7px 2px;
-    border-radius: 14px;
-    text-align: center;
+    padding: 14px 12px;
+    font-size: 1.1rem;
   }
 
   .beta-hlid .stjorn-nav button.beta-nav-utskra {
-    display: flex !important;
-  }
-
-  .beta-hlid .stjorn-nav button .takn {
-    font-size: 1.25rem;
-    width: auto;
-  }
-
-  .beta-hlid .stjorn-nav button span.texti-langt {
     display: none !important;
   }
 
-  .beta-hlid .stjorn-nav button span.texti-stutt {
+  .beta-hlid .stjorn-nav button {
+    width: 100%;
+  }
+
+  .beta-hlid .stjorn-nav button span.texti-langt,
+  .beta-hlid .stjorn-nav button span.texti:not(.texti-stutt) {
     display: block;
   }
 
-  .beta-hlid .stjorn-nav button span.texti {
-    display: block;
-    font-size: 0.68rem;
-    font-weight: 600;
-    white-space: nowrap;
+  .beta-hlid .stjorn-reikningur {
+    display: flex;
+    margin-top: auto;
   }
 
   .stjorn-efni-haus h1 {
