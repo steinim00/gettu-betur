@@ -752,10 +752,32 @@ function byggjaAhugavertKort(g, litur) {
   tengill.target = "_blank";
   tengill.rel = "noopener noreferrer";
 
-  const takn = document.createElement("div");
-  takn.className = "ahugavert-takn";
-  takn.textContent = g.takn || "🔗";
-  if (/^\d{4}$/.test(g.takn || "")) takn.classList.add("ahugavert-ar");
+  const erKeppni = /^\d{4}$/.test(g.takn || "");
+  let takn;
+  if (g.mynd && erKeppni) {
+    // Keppnir: borði með mynd úr þættinum og ártalið yfir.
+    takn = document.createElement("div");
+    takn.className = "ahugavert-bordi";
+    const mynd = document.createElement("img");
+    mynd.src = g.mynd;
+    mynd.alt = "";
+    mynd.loading = "lazy";
+    const ar = document.createElement("span");
+    ar.textContent = g.takn;
+    takn.append(mynd, ar);
+    tengill.classList.add("ahugavert-med-borda");
+  } else if (g.mynd) {
+    takn = document.createElement("img");
+    takn.className = "ahugavert-takn ahugavert-takn-mynd";
+    takn.src = g.mynd;
+    takn.alt = "";
+    takn.loading = "lazy";
+  } else {
+    takn = document.createElement("div");
+    takn.className = "ahugavert-takn";
+    takn.textContent = g.takn || "🔗";
+    if (erKeppni) takn.classList.add("ahugavert-ar");
+  }
 
   const texti = document.createElement("div");
   texti.className = "ahugavert-texti";
