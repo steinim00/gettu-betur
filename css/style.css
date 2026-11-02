@@ -3053,3 +3053,213 @@ body.beta .verkefna-adal > h2,
 body.beta .verkefna-hlid > h2 {
   display: none;
 }
+
+/* --- Nýja útlitið: þéttara og minni óþarfa texti/bil (síma fyrst) --- */
+body.beta .stjorn-efni-haus {
+  margin-bottom: 16px;
+}
+
+body.beta .beta-flytileidir {
+  display: none !important;
+}
+
+/* Verkefnaspjöld: þétt, vinstrijöfnuð, merki og stika á færri línum */
+body.beta .verkefni-kort {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  text-align: left;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+
+body.beta .verkefni-kort h3 {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+body.beta .verkefni-kort .forskodun-ovirkt-merki {
+  margin: 0;
+}
+
+body.beta .verkefni-kort .verkefni-lysing {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+body.beta .verkefni-kort .framvinda-lysing {
+  margin: 0;
+}
+
+body.beta .verkefni-kort .framvinda-bar {
+  flex-basis: 100%;
+  margin: 2px 0 6px;
+}
+
+body.beta .verkefni-kort .aðal-hnappur {
+  flex: 1 1 160px;
+  width: auto;
+  margin: 4px 0 0;
+  padding: 11px 16px;
+}
+
+body.beta .verkefni-kort .smabtn {
+  flex: 0 0 auto;
+  margin: 0 !important;
+}
+
+body.beta .spurningar-adgerdir {
+  margin-bottom: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+body.beta .spurningar-adgerdir .smabtn {
+  padding: 5px 12px;
+  font-size: 0.78rem;
+}
+
+body.beta #stodurNiðurstada {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: var(--litur-daufur);
+}
+
+body.beta #spurningaSvaedi:not([hidden]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+body.beta #spurningaSvaedi > * {
+  flex-basis: 100%;
+}
+
+body.beta #spurningaSvaedi > #tilbakaFraSpurningum {
+  flex-basis: auto;
+}
+
+body.beta #spurningaSvaedi > #spurningaTitill {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+@media (max-width: 900px) {
+  body.beta main {
+    padding-top: 14px;
+  }
+
+  body.beta .stjorn-efni-haus {
+    margin-bottom: 12px;
+  }
+
+  body.beta .stjorn-efni-haus h1 {
+    font-size: 1.45rem;
+  }
+
+  /* Heim: minni borði og tölukort */
+  body.beta .viku-ahersla {
+    flex-wrap: nowrap;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    gap: 10px;
+  }
+
+  body.beta .viku-ahersla h3 {
+    font-size: 1.05rem;
+  }
+
+  body.beta .viku-ahersla-hnappar {
+    width: auto;
+  }
+
+  body.beta .viku-ahersla button {
+    flex: none;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+
+  body.beta #minStadaSvaedi .tolu-kort-net {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  body.beta #minStadaSvaedi .tolu-kort {
+    padding: 10px 14px;
+    border-radius: 16px;
+  }
+
+  body.beta #minStadaSvaedi .tolu-kort-haus {
+    font-size: 0.78rem;
+    gap: 8px;
+  }
+
+  body.beta #minStadaSvaedi .tolu-kort-haus .tolu-kort-takn {
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+  }
+
+  body.beta #minStadaSvaedi .tolu-kort-gildi .tala {
+    font-size: 1.3rem;
+  }
+
+  /* Bíólisti: flokkar hlið við hlið, röðun á einni línu */
+  .biolisti-stjorn {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .biolisti-flipar {
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .biolisti-flipi {
+    flex: 1 1 0;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 8px;
+    font-size: 0.78rem;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .biolisti-roda span {
+    display: none;
+  }
+
+  .biolisti-roda {
+    margin-left: auto;
+  }
+
+  .biolisti-roda select {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+}
+
+body.beta .glosur-adgerdir {
+  margin-bottom: 12px;
+}
+
+body.beta .glosur-adgerdir .aðal-hnappur {
+  width: auto;
+  margin-top: 0;
+  padding: 11px 22px;
+}
+
+body.beta .verkefna-yfirlit {
+  gap: 12px 28px;
+}
+
+body.beta .verkefna-hlid .hradaspurning-kort,
+body.beta .verkefna-hlid .spurning-kort {
+  margin-bottom: 12px;
+}

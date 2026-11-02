@@ -699,7 +699,6 @@ function kveikjaBeta(gogn, user) {
   betaHlid.hidden = false;
   betaHaus.hidden = false;
   document.querySelector(".beta-merki-haus").hidden = false;
-  document.querySelector(".beta-flytileidir").hidden = false;
   betaNotandaNafn.textContent = gogn.nafn || user.email;
   const fornafn = (gogn.nafn || user.email || "").split(" ")[0];
   BETA_FYRIRSAGNIR.heim[0] = `Hæ, ${fornafn} 👋`;
@@ -1580,7 +1579,7 @@ async function hladaGlosur() {
 
   glosurListi.innerHTML = "";
   if (glosur.length === 0) {
-    glosurListi.innerHTML = "<p>Þú hefur ekki skrifað neinar glósur ennþá. Ýttu á „Bæta við glósu“ hér fyrir ofan eða opnaðu glærur verkefnis og skrifaðu glósu þar.</p>";
+    glosurListi.innerHTML = "<p>Engar glósur ennþá.</p>";
     return;
   }
 
