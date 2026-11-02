@@ -57,13 +57,14 @@
   <div id="biolistiSvaedi" hidden>
     <div class="biolisti-stjorn">
       <div class="biolisti-flipar" id="biolistiFlipar" role="tablist"></div>
-      <label class="biolisti-roda"><span>Raða eftir</span>
-        <select id="biolistiRoda" aria-label="Raða eftir">
-          <option value="ar">Ári</option>
-          <option value="einkunn">IMDb einkunn</option>
-          <option value="lengd">Lengd</option>
-        </select>
-      </label>
+      <div class="rada-reitur" id="biolistiRoda">
+        <button type="button" class="rada-hnappur" id="biolistiRodaHnappur" aria-haspopup="listbox" aria-expanded="false">
+          <span class="rada-merki">Raða eftir</span>
+          <span class="rada-gildi" id="biolistiRodaGildi"></span>
+          <span class="rada-orvar" aria-hidden="true"></span>
+        </button>
+        <ul class="rada-listi" id="biolistiRodaListi" role="listbox" hidden></ul>
+      </div>
     </div>
     <div id="biolistiListi" class="biolisti-listi"></div>
     <p class="biolisti-heimild">Einkunnir og lengd eru úr opnum gögnum frá <a href="https://www.imdb.com" target="_blank" rel="noopener">IMDb</a>. Smelltu á mynd til að opna hana á IMDb.</p>

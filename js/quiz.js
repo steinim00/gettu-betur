@@ -49,7 +49,9 @@ const betaUtskraBtn = document.getElementById("betaUtskraBtn");
 const ahugavertSvaedi = document.getElementById("ahugavertSvaedi");
 const biolistiSvaedi = document.getElementById("biolistiSvaedi");
 const biolistiFlipar = document.getElementById("biolistiFlipar");
-const biolistiRoda = document.getElementById("biolistiRoda");
+const biolistiRodaHnappur = document.getElementById("biolistiRodaHnappur");
+const biolistiRodaGildi = document.getElementById("biolistiRodaGildi");
+const biolistiRodaListi = document.getElementById("biolistiRodaListi");
 const biolistiListi = document.getElementById("biolistiListi");
 const ahugavertListi = document.getElementById("ahugavertListi");
 const mittEfniSvaedi = document.getElementById("mittEfniSvaedi");
@@ -1213,11 +1215,7 @@ function birtaBiolista() {
     biolistiFlipar.appendChild(flipi);
   });
 
-  const radad = [...(flokkar[biolistiFlokkur] || [])].sort((a, b) => {
-    if (biolistiRoda.value === "einkunn") return (b.einkunn || 0) - (a.einkunn || 0);
-    if (biolistiRoda.value === "lengd") return (b.minutur || 0) - (a.minutur || 0);
-    return a.ar - b.ar;
-  });
+  const radad = [...(flokkar[biolistiFlokkur] || [])].sort(BIOLISTI_RODUN[biolistiRodun].radar);
   biolistiListi.innerHTML = "";
   radad.forEach((m) => {
     const kort = document.createElement("div");
@@ -1312,9 +1310,55 @@ async function hladaBiolista() {
     biolistiListi.innerHTML = "<p>Tókst ekki að sækja bíólistann. Reyndu aftur síðar.</p>";
   }
 }
-biolistiRoda.addEventListener("change", () => {
-  if (biolistiGogn) birtaBiolista();
+// "Raða eftir" í sama stíl og á ntc.is: reitur með ramma, merkið á rammanum og listi sem opnast undir.
+const BIOLISTI_RODUN = {
+  "ar-elst": { texti: "Ár - elst fyrst", radar: (a, b) => a.ar - b.ar },
+  "ar-nyjast": { texti: "Ár - nýjast fyrst", radar: (a, b) => b.ar - a.ar },
+  "einkunn-haest": { texti: "Einkunn - hæst fyrst", radar: (a, b) => (b.einkunn || 0) - (a.einkunn || 0) },
+  "einkunn-laegst": { texti: "Einkunn - lægst fyrst", radar: (a, b) => (a.einkunn || 99) - (b.einkunn || 99) },
+  "lengd-lengst": { texti: "Lengd - lengst fyrst", radar: (a, b) => (b.minutur || 0) - (a.minutur || 0) },
+  "lengd-styst": { texti: "Lengd - styst fyrst", radar: (a, b) => (a.minutur || 9999) - (b.minutur || 9999) },
+  nafn: { texti: "Nafn - a til ö", radar: (a, b) => a.titill.localeCompare(b.titill, "is") }
+};
+let biolistiRodun = "ar-elst";
+
+function lokaRodunarLista() {
+  biolistiRodaListi.hidden = true;
+  biolistiRodaHnappur.setAttribute("aria-expanded", "false");
+}
+
+function byggjaRodunarLista() {
+  biolistiRodaGildi.textContent = BIOLISTI_RODUN[biolistiRodun].texti;
+  biolistiRodaListi.innerHTML = "";
+  Object.entries(BIOLISTI_RODUN).forEach(([lykill, val]) => {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+    li.tabIndex = -1;
+    li.textContent = val.texti;
+    if (lykill === biolistiRodun) {
+      li.classList.add("valin");
+      li.setAttribute("aria-selected", "true");
+    }
+    li.addEventListener("click", () => {
+      biolistiRodun = lykill;
+      lokaRodunarLista();
+      byggjaRodunarLista();
+      if (biolistiGogn) birtaBiolista();
+    });
+    biolistiRodaListi.appendChild(li);
+  });
+}
+biolistiRodaHnappur.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const opna = biolistiRodaListi.hidden;
+  biolistiRodaListi.hidden = !opna;
+  biolistiRodaHnappur.setAttribute("aria-expanded", String(opna));
 });
+document.addEventListener("click", lokaRodunarLista);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") lokaRodunarLista();
+});
+byggjaRodunarLista();
 
 function synaSvaedi(svaedi) {
   lokaSkrunarlotu();

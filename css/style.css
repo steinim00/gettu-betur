@@ -3387,3 +3387,94 @@ body.beta .verkefna-hlid .spurning-kort {
 #sidaUndirtitill:empty {
   display: none;
 }
+
+/* "Raða eftir" - reitur með ramma og merki á rammanum, líkt og á ntc.is */
+.rada-reitur {
+  position: relative;
+  width: 210px;
+  margin-left: auto;
+}
+
+.rada-hnappur {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 15px 14px 9px 14px;
+  border: 1px solid #b9b9b0;
+  border-radius: 6px;
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rada-hnappur:hover,
+.rada-hnappur[aria-expanded="true"] {
+  border-color: var(--litur-svart);
+  box-shadow: 0 0 0 1px var(--litur-svart);
+}
+
+.rada-merki {
+  position: absolute;
+  top: -8px;
+  left: 10px;
+  padding: 0 5px;
+  background: var(--litur-korti);
+  color: var(--litur-daufur);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.rada-orvar {
+  width: 0;
+  height: 0;
+  margin-left: 10px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--litur-daufur);
+  flex-shrink: 0;
+}
+
+.rada-listi {
+  position: absolute;
+  z-index: 60;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 6px 0;
+  list-style: none;
+  border-radius: 6px;
+  background: var(--litur-korti);
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.22);
+}
+
+.rada-listi[hidden] {
+  display: none;
+}
+
+.rada-listi li {
+  padding: 12px 16px;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.rada-listi li:hover {
+  background: #f1f1ec;
+}
+
+.rada-listi li.valin {
+  background: #e4e4de;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .rada-reitur {
+    margin-left: 0;
+    width: 100%;
+  }
+}
