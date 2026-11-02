@@ -48,7 +48,6 @@ const betaNotandaNafn = document.getElementById("betaNotandaNafn");
 const betaUtskraBtn = document.getElementById("betaUtskraBtn");
 const ahugavertSvaedi = document.getElementById("ahugavertSvaedi");
 const ahugavertListi = document.getElementById("ahugavertListi");
-const ahugavertLeit = document.getElementById("ahugavertLeit");
 let betaVirkt = false;
 const glosurSvaedi = document.getElementById("glosurSvaedi");
 const tilbakaFraGlosum = document.getElementById("tilbakaFraGlosum");
@@ -744,7 +743,7 @@ betaUtskraBtn.addEventListener("click", () => utskraBtn.click());
 // birtir í flokkum (flokkur) með tákni (takn) - flokkarnir raðast eftir því
 // hvaða hlekkur var skráður fyrst.
 const AHUGAVERT_FLOKKAR = {
-  "Gamlar keppnir": { takn: "📺", lysing: "Oft eru gamlar spurningar endurnýttar á nokkra ára fresti.", litur: "dökkt", logo: "ruv" },
+  "Gamlar keppnir": { takn: "📺", lysing: "", litur: "dökkt", logo: "ruv" },
   YouTube: { takn: "▶️", lysing: "", litur: "rautt", logo: "youtube" },
   "Hlaðvörp": { takn: "🎧", lysing: "", litur: "fjolublatt", logo: "spotify" }
 };
@@ -811,6 +810,11 @@ function byggjaAhugavertKort(g, litur) {
     tengill.appendChild(titill);
   }
   texti.appendChild(tengill);
+  // Keppnir sýna aðeins myndina með ártalinu - engan texta undir.
+  if (erKeppni && g.mynd) {
+    kort.append(takn, tengill);
+    return kort;
+  }
   if (g.lysing) {
     const lysing = document.createElement("span");
     lysing.textContent = g.lysing;
@@ -930,15 +934,12 @@ async function hladaAhugavertFyrirNemendur() {
       .filter((g) => /^https?:\/\//i.test(g.slod || ""))
       .sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
     ahugavertHladid = true;
-    birtaAhugavert(ahugavertLeit.value);
+    birtaAhugavert();
   } catch (villa) {
     console.error(villa);
     ahugavertListi.innerHTML = "<p>Tókst ekki að sækja efnið. Reyndu aftur síðar.</p>";
   }
 }
-ahugavertLeit.addEventListener("input", () => {
-  if (ahugavertHladid) birtaAhugavert(ahugavertLeit.value);
-});
 
 function synaSvaedi(svaedi) {
   lokaSkrunarlotu();

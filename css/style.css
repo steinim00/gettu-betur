@@ -2556,3 +2556,40 @@ body.beta #glosurSvaedi > .hluti-titill {
 .beta-haus p:empty {
   display: none;
 }
+
+/* Keppnir: spjaldið er bara myndin með ártalinu (minni spjöld) */
+.ahugavert-med-borda {
+  padding: 0;
+}
+
+.ahugavert-med-borda .ahugavert-bordi {
+  margin: 0;
+}
+
+.ahugavert-net-litid {
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.ahugavert-net-litid .ahugavert-med-borda {
+  gap: 0;
+  padding: 0;
+}
+
+.ahugavert-med-borda .ahugavert-bordi span {
+  font-size: 1rem;
+  padding: 2px 10px;
+}
+
+@media (max-width: 600px) {
+  .ahugavert-net-litid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .ahugavert-med-borda .ahugavert-bordi span {
+    font-size: 0.85rem;
+    left: 6px;
+    bottom: 6px;
+  }
+}
