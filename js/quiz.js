@@ -1205,7 +1205,7 @@ async function hladaBiolista() {
   if (biolistiGogn) return birtaBiolista();
   biolistiListi.innerHTML = skeletonKort(4);
   try {
-    const svar = await fetch("data/biolisti.json");
+    const svar = await fetch("data/biolisti.json", { cache: "no-cache" });
     if (!svar.ok) throw new Error(svar.status);
     biolistiGogn = await svar.json();
     birtaBiolista();

@@ -94,6 +94,7 @@ SOGU = [
  ("The Big Lebowski", 1998, "", "Költmynd Coen-bræðra. Kráin í Reykjavík heitir eftir henni.", "Joel og Ethan Coen; Jeff Bridges"),
  ("The Lord of the Rings: The Fellowship of the Ring", 2001, "Hringadróttinssaga", "Fyrsta myndin í þríleik Peter Jackson.", "Peter Jackson"),
  ("Avatar", 2009, "", "Tekjuhæsta mynd sögunnar (2020).", "James Cameron"),
+ ("Harry Potter and the Sorcerer's Stone|Harry Potter and the Philosopher's Stone", 2001, "Harry Potter og viskusteinninn", "Fyrsta myndin um galdrastrákinn Harry Potter, byggð á bók J.K. Rowling - upphaf einnar tekjuhæstu kvikmyndaraðar sögunnar.", "Chris Columbus; Daniel Radcliffe"),
 ]
 
 basics_path, ratings_path = sys.argv[1], sys.argv[2]
@@ -155,7 +156,8 @@ for flokkur, lst in (("Byggt á sönnum atburðum", SONN), ("Sögufrægustu", SO
         })
 # "Um" textinn (úr glærunum "61 áhrifamestu kvikmyndir sögunnar") - sama röð og SOGU.
 um = json.load(open("scripts/biolisti-um.json", encoding="utf8"))
-assert len(um) == len(out["Sögufrægustu"]), (len(um), len(out["Sögufrægustu"]))
+# Textinn fyrir fyrstu myndirnar (60 úr glærunum); myndir sem bætt var við síðar (aftast) hafa engan "Um" texta.
+assert len(um) <= len(out["Sögufrægustu"]), (len(um), len(out["Sögufrægustu"]))
 for f, texti in zip(out["Sögufrægustu"], um):
     f["um"] = texti
 # Plagöt (images/biolisti/<imdb>.jpg) ef þau eru til.
