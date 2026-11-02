@@ -3673,8 +3673,6 @@ body.beta #minStadaSvaedi h3 {
 
 /* Undantekning frá rétthyrnda útlitinu: Hraðaspurninga-borðinn á Heim og hnapparnir til að hefja verkefni
    hafa ávala enda (pill). */
-.viku-ahersla,
-.viku-ahersla button,
 .verkefni-kort button.aðal-hnappur,
 .verkefni-kort button.smabtn,
 .hradaspurning-kort button.aðal-hnappur,
@@ -3701,4 +3699,36 @@ body.beta #minStadaSvaedi h3 {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* Hraðaspurninga-borðinn á Heim í nýja útlitinu: lítið spjald í sama stíl og tölukortin (ekki stór svartur borði) */
+body.beta .viku-ahersla {
+  flex-wrap: nowrap;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  box-shadow: var(--skuggi);
+  border-left: 5px solid var(--litur-lime);
+}
+
+body.beta .viku-ahersla h3 {
+  font-size: 1.02rem;
+}
+
+body.beta .viku-ahersla button {
+  flex: none;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  background: var(--litur-svart);
+  color: #fff;
+}
+
+body.beta .viku-ahersla button:hover {
+  background: var(--litur-svart-daufur);
+}
+
+body.beta .viku-ahersla-hnappar {
+  width: auto;
 }
