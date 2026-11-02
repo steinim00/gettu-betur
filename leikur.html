@@ -35,6 +35,7 @@
     <button type="button" data-leid="verkefni"><span class="takn">📁</span><span class="texti">Verkefni</span></button>
     <button type="button" data-leid="glosur"><span class="takn">📝</span><span class="texti">Glósur</span></button>
     <button type="button" data-leid="ahugavert"><span class="takn">💡</span><span class="texti texti-langt">Áhugavert efni</span><span class="texti texti-stutt">Áhugavert</span></button>
+    <button type="button" data-leid="biolisti"><span class="takn">🎬</span><span class="texti texti-langt">Bíólisti</span><span class="texti texti-stutt">Bíó</span></button>
     <button type="button" class="beta-nav-utskra" data-leid="utskra"><span class="takn">🚪</span><span class="texti">Út</span></button>
   </nav>
 
@@ -51,6 +52,21 @@
       <h1 id="betaFyrirsogn"></h1>
       <p id="betaUndirtitill"></p>
     </div>
+  </div>
+
+  <div id="biolistiSvaedi" hidden>
+    <div class="biolisti-stjorn">
+      <div class="biolisti-flipar" id="biolistiFlipar" role="tablist"></div>
+      <label class="biolisti-roda">Raða eftir
+        <select id="biolistiRoda">
+          <option value="ar">Ári</option>
+          <option value="einkunn">IMDb einkunn</option>
+          <option value="lengd">Lengd</option>
+        </select>
+      </label>
+    </div>
+    <div id="biolistiListi" class="biolisti-listi"></div>
+    <p class="biolisti-heimild">Einkunnir og lengd eru úr opnum gögnum frá <a href="https://www.imdb.com" target="_blank" rel="noopener">IMDb</a>. Smelltu á mynd til að opna hana á IMDb.</p>
   </div>
 
   <div id="ahugavertSvaedi" hidden>

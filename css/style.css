@@ -2750,3 +2750,178 @@ body.beta #glosurSvaedi > .hluti-titill {
   text-align: center;
   white-space: nowrap;
 }
+
+/* --- Bíólisti (beta) --- */
+.biolisti-stjorn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.biolisti-flipar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.biolisti-flipi {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.biolisti-flipi b {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--litur-jadar);
+  font-size: 0.75rem;
+}
+
+.biolisti-flipi.virkur {
+  background: var(--litur-svart);
+  border-color: var(--litur-svart);
+  color: #fff;
+}
+
+.biolisti-flipi.virkur b {
+  background: var(--litur-lime);
+  color: #202b0a;
+}
+
+.biolisti-roda {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--litur-daufur);
+  font-size: 0.88rem;
+}
+
+.biolisti-roda select {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  font-family: inherit;
+}
+
+.biolisti-listi {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 12px;
+}
+
+.biolisti-kort {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: var(--litur-korti);
+  border: 1px solid var(--litur-jadar);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+.biolisti-kort:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.09);
+}
+
+.biolisti-einkunn {
+  flex-shrink: 0;
+  min-width: 64px;
+  padding: 8px 6px;
+  border-radius: 14px;
+  background: #f5c518;
+  color: #161616;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.biolisti-einkunn small {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.biolisti-einkunn strong {
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+
+.biolisti-texti {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.biolisti-titill strong {
+  font-size: 1.05rem;
+}
+
+.biolisti-undir {
+  color: var(--litur-daufur);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.biolisti-lysing {
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.biolisti-folk {
+  color: var(--litur-daufur);
+  font-size: 0.8rem;
+}
+
+.biolisti-lengd {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--litur-daufur);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.biolisti-heimild {
+  margin-top: 22px;
+  color: var(--litur-daufur);
+  font-size: 0.8rem;
+}
+
+#biolistiSvaedi[hidden] {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .biolisti-listi {
+    grid-template-columns: 1fr;
+  }
+
+  .biolisti-kort {
+    flex-wrap: wrap;
+  }
+
+  .biolisti-lengd {
+    flex-basis: 100%;
+    padding-left: 78px;
+    margin-top: -4px;
+  }
+}

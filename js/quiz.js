@@ -47,6 +47,10 @@ const betaUndirtitill = document.getElementById("betaUndirtitill");
 const betaNotandaNafn = document.getElementById("betaNotandaNafn");
 const betaUtskraBtn = document.getElementById("betaUtskraBtn");
 const ahugavertSvaedi = document.getElementById("ahugavertSvaedi");
+const biolistiSvaedi = document.getElementById("biolistiSvaedi");
+const biolistiFlipar = document.getElementById("biolistiFlipar");
+const biolistiRoda = document.getElementById("biolistiRoda");
+const biolistiListi = document.getElementById("biolistiListi");
 const ahugavertListi = document.getElementById("ahugavertListi");
 const mittEfniSvaedi = document.getElementById("mittEfniSvaedi");
 const mittEfniListi = document.getElementById("mittEfniListi");
@@ -700,7 +704,8 @@ const BETA_FYRIRSAGNIR = {
   heim: ["Heim", "Staðan þín í hnotskurn."],
   verkefni: ["Verkefni", "Veldu verkefni eða taktu hraðaspurningar."],
   glosur: ["Glósur", "Þínar einkaglósur um verkefnin."],
-  ahugavert: ["Áhugavert efni", ""]
+  ahugavert: ["Áhugavert efni", ""],
+  biolisti: ["Bíólisti", "Kvikmyndir sem gott er að þekkja - byggðar á sönnum atburðum og þær sögufrægustu."]
 };
 const BETA_LEIDIR = {
   minstada: "heim",
@@ -709,7 +714,8 @@ const BETA_LEIDIR = {
   spurningar: "verkefni",
   hverEr: "verkefni",
   glosur: "glosur",
-  ahugavert: "ahugavert"
+  ahugavert: "ahugavert",
+  biolisti: "biolisti"
 };
 
 function uppfaeraBetaNav(svaedi) {
@@ -730,6 +736,9 @@ function betaFaraI(leid) {
   else if (leid === "ahugavert") {
     synaSvaedi("ahugavert");
     hladaAhugavertFyrirNemendur();
+  } else if (leid === "biolisti") {
+    synaSvaedi("biolisti");
+    hladaBiolista();
   } else if (leid === "utskra") utskraBtn.click();
 }
 betaNav.addEventListener("click", (e) => {
@@ -1052,11 +1061,104 @@ async function birtaMittEfni(tek) {
 }
 mittEfniAllirBtn.addEventListener("click", () => betaFaraI("ahugavert"));
 
+// --- Bíólisti (beta): tveir flokkar mynda með lengd og IMDb einkunn ---
+// Gögnin eru í data/biolisti.json (búin til með scripts/bua-til-biolista.py).
+let biolistiGogn = null;
+let biolistiFlokkur = "Byggt á sönnum atburðum";
+
+function formatLengd(minutur) {
+  if (!minutur) return "";
+  const klst = Math.floor(minutur / 60);
+  const min = minutur % 60;
+  return klst > 0 ? `${klst} klst ${min} mín` : `${min} mín`;
+}
+
+function birtaBiolista() {
+  biolistiFlipar.innerHTML = "";
+  Object.entries(biolistiGogn).forEach(([nafn, myndir]) => {
+    const flipi = document.createElement("button");
+    flipi.type = "button";
+    flipi.setAttribute("role", "tab");
+    flipi.className = "biolisti-flipi" + (nafn === biolistiFlokkur ? " virkur" : "");
+    flipi.innerHTML = `<span></span><b>${myndir.length}</b>`;
+    flipi.querySelector("span").textContent = nafn;
+    flipi.addEventListener("click", () => {
+      biolistiFlokkur = nafn;
+      birtaBiolista();
+    });
+    biolistiFlipar.appendChild(flipi);
+  });
+
+  const radad = [...(biolistiGogn[biolistiFlokkur] || [])].sort((a, b) => {
+    if (biolistiRoda.value === "einkunn") return (b.einkunn || 0) - (a.einkunn || 0);
+    if (biolistiRoda.value === "lengd") return (b.minutur || 0) - (a.minutur || 0);
+    return a.ar - b.ar;
+  });
+  biolistiListi.innerHTML = "";
+  radad.forEach((m) => {
+    const kort = document.createElement("div");
+    kort.className = "biolisti-kort";
+
+    const einkunn = document.createElement("div");
+    einkunn.className = "biolisti-einkunn";
+    einkunn.title = m.atkvaedi ? `${m.atkvaedi.toLocaleString("is-IS")} atkvæði á IMDb` : "IMDb";
+    einkunn.innerHTML = `<small>IMDb</small><strong></strong>`;
+    einkunn.querySelector("strong").textContent = m.einkunn ? `★ ${m.einkunn.toFixed(1).replace(".", ",")}` : "-";
+
+    const texti = document.createElement("div");
+    texti.className = "biolisti-texti";
+    const titill = document.createElement("a");
+    titill.className = "ahugavert-nafn biolisti-titill";
+    titill.target = "_blank";
+    titill.rel = "noopener noreferrer";
+    titill.href = m.imdb ? `https://www.imdb.com/title/${m.imdb}/` : `https://www.imdb.com/find/?q=${encodeURIComponent(m.titill)}`;
+    const nafn = document.createElement("strong");
+    nafn.textContent = m.titill;
+    titill.appendChild(nafn);
+    const undir = document.createElement("span");
+    undir.className = "biolisti-undir";
+    undir.textContent = [m.islenskt, m.ar].filter(Boolean).join(" · ");
+    const lysing = document.createElement("span");
+    lysing.className = "biolisti-lysing";
+    lysing.textContent = m.lysing || "";
+    const folk = document.createElement("span");
+    folk.className = "biolisti-folk";
+    folk.textContent = m.folk || "";
+    texti.append(titill, undir, lysing, folk);
+
+    const lengd = document.createElement("div");
+    lengd.className = "biolisti-lengd";
+    lengd.innerHTML = `<span>⏱</span><b></b>`;
+    lengd.querySelector("b").textContent = formatLengd(m.minutur) || "-";
+
+    kort.append(einkunn, texti, lengd);
+    biolistiListi.appendChild(kort);
+  });
+}
+
+async function hladaBiolista() {
+  if (biolistiGogn) return birtaBiolista();
+  biolistiListi.innerHTML = skeletonKort(4);
+  try {
+    const svar = await fetch("data/biolisti.json");
+    if (!svar.ok) throw new Error(svar.status);
+    biolistiGogn = await svar.json();
+    birtaBiolista();
+  } catch (villa) {
+    console.error(villa);
+    biolistiListi.innerHTML = "<p>Tókst ekki að sækja bíólistann. Reyndu aftur síðar.</p>";
+  }
+}
+biolistiRoda.addEventListener("change", () => {
+  if (biolistiGogn) birtaBiolista();
+});
+
 function synaSvaedi(svaedi) {
   lokaSkrunarlotu();
   minStadaSvaedi.hidden = svaedi !== "minstada";
   glosurSvaedi.hidden = svaedi !== "glosur";
   ahugavertSvaedi.hidden = svaedi !== "ahugavert";
+  biolistiSvaedi.hidden = svaedi !== "biolisti";
   if (betaVirkt) uppfaeraBetaNav(svaedi);
   hverErSvaedi.hidden = svaedi !== "hverEr";
   verkefnaSvaedi.hidden = svaedi !== "verkefni";
