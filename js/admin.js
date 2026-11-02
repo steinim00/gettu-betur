@@ -551,16 +551,22 @@ function samaDagur(a, b) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
+// Dagsetning og tími á íslensku sniði óháð tungumálastillingu vafrans (24 klst, "29. okt").
+const MANADARHEITI_STUTT = ["jan.", "feb.", "mar.", "apr.", "maí", "jún.", "júl.", "ágú.", "sep.", "okt.", "nóv.", "des."];
+function formatKlukka(d) {
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 function formatDagsStutt(ms) {
   if (!ms) return "—";
   const d = new Date(ms);
   const nuna = new Date();
-  const timi = d.toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit" });
+  const timi = formatKlukka(d);
   if (samaDagur(d, nuna)) return `í dag kl. ${timi}`;
   const igaer = new Date(nuna);
   igaer.setDate(igaer.getDate() - 1);
   if (samaDagur(d, igaer)) return `í gær kl. ${timi}`;
-  return `${d.toLocaleDateString("is-IS", { day: "numeric", month: "numeric" })} kl. ${timi}`;
+  return `${d.getDate()}. ${MANADARHEITI_STUTT[d.getMonth()]} kl. ${timi}`;
 }
 
 // Litar röð verkefnis í Verkefni-töflunni eftir þeim notendum sem það er
@@ -3246,7 +3252,7 @@ async function hladaTolfraedi() {
     }
     tolfraediNemendur.sort((a, b) => b.svarad - a.svarad);
     tolfraediHladid = true;
-    tolfraediStada.textContent = `${tolfraediNemendur.length} nemendur · uppfært ${new Date().toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit" })}`;
+    tolfraediStada.textContent = `${tolfraediNemendur.length} nemendur · uppfært ${formatKlukka(new Date())}`;
     teiknaTolfraedi();
   } catch (villa) {
     console.error(villa);

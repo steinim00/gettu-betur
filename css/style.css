@@ -3383,3 +3383,7 @@ body.beta .verkefna-hlid .spurning-kort {
   border: 1px solid var(--litur-jadar);
   font-size: 0.8rem;
 }
+
+#sidaUndirtitill:empty {
+  display: none;
+}

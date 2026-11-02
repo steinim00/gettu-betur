@@ -41,7 +41,7 @@
     <div class="stjorn-efni-haus">
       <div>
         <h1 id="sidaFyrirsogn">Yfirlit</h1>
-        <p id="sidaUndirtitill">Staðan á Gettu Betur í hnotskurn.</p>
+        <p id="sidaUndirtitill"></p>
       </div>
     </div>
 
@@ -64,7 +64,6 @@
           <div class="tolu-kort-gildi"><span class="tala" id="yfirlitNotendur">—</span></div>
         </button>
       </div>
-      <p class="undirtitill-vinstri">Veldu flokk í hliðarvalmyndinni til vinstri til að skoða nánar og gera breytingar.</p>
     </div>
 
     <div class="stjorn-sida" id="sida-stillingar">
@@ -138,8 +137,7 @@
     </div>
 
     <div class="stjorn-sida" id="sida-notendur">
-      <div class="hluti-titill" style="margin-top:0;">
-        <h2>Frammistaða notenda</h2>
+      <div class="hluti-titill" style="margin-top:0; justify-content:flex-end;">
         <div style="display:flex; gap:8px;">
           <button class="smabtn" id="skjaskotsSnidBtn" title="Felur nöfn og aðgerðir, sleppir þeim í flokki 'aðrir' - tilbúið til að taka skjáskot af">Skjáskotssnið</button>
           <button class="smabtn" id="takaSkjaskotBtn" hidden>Taka skjáskot</button>
@@ -191,8 +189,7 @@
 
     <div class="stjorn-sida" id="sida-tolfraedi">
       <div class="hluti-titill" style="margin-top:0;">
-        <h2>Tölfræði nemenda</h2>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-left:auto;">
           <select id="heatmapNemandi" aria-label="Velja nemanda"></select>
           <button class="smabtn" id="tolfraediEndurhladaBtn">Endurhlaða</button>
         </div>
@@ -239,12 +236,6 @@
     </div>
 
     <div class="stjorn-sida" id="sida-verkefni">
-      <div class="hluti-titill" style="margin-top:0;">
-        <h2>Verkefni</h2>
-      </div>
-      <p class="undirtitill-vinstri">
-        Verkefni eru glærur/efni sem nemandi skoðar áður en hann svarar tengdum spurningum.
-      </p>
       <table id="verkefnaTafla">
         <thead>
           <tr><th>Titill</th><th>Tegund</th><th>Glærur</th><th>Spurningar</th><th>Staða</th><th>Sýnileiki</th><th>Aðgerð</th></tr>
@@ -357,11 +348,7 @@
       <div class="hluti-titill" style="margin-top:0;">
         <h2>Embættismannalisti</h2>
       </div>
-      <p class="undirtitill-vinstri">
-        Hver færsla býr sjálfkrafa til tvær spurningar - "Hver er [embætti]?" og
-        "Hvaða embætti gegnir [nafn]?" - sem bætast óvirkar við "Embættismannalisti"
-        verkefnið (kveiktu á þeim í Verkefni-flipanum þegar þú hefur farið yfir þær).
-      </p>
+      <p class="undirtitill-vinstri">Hver færsla býr til tvær óvirkar spurningar í verkefninu „Embættismannalisti“.</p>
       <form id="embaettismadurForm" class="ny-spurning-form">
         <label for="embNafn">Nafn</label>
         <input type="text" id="embNafn" required>
@@ -386,10 +373,7 @@
       <div class="hluti-titill">
         <h2>Bókalisti</h2>
       </div>
-      <p class="undirtitill-vinstri">
-        Hver færsla býr sjálfkrafa til tvær spurningar - "Hver skrifaði [bók]?" og
-        "Hvaða bók skrifaði [höfundur]?" - sem bætast óvirkar við "Bókalisti" verkefnið.
-      </p>
+      <p class="undirtitill-vinstri">Hver færsla býr til tvær óvirkar spurningar í verkefninu „Bókalisti“.</p>
       <form id="bokForm" class="ny-spurning-form">
         <label for="bokHofundur">Höfundur</label>
         <input type="text" id="bokHofundur" required>
@@ -410,10 +394,6 @@
     </div>
 
     <div class="stjorn-sida" id="sida-ahugavert">
-      <p class="undirtitill-vinstri">
-        Hlekkir sem birtast nemendum í flipanum „Áhugavert efni“ (í nýja útlitinu, sem er enn í beta
-        undir „Sjá eins og nemandi“).
-      </p>
       <form id="ahugavertForm" class="ny-spurning-form">
         <label for="ahugavertTitill">Titill</label>
         <input type="text" id="ahugavertTitill" required>
@@ -444,14 +424,7 @@
     </div>
 
     <div class="stjorn-sida" id="sida-graenadeildin">
-      <div class="hluti-titill" style="margin-top:0;">
-        <h2>Grænadeildin — æfingar</h2>
-      </div>
-      <p class="undirtitill-vinstri">
-        Skráðu æfingar/keppnir þar sem liðið svarar saman upphátt: dagsetningu, hverjir
-        mættu, og hvort liðið náði hverri spurningu réttri eða rangri. Sagan hér fyrir
-        neðan sýnir þróunina milli æfinga.
-      </p>
+      <p class="undirtitill-vinstri">Skráðu æfingar: dagsetningu, hverjir mættu og hvað liðið svaraði rétt eða rangt.</p>
 
       <h3>Liðsmenn</h3>
       <table id="lidsmannaTafla">
@@ -496,14 +469,14 @@
   (function () {
     var SIDUR = ["yfirlit", "verkefni", "serflokkar", "notendur", "tolfraedi", "graenadeildin", "ahugavert", "stillingar"];
     var FYRIRSAGNIR = {
-      yfirlit: ["Yfirlit", "Staðan á Gettu Betur í hnotskurn."],
-      verkefni: ["Verkefni og spurningar", "Búa til, skoða og stjórna verkefnum og spurningum þeirra."],
-      serflokkar: ["Sérflokkar", "Embættismannalisti og bókalisti - tvíátta spurningar."],
-      notendur: ["Notendur", "Liðið og aðrir notendur - frammistaða og áminningar."],
-      tolfraedi: ["Tölfræði", "Nánari tölfræði um nemendurna og hvenær þeir eru á síðunni."],
-      graenadeildin: ["Grænadeildin", "Æfingaskráning fyrir liðið."],
-      ahugavert: ["Áhugavert efni", "Hlekkir sem nemendur sjá í flipanum Áhugavert efni."],
-      stillingar: ["Stillingar", "GitHub-, Anthropic- og póststillingar og áminningar fyrir þennan vafra."]
+      yfirlit: ["Yfirlit", ""],
+      verkefni: ["Verkefni og spurningar", ""],
+      serflokkar: ["Sérflokkar", ""],
+      notendur: ["Notendur", ""],
+      tolfraedi: ["Tölfræði", ""],
+      graenadeildin: ["Grænadeildin", ""],
+      ahugavert: ["Áhugavert efni", ""],
+      stillingar: ["Stillingar", ""]
     };
 
     var nav = document.getElementById("stjornNav");
