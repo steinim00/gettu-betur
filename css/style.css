@@ -3732,3 +3732,71 @@ body.beta .viku-ahersla button:hover {
 body.beta .viku-ahersla-hnappar {
   width: auto;
 }
+
+/* Verkefni (nýja útlitið): lægri spjöld. Banka-/hraðaspurningaspjöldin til hægri: titill og hnappur á fyrstu línu,
+   fjöldi og framvinda á annarri, stikan á þriðju. */
+body.beta .hradaspurning-kort {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+/* Titill + hnappur fylla fyrstu línuna (calc + bil + 90px = 100%) svo restin fer á næstu línur */
+body.beta .hradaspurning-kort h3 {
+  order: 1;
+  flex: 0 0 calc(100% - 100px);
+  min-width: 0;
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+body.beta .hradaspurning-kort button.aðal-hnappur {
+  order: 2;
+  flex: 0 0 90px;
+  width: 90px;
+  margin: 0;
+  padding: 7px 0;
+  font-size: 0.85rem;
+}
+
+body.beta .hradaspurning-kort .forskodun-ovirkt-merki {
+  order: 3;
+  flex-basis: 100%;
+  margin: 0;
+}
+
+body.beta .hradaspurning-kort .verkefni-lysing {
+  order: 4;
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+body.beta .hradaspurning-kort .framvinda-lysing {
+  order: 5;
+  margin: 0 0 0 auto;
+  padding: 2px 10px;
+  font-size: 0.74rem;
+}
+
+body.beta .hradaspurning-kort .framvinda-bar {
+  order: 6;
+  flex-basis: 100%;
+  margin: 2px 0 0;
+}
+
+body.beta .verkefni-kort {
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+body.beta .verkefni-kort .aðal-hnappur {
+  padding: 8px 16px;
+  font-size: 0.92rem;
+}
+
+body.beta .verkefni-kort .framvinda-bar {
+  margin: 2px 0 4px;
+}
