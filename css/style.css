@@ -3886,3 +3886,7 @@ body.beta .viku-ahersla h3 {
 body.beta #minStadaSvaedi .viku-ahersla h3 {
   margin: 0;
 }
+
+.beta-gamalt[hidden] {
+  display: none;
+}

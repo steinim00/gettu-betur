@@ -700,12 +700,20 @@ utskraBtn.addEventListener("click", () => skraUt());
 // verður birt nemendum. "&utlit=gamalt" sýnir gamla útlitið til samanburðar.
 function kveikjaBeta(gogn, user) {
   const params = new URLSearchParams(window.location.search);
-  if (!user || gogn?.role !== "admin" || params.get("forskodun") !== "1" || params.get("utlit") === "gamalt") return;
+  // Nemendur fá nýja útlitið sjálfkrafa. Admin sér það undir "Sjá eins og nemandi" (?forskodun=1);
+  // "&utlit=gamalt" sýnir gamla útlitið til samanburðar. Admin sem skoðar síðuna beint heldur gamla útlitinu
+  // (þar eru stjórntæki eins og "Hver er").
+  const erAdmin = gogn?.role === "admin";
+  const adminForskodun = erAdmin && params.get("forskodun") === "1" && params.get("utlit") !== "gamalt";
+  if (!user || !(!erAdmin || adminForskodun)) return;
   betaVirkt = true;
   document.body.classList.add("beta");
   betaHlid.hidden = false;
   betaHaus.hidden = false;
-  document.querySelector(".beta-merki-haus").hidden = false;
+  // "BETA" merkið og "Sjá gamla útlitið" sjást aðeins admin í forskoðun.
+  document.querySelector(".beta-merki-haus").hidden = !erAdmin;
+  document.querySelector("#betaHlid > .beta-merki").hidden = !erAdmin;
+  document.querySelector(".beta-gamalt").hidden = !erAdmin;
   betaNotandaNafn.textContent = gogn.nafn || user.email;
   const fornafn = (gogn.nafn || user.email || "").split(" ")[0];
   BETA_FYRIRSAGNIR.heim[0] = `Hæ, ${fornafn} 👋`;
