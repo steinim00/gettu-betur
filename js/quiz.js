@@ -1092,7 +1092,8 @@ mittEfniAllirBtn.addEventListener("click", () => betaFaraI("ahugavert"));
 // --- Bíólisti (beta): tveir flokkar mynda með lengd og IMDb einkunn ---
 // Gögnin eru í data/biolisti.json (búin til með scripts/bua-til-biolista.py).
 let biolistiGogn = null;
-let biolistiFlokkur = "Byggt á sönnum atburðum";
+const BIOLISTI_ALLAR = "Allar myndirnar";
+let biolistiFlokkur = BIOLISTI_ALLAR;
 // Hvað nemandinn hefur séð og gefið stjörnur (users/{uid}.biolistiSed.{imdbID}.stjornur, 0-5 eða null).
 let biolistiSed = {};
 let notandaKyn;
@@ -1192,7 +1193,13 @@ function formatLengd(minutur) {
 
 function birtaBiolista() {
   biolistiFlipar.innerHTML = "";
-  Object.entries(biolistiGogn).forEach(([nafn, myndir]) => {
+  // "Allar myndirnar": báðir flokkar saman. Sé mynd í báðum er sögufræga útgáfan (með "Um") notuð;
+  // einkunn nemandans gildir samt í báðum því hún er geymd eftir IMDb-númeri.
+  const sogu = biolistiGogn["Sögufrægustu"] || [];
+  const soguIds = new Set(sogu.map((m) => m.imdb).filter(Boolean));
+  const samsett = [...sogu, ...(biolistiGogn["Byggt á sönnum atburðum"] || []).filter((m) => !m.imdb || !soguIds.has(m.imdb))];
+  const flokkar = { [BIOLISTI_ALLAR]: samsett, ...biolistiGogn };
+  Object.entries(flokkar).forEach(([nafn, myndir]) => {
     const flipi = document.createElement("button");
     flipi.type = "button";
     flipi.setAttribute("role", "tab");
@@ -1206,7 +1213,7 @@ function birtaBiolista() {
     biolistiFlipar.appendChild(flipi);
   });
 
-  const radad = [...(biolistiGogn[biolistiFlokkur] || [])].sort((a, b) => {
+  const radad = [...(flokkar[biolistiFlokkur] || [])].sort((a, b) => {
     if (biolistiRoda.value === "einkunn") return (b.einkunn || 0) - (a.einkunn || 0);
     if (biolistiRoda.value === "lengd") return (b.minutur || 0) - (a.minutur || 0);
     return a.ar - b.ar;

@@ -3351,3 +3351,11 @@ body.beta .verkefna-hlid .spurning-kort {
   font-size: 0.78rem;
   font-weight: 600;
 }
+
+@media (max-width: 600px) {
+  .biolisti-flipi {
+    font-size: 0.74rem;
+    padding: 7px 5px;
+    gap: 4px;
+  }
+}

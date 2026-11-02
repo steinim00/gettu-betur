@@ -84,6 +84,7 @@ SOGU = [
  ("The Shining", 1980, "", "Hótelið, „Here's Johnny!“ og REDRUM.", "Stanley Kubrick; Jack Nicholson"),
  ("Raiders of the Lost Ark", 1981, "Indiana Jones", "Fyrsta Indiana Jones myndin - leitin að sáttmálsörkinni.", "Steven Spielberg; Harrison Ford"),
  ("E.T. the Extra-Terrestrial", 1982, "", "„E.T. phone home“. Tekjuhæst þar til Jurassic Park kom.", "Steven Spielberg"),
+ ("Gandhi", 1982, "", "Ævi og störf indversku frelsishetjunnar Mahatma Gandhi. 8 Óskarsverðlaun.", "Richard Attenborough; Ben Kingsley"),
  ("The Silence of the Lambs", 1991, "", "Þriðja myndin til að vinna alslemmu á Óskarnum.", "Jonathan Demme; Jodie Foster og Anthony Hopkins"),
  ("Jurassic Park", 1993, "", "Brautryðjandi í tölvuteikningum - risaeðlurnar.", "Steven Spielberg"),
  ("Schindler's List", 1993, "", "Svarthvít mynd um Oskar Schindler og gyðinga sem hann bjargaði.", "Steven Spielberg; Liam Neeson"),
