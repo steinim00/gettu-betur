@@ -894,6 +894,14 @@ function byggjaAhugavertKort(g, litur) {
     if (erKeppni) takn.classList.add("ahugavert-ar");
   }
 
+  // Telur smelli á hlekki (Apple-hlekkur hlaðvarps telst sér).
+  const talaSmell = (e) => {
+    const a = e.target.closest("a");
+    if (a && g.id) skraSmell("ahugavertSmellir", a.dataset.veita === "apple" ? `${g.id}_apple` : g.id);
+  };
+  kort.addEventListener("click", talaSmell);
+  kort.addEventListener("auxclick", talaSmell);
+
   const texti = document.createElement("div");
   texti.className = "ahugavert-texti";
   // Titillinn er hlekkurinn sjálfur og teygist yfir allt spjaldið (::after).
@@ -945,6 +953,7 @@ function byggjaAhugavertKort(g, litur) {
     ].forEach(([lykill, nafn, slod]) => {
       const a = document.createElement("a");
       a.className = "ahugavert-veita";
+      a.dataset.veita = lykill;
       a.href = slod;
       a.target = "_blank";
       a.rel = "noopener noreferrer";
@@ -1140,6 +1149,13 @@ function kynNemandaUrNafni(nafn) {
 
 function sedTexti() {
   return notandaKyn === "kk" ? "Búinn að sjá" : notandaKyn === "kvk" ? "Búin að sjá" : "Búin(n) að sjá";
+}
+
+// Talning á smellum (sést í stjórnborðinu): "Um" í Bíólista og hlekkir í Áhugavert efni.
+// Geymt sem teljari á users/{uid}.<reitur>.<lykill>. Admin telst ekki með (eins og í heatmap).
+function skraSmell(reitur, lykill) {
+  if (!notandi || erAdminNotandi || !lykill) return;
+  updateDoc(doc(db, "users", notandi.uid), { [`${reitur}.${lykill}`]: increment(1) }).catch((villa) => console.error(villa));
 }
 
 async function vistaBiolistaSed(imdb, gildi) {
@@ -1359,6 +1375,7 @@ function birtaBiolista() {
         umTexti.hidden = !opid;
         umBtn.setAttribute("aria-expanded", String(opid));
         umBtn.textContent = opid ? "Loka" : "Um";
+        if (opid) skraSmell("biolistiUm", m.imdb);
         kort.classList.toggle("opid", opid);
       });
       adgerdir.appendChild(umBtn);

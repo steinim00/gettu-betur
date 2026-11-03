@@ -1062,7 +1062,9 @@ async function hladaNotendayfirlit() {
       sidastSvarad: notandi.lastActive?.toMillis?.() ?? null,
       lastActive: notandi.lastActive?.toMillis?.() ?? null,
       verkefnaSundurlidun,
-      biolistiSed: notandi.biolistiSed || {}
+      biolistiSed: notandi.biolistiSed || {},
+      biolistiUm: notandi.biolistiUm || {},
+      ahugavertSmellir: notandi.ahugavertSmellir || {}
     });
   }
 
@@ -1107,6 +1109,40 @@ function byggjaBiolistaYfirlit(sed) {
         flis.textContent = `${titlar.get(imdb) || imdb} · ${stjornur}`;
         listi.appendChild(flis);
       });
+  });
+  return kassi;
+}
+
+// Smellir notanda á "Um" í Bíólista og á hlekki í Áhugavert efni.
+let ahugavertTitlarLofordi = null;
+function saekjaAhugavertTitla() {
+  if (!ahugavertTitlarLofordi) {
+    ahugavertTitlarLofordi = getDocs(collection(db, "ahugavert"))
+      .then((snap) => new Map(snap.docs.map((d) => [d.id, `${d.data().flokkur === "Gamlar keppnir" ? "Gettu betur " : ""}${d.data().titill}`])))
+      .catch(() => new Map());
+    setTimeout(() => (ahugavertTitlarLofordi = null), 5 * 60 * 1000);
+  }
+  return ahugavertTitlarLofordi;
+}
+
+function byggjaSmellaYfirlit(biolistiUm, ahugavertSmellir) {
+  const kassi = document.createElement("div");
+  kassi.className = "biolisti-admin";
+  kassi.innerHTML = `<h4>🖱 Smellir</h4><div class="biolisti-admin-listi"></div>`;
+  const listi = kassi.querySelector(".biolisti-admin-listi");
+  Promise.all([saekjaBiolistaTitla(), saekjaAhugavertTitla()]).then(([bioTitlar, ahuTitlar]) => {
+    const flis = (texti) => {
+      const el = document.createElement("span");
+      el.className = "biolisti-admin-flis";
+      el.textContent = texti;
+      listi.appendChild(el);
+    };
+    Object.entries(ahugavertSmellir).forEach(([lykill, fjoldi]) => {
+      const erApple = lykill.endsWith("_apple");
+      const id = erApple ? lykill.slice(0, -6) : lykill;
+      flis(`Hlekkur: ${ahuTitlar.get(id) || id}${erApple ? " (Apple)" : ""} ×${fjoldi}`);
+    });
+    Object.entries(biolistiUm).forEach(([imdb, fjoldi]) => flis(`Um: ${bioTitlar.get(imdb) || imdb} ×${fjoldi}`));
   });
   return kassi;
 }
@@ -1391,6 +1427,10 @@ function birtaNotendaRadir() {
 
     // Bíómyndir sem notandinn hefur merkt "séð" (með stjörnum) - sést aðeins ef hann hefur valið einhverja.
     if (Object.keys(r.biolistiSed || {}).length > 0) sundurlidunTd.appendChild(byggjaBiolistaYfirlit(r.biolistiSed));
+
+    if (Object.keys(r.biolistiUm || {}).length > 0 || Object.keys(r.ahugavertSmellir || {}).length > 0) {
+      sundurlidunTd.appendChild(byggjaSmellaYfirlit(r.biolistiUm || {}, r.ahugavertSmellir || {}));
+    }
 
     const nyjustuSvor = byggjaNyjustuSvor(r.uid);
     sundurlidunTd.appendChild(nyjustuSvor.vefja);
@@ -3444,7 +3484,14 @@ async function hladaAhugavert() {
   ahugavertHladid = true;
   // Hverjir hafa ýtt á "Tek þetta" á hverjum hlekk (users/{uid}.ahugavertTek).
   const tekidAf = new Map();
+  // Smellir á hlekki (users/{uid}.ahugavertSmellir): id -> [{ nafn, fjoldi }]
+  const smellir = new Map();
   notendurSnap.forEach((u) => {
+    Object.entries(u.data().ahugavertSmellir || {}).forEach(([lykill, fjoldi]) => {
+      const id = lykill.replace(/_apple$/, "");
+      if (!smellir.has(id)) smellir.set(id, []);
+      smellir.get(id).push({ nafn: (u.data().nafn || u.id) + (lykill.endsWith("_apple") ? " (Apple)" : ""), fjoldi });
+    });
     Object.keys(u.data().ahugavertTek || {}).forEach((id) => {
       if (!tekidAf.has(id)) tekidAf.set(id, []);
       tekidAf.get(id).push(u.data().nafn || u.id);
@@ -3455,7 +3502,7 @@ async function hladaAhugavert() {
   document.getElementById("ahugavertFlokkar").innerHTML = flokkar.map((f) => `<option value="${f.replace(/"/g, "&quot;")}">`).join("");
   ahugavertTafla.innerHTML = "";
   if (faerslur.length === 0) {
-    ahugavertTafla.innerHTML = `<tr><td colspan="5">Engir hlekkir ennþá.</td></tr>`;
+    ahugavertTafla.innerHTML = `<tr><td colspan="6">Engir hlekkir ennþá.</td></tr>`;
     return;
   }
   faerslur.forEach((d) => {
@@ -3474,6 +3521,10 @@ async function hladaAhugavert() {
     slodTd.appendChild(tengill);
     const tekidTd = document.createElement("td");
     tekidTd.textContent = (tekidAf.get(d.id) || []).join(", ") || "-";
+    const smellirTd = document.createElement("td");
+    const smellirHer = smellir.get(d.id) || [];
+    const smellirSamtals = smellirHer.reduce((s, x) => s + x.fjoldi, 0);
+    smellirTd.textContent = smellirSamtals ? `${smellirSamtals} (${smellirHer.map((x) => `${x.nafn} ${x.fjoldi}`).join(", ")})` : "-";
     const adgerdTd = document.createElement("td");
     const eydaBtn = document.createElement("button");
     eydaBtn.type = "button";
@@ -3485,7 +3536,7 @@ async function hladaAhugavert() {
       hladaAhugavert();
     });
     adgerdTd.appendChild(eydaBtn);
-    tr.append(titillTd, flokkurTd, slodTd, tekidTd, adgerdTd);
+    tr.append(titillTd, flokkurTd, slodTd, tekidTd, smellirTd, adgerdTd);
     ahugavertTafla.appendChild(tr);
   });
 }
