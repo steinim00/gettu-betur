@@ -3105,7 +3105,7 @@ async function svaraEndurtekningu(questionId, hraSvar, form, nidurstada, spurnin
     nidurstada.textContent = "Rétt núna! 🎉 Þetta telst nú rétt.";
     nidurstada.classList.add("rett");
   } else {
-    nidurstada.textContent = `Rangt aftur. Rétt svar: ${rettSvor[0] ?? "—"} - hún kemur aftur seinna.`;
+    nidurstada.textContent = `${svar === SLEPPT_MERKI ? "Pass" : "Rangt aftur"}. Rétt svar: ${rettSvor[0] ?? "—"} - hún kemur aftur seinna.`;
     nidurstada.classList.add("rangt");
     skraEndurtekningu(questionId);
   }
@@ -3354,8 +3354,12 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaS
   }
 
   if (mittSvar === SLEPPT_MERKI) {
-    nidurstada.textContent = "Pass ⏭";
+    // Pass sýnir rétta svarið svo nemandinn læri það.
+    const passSvarSnap = await getDoc(doc(db, "answers", questionId));
+    const passRettSvar = passSvarSnap.exists() ? (passSvarSnap.data().correctAnswers || [])[0] : null;
+    nidurstada.textContent = passRettSvar ? `Pass ⏭ Rétt svar: ${passRettSvar}` : "Pass ⏭";
     nidurstada.classList.add("sleppt");
+    birtaSpurningamynd(korti, spurning);
     return { pass: true, rett: false };
   }
 
