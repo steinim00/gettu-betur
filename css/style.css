@@ -3747,6 +3747,11 @@ body.beta #minStadaSvaedi h3 {
   border-radius: 999px !important;
 }
 
+/* "Online núna" merkið er grænn hringur */
+.online-punktur {
+  border-radius: 50% !important;
+}
+
 /* Notendur: Liðið/Aðrir og aðgerðahnappar á sömu línu */
 .notendur-stjorn {
   display: flex;
