@@ -569,13 +569,13 @@ function vistaSkjatima() {
 // Auka lastActive-skrif um leið og notandinn gerir eitthvað raunverulegt
 // (smellur, snertir skjáinn, slær á lykilborð) - til viðbótar við skrifið í
 // vistaSkjatima að ofan, svo "síðast virk/ur" uppfærist samstundis í stað
-// þess að bíða eftir næstu 60 sek flautun. Takmarkað við eitt Firestore-skrif
-// á mínútu svo tíðar smellir/áslættir skrifaflæði ekki yfir kvótann.
+// þess að bíða eftir næstu 2 mín flautun. Takmarkað við eitt Firestore-skrif
+// á 2 mínútna fresti svo tíðar smellir/áslættir skrifaflæði ekki yfir kvótann.
 let sidastaVirkniSkrif = 0;
 function skraVirkni() {
   if (!notandi) return;
   const nuna = Date.now();
-  if (nuna - sidastaVirkniSkrif < 60000) return;
+  if (nuna - sidastaVirkniSkrif < 120000) return;
   sidastaVirkniSkrif = nuna;
   updateDoc(doc(db, "users", notandi.uid), { lastActive: serverTimestamp() }).catch(() => {});
 }
@@ -606,7 +606,7 @@ window.addEventListener("beforeunload", () => {
   }
 });
 
-setInterval(vistaSkjatima, 60000);
+setInterval(vistaSkjatima, 120000);
 
 // TÍMABUNDIÐ meðan á þróun/grunnvinnu stendur: requireAuth er false svo hægt sé
 // að skoða verkefni/glærur án innskráningar. Innskráning er samt áskilin til að
@@ -2649,6 +2649,18 @@ async function saekjaSpurningarVerkefnis(verkefniId) {
 }
 
 let sidastiNotandaGogn = null;
+// Heldur staðbundna afritinu af teljurunum réttu jafnóðum og svarað er, svo "Þú hefur svarað ..."
+// textinn þurfi ekki að lesa notendaskjalið aftur eftir hvert svar.
+function beitaStodu(verkefniId, { svarad = 0, pass = 0, rett = 0 }) {
+  if (!sidastiNotandaGogn || !verkefniId) return;
+  const g = sidastiNotandaGogn;
+  g.fjoldiSvarad = (g.fjoldiSvarad || 0) + svarad;
+  g.verkefnaStada = g.verkefnaStada || {};
+  const b = (g.verkefnaStada[verkefniId] = g.verkefnaStada[verkefniId] || {});
+  b.svarad = (b.svarad || 0) + svarad;
+  b.pass = (b.pass || 0) + pass;
+  b.rett = (b.rett || 0) + rett;
+}
 async function saekjaSvaradIds() {
   if (!notandi) return new Set();
   const lykill = `gb_svorud_${notandi.uid}`;
@@ -2913,6 +2925,7 @@ async function keyraByrjaVerkefniAftur() {
   batch.update(doc(db, "users", notandi.uid), breytingar);
 
   await batch.commit();
+  sidastiNotandaGogn = null; // teljararnir breyttust mikið - lesa notendaskjalið ferskt næst
 
   svaradIdSett.clear();
   spurningaSida = 0;
@@ -3067,6 +3080,7 @@ async function skraRettEftirRangt(questionId, svar, spurning) {
     const breytingar = { fjoldiRett: increment(1), [`endurtaka.${questionId}`]: deleteField() };
     if (spurning?.verkefniId) breytingar[`verkefnaStada.${spurning.verkefniId}.rett`] = increment(1);
     await updateDoc(doc(db, "users", notandi.uid), breytingar);
+    beitaStodu(spurning?.verkefniId, { rett: 1 });
     endurtaka.delete(questionId);
   } catch (villa) {
     console.error(villa);
@@ -3094,6 +3108,7 @@ async function svaraEndurtekningu(questionId, hraSvar, form, nidurstada, spurnin
       const breytingar = { fjoldiRett: increment(1), [`endurtaka.${questionId}`]: deleteField() };
       if (spurning?.verkefniId) breytingar[`verkefnaStada.${spurning.verkefniId}.rett`] = increment(1);
       await updateDoc(doc(db, "users", notandi.uid), breytingar);
+      beitaStodu(spurning?.verkefniId, { rett: 1 });
       endurtaka.delete(questionId);
     } catch (villa) {
       console.error(villa);
@@ -3313,6 +3328,7 @@ async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada, aefi
 function uppfaeraSamtoluStodu(verkefniId, nidurstodur) {
   if (!notandi || !nidurstodur) return;
   const { pass, rett } = nidurstodur;
+  beitaStodu(verkefniId, { svarad: 1, pass: pass ? 1 : 0, rett: !pass && rett ? 1 : 0 });
   const breytingar = {
     fjoldiSvarad: increment(1),
     sidastSvaradAt: serverTimestamp()
@@ -3398,8 +3414,8 @@ async function hladaMinumStodum() {
 
   // Les beint af users/{uid}.verkefnaStada í stað þess að endursækja spurningar
   // + attempts + hvert answers-skjal í hvert sinn sem spurningu er svarað.
-  const notandiSnap = await getDoc(doc(db, "users", notandi.uid));
-  const stodur = notandiSnap.data()?.verkefnaStada || {};
+  if (!sidastiNotandaGogn) sidastiNotandaGogn = (await getDoc(doc(db, "users", notandi.uid))).data() || {};
+  const stodur = sidastiNotandaGogn.verkefnaStada || {};
   // Í Hraðaspurningum teljast líka spurningar úr úthlutuðum flokkum.
   const verkefniIds = new Set([valdVerkefniId]);
   if (valdVerkefniErHrada) allarSpurningaskjol.forEach((d) => verkefniIds.add(d.data().verkefniId));

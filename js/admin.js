@@ -171,39 +171,74 @@ vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
     window.addEventListener(heiti, () => (sidastaSnertingAdmin = Date.now()), { passive: true });
   });
   setInterval(() => {
-    if (document.visibilityState === "visible" && Date.now() - sidastaSnertingAdmin < 15 * 60 * 1000) hladaAllt();
+    if (document.visibilityState === "visible" && Date.now() - sidastaSnertingAdmin < 15 * 60 * 1000) hladaAllt(true);
   }, 600000);
 });
 
 utskraBtn.addEventListener("click", () => skraUt());
-endurhladaBtn.addEventListener("click", hladaAllt);
+endurhladaBtn.addEventListener("click", () => hladaAllt());
 
 // Fullt yfirlit sækir sömu söfnin (notendur, verkefni, spurningar) í mörgum
 // föllum - þau deila hér einni lesningu hvert á meðan hladaAllt er í gangi
 // (Firestore rukkar fyrir hvern lesinn skjal). Önnur köll (t.d. eftir breytingu)
 // lesa alltaf ferskt.
 let deiltLestur = null;
+// Spurningasafnið er stærsta safnið (þúsundir skjala) - sjálfvirka endurhleðslan notar síðasta lestur
+// í stað þess að sækja það allt aftur. Allir ferskir lestrar (hnappurinn "Endurhlaða", breytingar) uppfæra hann.
+let spurningaMinni = null;
+let sjalfvirktLestur = false;
 function lesaSafn(nafn) {
-  if (!deiltLestur) return getDocs(collection(db, nafn));
-  if (!deiltLestur[nafn]) deiltLestur[nafn] = getDocs(collection(db, nafn));
-  return deiltLestur[nafn];
+  if (nafn === "questions" && sjalfvirktLestur && spurningaMinni) return spurningaMinni;
+  let lofordi;
+  if (!deiltLestur) {
+    lofordi = getDocs(collection(db, nafn));
+  } else {
+    if (!deiltLestur[nafn]) deiltLestur[nafn] = getDocs(collection(db, nafn));
+    lofordi = deiltLestur[nafn];
+  }
+  if (nafn === "questions") {
+    spurningaMinni = lofordi;
+    lofordi.catch(() => {
+      if (spurningaMinni === lofordi) spurningaMinni = null;
+    });
+  }
+  return lofordi;
 }
 
-async function hladaAllt() {
+// Sjálfvirk endurhleðsla (sjalfvirkt = true) sækir aðeins notendur (stöðu og "online") -
+// spurningar og rétt svör breytast bara þegar admin breytir þeim sjálfur.
+async function hladaAllt(sjalfvirkt = false) {
   deiltLestur = {};
+  sjalfvirktLestur = sjalfvirkt;
   try {
+    if (sjalfvirkt) {
+      await hladaNotendayfirlit();
+      return;
+    }
     await Promise.all([
       hladaNotendayfirlit(),
       hladaVerkefnayfirlit(),
-      hladaSpurningayfirlit(),
+      sidaVerkefniOpin() || spurningayfirlitHladid ? hladaSpurningayfirlit() : Promise.resolve(),
       hladaGraenadeildarAefingar(),
       hladaSerflokkar(),
       samstillaSpurningayfirlit()
     ]);
   } finally {
     deiltLestur = null;
+    sjalfvirktLestur = false;
   }
 }
+
+// Spurningayfirlitið (allar spurningar + rétt svör, tvö stór söfn) hleðst aðeins þegar Verkefni-flipinn er opnaður.
+let spurningayfirlitHladid = false;
+function sidaVerkefniOpin() {
+  return document.getElementById("sida-verkefni").classList.contains("virk");
+}
+function athugaSpurningayfirlitOpnun() {
+  if (!spurningayfirlitHladid && sidaVerkefniOpin()) hladaSpurningayfirlit();
+}
+document.getElementById("stjornNav").addEventListener("click", () => setTimeout(athugaSpurningayfirlitOpnun, 0));
+document.querySelectorAll(".tolu-kort[data-malsvaedi]").forEach((k) => k.addEventListener("click", () => setTimeout(athugaSpurningayfirlitOpnun, 0)));
 
 // Nemendur sækja ekki allar spurningarnar til að sjá verkefnalistann - þeir lesa eitt lítið
 // skjal (meta/virkarSpurningar) með spurningaID -> verkefniID fyrir virkar spurningar.
@@ -574,7 +609,7 @@ function formatSkjatimi(sekundur) {
 
 // "Online" = hefur skrifað lastActive (sjá vistaSkjatima/innskráning í
 // quiz.js) á síðustu 2 mínútum - sama glugga og skjátímamælingin flæðir á.
-const ONLINE_THOLMORK_MS = 2 * 60 * 1000;
+const ONLINE_THOLMORK_MS = 4 * 60 * 1000; // hjartslátturinn skrifast á 2 mín fresti
 function erOnline(lastActive) {
   return !!lastActive && Date.now() - lastActive < ONLINE_THOLMORK_MS;
 }
@@ -2198,6 +2233,7 @@ bokForm.addEventListener("submit", async (e) => {
 });
 
 async function hladaSpurningayfirlit() {
+  spurningayfirlitHladid = true;
   const [spurningarSnap, svorSnap, verkefnaSnap] = await Promise.all([
     lesaSafn("questions"),
     getDocs(collection(db, "answers")),
