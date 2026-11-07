@@ -4091,3 +4091,49 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
     flex-basis: 100%;
   }
 }
+
+/* Höfuðborgir heimsins: val á heimsálfu */
+.heimsalfa-siur {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 4px;
+}
+
+.heimsalfa-siur[hidden] {
+  display: none;
+}
+
+.heimsalfa-takki {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.heimsalfa-takki b {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--litur-daufur);
+}
+
+.heimsalfa-takki:hover {
+  border-color: var(--litur-svart);
+}
+
+.heimsalfa-takki.virkur {
+  background: var(--litur-svart);
+  border-color: var(--litur-svart);
+  color: #ffffff;
+}
+
+.heimsalfa-takki.virkur b {
+  color: var(--litur-lime);
+}

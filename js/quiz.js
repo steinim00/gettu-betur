@@ -92,6 +92,7 @@ const tilbakaFraGlaerum = document.getElementById("tilbakaFraGlaerum");
 const spurningaSvaedi = document.getElementById("spurningaSvaedi");
 const spurningaTitill = document.getElementById("spurningaTitill");
 const spurningaListi = document.getElementById("spurningaListi");
+const heimsalfaSiur = document.getElementById("heimsalfaSiur");
 const stodurNiðurstada = document.getElementById("stodurNiðurstada");
 const tilbakaFraSpurningum = document.getElementById("tilbakaFraSpurningum");
 const stokkaSpurningarBtn = document.getElementById("stokkaSpurningarBtn");
@@ -137,6 +138,7 @@ let erAdminNotandi = false;
 let valdVerkefniId = null;
 let valdVerkefniErHrada = false;
 let valdHverErFlokkur = null;
+let valdHeimsalfa = ""; // "" = allar heimsálfur (Höfuðborgir heimsins)
 let heilskjaGlaerur = [];
 let heilskjaIndex = 0;
 
@@ -2030,6 +2032,7 @@ async function hladaRangarSpurningar() {
   stillaFormTengil(null);
   valdVerkefniId = null;
   valdHverErFlokkur = null;
+  heimsalfaSiur.hidden = true;
   spurningaTitill.textContent = "Rangt svaraðar spurningar";
   spurningaListi.innerHTML = skeletonKort(5, 1);
   siduflettingarEfri.hidden = true;
@@ -2166,6 +2169,7 @@ function stillaFormTengil(verkefni) {
 function opnaSpurningarBeint(verkefniId, verkefni, hoppaIOsvaradar = true) {
   stillaFormTengil(verkefni);
   valdVerkefniId = verkefniId;
+  valdHeimsalfa = lesaHeimsalfu(verkefniId);
   valdVerkefniErHrada = erHradaVerkefni(verkefni);
   valdHverErFlokkur = null;
   spurningaBunkastaerd = spurningaBunkastaerdFyrir(verkefni);
@@ -2376,6 +2380,7 @@ let pptxIframe = null;
 function opnaVerkefni(verkefniId, verkefni) {
   stillaFormTengil(verkefni);
   valdVerkefniId = verkefniId;
+  valdHeimsalfa = lesaHeimsalfu(verkefniId);
   valdVerkefniErHrada = erHradaVerkefni(verkefni);
   valdHverErFlokkur = null;
   heilskjaGlaerur = verkefni.slides || [];
@@ -2701,6 +2706,49 @@ async function saekjaSvaradIds() {
   return ids;
 }
 
+const HEIMSALFUR = ["Evrópa", "Asía", "Afríka", "Norður-Ameríka", "Suður-Ameríka", "Eyjaálfa"];
+function lesaHeimsalfu(verkefniId) {
+  try {
+    const v = localStorage.getItem(`gb_heimsalfa_${verkefniId}`) || "";
+    return HEIMSALFUR.includes(v) ? v : "";
+  } catch (villa) {
+    return "";
+  }
+}
+
+function byggjaHeimsalfuSiur(docs) {
+  const talning = new Map();
+  docs.forEach((d) => {
+    const a = d.data().heimsalfa;
+    if (a) talning.set(a, (talning.get(a) || 0) + 1);
+  });
+  // Aðeins í verkefni þar sem spurningarnar hafa heimsálfu (ekki Hraðaspurningar eða "Hver er").
+  heimsalfaSiur.hidden = talning.size === 0 || valdVerkefniErHrada || !!valdHverErFlokkur;
+  heimsalfaSiur.innerHTML = "";
+  if (heimsalfaSiur.hidden) return;
+  if (valdHeimsalfa && !talning.has(valdHeimsalfa)) valdHeimsalfa = "";
+  const val = [["", "Allar", docs.length], ...HEIMSALFUR.filter((a) => talning.has(a)).map((a) => [a, a, talning.get(a)])];
+  val.forEach(([gildi, nafn, fjoldi]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "heimsalfa-takki" + (gildi === valdHeimsalfa ? " virkur" : "");
+    b.setAttribute("aria-pressed", String(gildi === valdHeimsalfa));
+    b.innerHTML = `<span></span><b>${fjoldi}</b>`;
+    b.firstChild.textContent = nafn;
+    b.addEventListener("click", () => {
+      if (gildi === valdHeimsalfa) return;
+      valdHeimsalfa = gildi;
+      try {
+        localStorage.setItem(`gb_heimsalfa_${valdVerkefniId}`, gildi);
+      } catch (villa) {
+        console.warn(villa);
+      }
+      hladaSpurningum();
+    });
+    heimsalfaSiur.appendChild(b);
+  });
+}
+
 async function hladaSpurningum(hoppaIOsvaradar = false) {
   spurningaListi.innerHTML = skeletonKort(5, 1);
   siduflettingarEfri.hidden = true;
@@ -2722,6 +2770,10 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
   }
 
   svaradIdSett = await saekjaSvaradIds();
+
+  // Höfuðborgir heimsins: hægt að velja heimsálfu (reiturinn "heimsalfa" á spurningunum).
+  byggjaHeimsalfuSiur(spurningaDocs);
+  if (valdHeimsalfa && !heimsalfaSiur.hidden) spurningaDocs = spurningaDocs.filter((d) => d.data().heimsalfa === valdHeimsalfa);
 
   // Aðeins hægt að "byrja aftur" innan eins verkefnis - ekki á rangar-spurningar
   // yfirlitinu (valdVerkefniId er þá null) og ekki fyrir gesti.
@@ -2850,7 +2902,9 @@ async function byrjaVerkefniAftur() {
   if (!notandi || valdVerkefniId === null || byrjaAftur_ikeyrslu) return;
   if (
     !confirm(
-      "Byrja þetta verkefni aftur? Þetta eyðir svarasögu þinni fyrir allar spurningarnar hér og þú getur svarað þeim aftur."
+      valdHeimsalfa && !heimsalfaSiur.hidden
+        ? `Byrja spurningarnar um ${valdHeimsalfa} aftur? Þetta eyðir svarasögu þinni fyrir þær og þú getur svarað þeim aftur.`
+        : "Byrja þetta verkefni aftur? Þetta eyðir svarasögu þinni fyrir allar spurningarnar hér og þú getur svarað þeim aftur."
     )
   ) {
     return;
