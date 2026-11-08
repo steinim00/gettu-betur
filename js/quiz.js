@@ -1862,11 +1862,14 @@ async function hladaGlosur() {
   nyGlosaForm.hidden = true;
   glosurListi.innerHTML = skeletonKort(3, 1);
 
-  const glosurSnap = await getDocs(collection(db, "users", notandi.uid, "glosur"));
+  const [glosurSnap, spurningaGlosur] = await Promise.all([
+    getDocs(collection(db, "users", notandi.uid, "glosur")),
+    (spurningaGlosurMinni = null, saekjaSpurningaGlosur())
+  ]);
   const glosur = glosurSnap.docs.filter((d) => (d.data().texti || "").trim().length > 0);
 
   glosurListi.innerHTML = "";
-  if (glosur.length === 0) {
+  if (glosur.length === 0 && spurningaGlosur.size === 0) {
     glosurListi.innerHTML = "<p>Engar glósur ennþá.</p>";
     return;
   }
@@ -1912,6 +1915,37 @@ async function hladaGlosur() {
     kort.appendChild(eydaBtn);
     glosurListi.appendChild(kort);
   });
+
+  // Glósur við einstakar spurningar
+  if (spurningaGlosur.size > 0) {
+    const fyrirsogn = document.createElement("h3");
+    fyrirsogn.textContent = "Glósur um spurningar";
+    fyrirsogn.style.margin = "22px 0 10px";
+    glosurListi.appendChild(fyrirsogn);
+    [...spurningaGlosur.entries()]
+      .sort((a, b) => (b[1].updatedAt?.toMillis?.() ?? 0) - (a[1].updatedAt?.toMillis?.() ?? 0))
+      .forEach(([qId, g]) => {
+        const kort = document.createElement("article");
+        kort.className = "spurning-kort";
+        const q = document.createElement("h3");
+        q.textContent = g.spurning || "Spurning";
+        const t = document.createElement("p");
+        t.style.whiteSpace = "pre-wrap";
+        t.textContent = g.texti;
+        const eyda = document.createElement("button");
+        eyda.type = "button";
+        eyda.className = "smabtn";
+        eyda.textContent = "Eyða glósu";
+        eyda.addEventListener("click", async () => {
+          if (!confirm("Eyða þessari glósu?")) return;
+          await deleteDoc(doc(db, "users", notandi.uid, "spurningaGlosur", qId));
+          spurningaGlosurMinni = null;
+          hladaGlosur();
+        });
+        kort.append(q, t, eyda);
+        glosurListi.appendChild(kort);
+      });
+  }
 }
 
 // Les tölfræðina beint af users/{uid} (fjoldiSvarad/fjoldiRett/fjoldiPass/
@@ -3197,6 +3231,119 @@ async function svaraEndurtekningu(questionId, hraSvar, form, nidurstada, spurnin
   valkostir.eftirLokid?.();
 }
 
+// --- Glósa við hverja spurningu ---
+// users/{uid}/spurningaGlosur/{spurningaID} = { texti, spurning (texti spurningarinnar), verkefniId, updatedAt }.
+// Öll glósusöfnin eru sótt einu sinni á lotu (fá skjöl) svo hnappurinn geti sýnt hvort glósa er til.
+let spurningaGlosurMinni = null;
+function saekjaSpurningaGlosur() {
+  if (!spurningaGlosurMinni) {
+    spurningaGlosurMinni = getDocs(collection(db, "users", notandi.uid, "spurningaGlosur"))
+      .then((snap) => new Map(snap.docs.map((d) => [d.id, d.data()])))
+      .catch((villa) => {
+        console.error(villa);
+        spurningaGlosurMinni = null;
+        return new Map();
+      });
+  }
+  return spurningaGlosurMinni;
+}
+
+function byggjaSpurningaGlosu(questionId, spurning) {
+  const kassi = document.createElement("div");
+  kassi.className = "spurning-glosa";
+
+  const takki = document.createElement("button");
+  takki.type = "button";
+  takki.className = "smabtn glosa-takki";
+  takki.textContent = "📝 Glósa";
+  takki.setAttribute("aria-expanded", "false");
+
+  const svaedi = document.createElement("div");
+  svaedi.className = "glosa-svaedi";
+  svaedi.hidden = true;
+  const texti = document.createElement("textarea");
+  texti.rows = 3;
+  texti.maxLength = 1900;
+  texti.placeholder = "Glósa um þessa spurningu - aðeins þú sérð hana…";
+  const adgerdir = document.createElement("div");
+  adgerdir.className = "glosa-adgerdir";
+  const vistaBtn = document.createElement("button");
+  vistaBtn.type = "button";
+  vistaBtn.className = "smabtn";
+  vistaBtn.textContent = "Vista";
+  const eydaBtn = document.createElement("button");
+  eydaBtn.type = "button";
+  eydaBtn.className = "smabtn";
+  eydaBtn.textContent = "Eyða";
+  eydaBtn.hidden = true;
+  const stada = document.createElement("span");
+  stada.className = "glosa-stada";
+  adgerdir.append(vistaBtn, eydaBtn, stada);
+  svaedi.append(texti, adgerdir);
+  kassi.append(takki, svaedi);
+
+  const uppfaeraTakka = (til) => {
+    takki.textContent = til ? "📝 Glósa ✓" : "📝 Glósa";
+    eydaBtn.hidden = !til;
+  };
+  saekjaSpurningaGlosur().then((m) => {
+    const g = m.get(questionId);
+    if (g) {
+      texti.value = g.texti || "";
+      uppfaeraTakka(true);
+    }
+  });
+
+  takki.addEventListener("click", async () => {
+    const opna = svaedi.hidden;
+    svaedi.hidden = !opna;
+    takki.setAttribute("aria-expanded", String(opna));
+    if (opna) {
+      stada.textContent = "";
+      const m = await saekjaSpurningaGlosur();
+      if (!texti.value && m.get(questionId)) texti.value = m.get(questionId).texti || "";
+      texti.focus({ preventScroll: true });
+    }
+  });
+
+  vistaBtn.addEventListener("click", async () => {
+    const t = texti.value.trim();
+    if (!t) {
+      stada.textContent = "Skrifaðu eitthvað fyrst.";
+      return;
+    }
+    vistaBtn.disabled = true;
+    stada.textContent = "Vista…";
+    try {
+      const gogn = { texti: t, spurning: (spurning?.text || "").slice(0, 480), verkefniId: spurning?.verkefniId || "", updatedAt: serverTimestamp() };
+      await setDoc(doc(db, "users", notandi.uid, "spurningaGlosur", questionId), gogn);
+      (await saekjaSpurningaGlosur()).set(questionId, { ...gogn, texti: t });
+      uppfaeraTakka(true);
+      stada.textContent = "Vistað ✓";
+    } catch (villa) {
+      console.error(villa);
+      stada.textContent = "Tókst ekki að vista - reyndu aftur.";
+    }
+    vistaBtn.disabled = false;
+  });
+
+  eydaBtn.addEventListener("click", async () => {
+    try {
+      await deleteDoc(doc(db, "users", notandi.uid, "spurningaGlosur", questionId));
+      (await saekjaSpurningaGlosur()).delete(questionId);
+      texti.value = "";
+      uppfaeraTakka(false);
+      svaedi.hidden = true;
+      takki.setAttribute("aria-expanded", "false");
+    } catch (villa) {
+      console.error(villa);
+      stada.textContent = "Tókst ekki að eyða - reyndu aftur.";
+    }
+  });
+
+  return kassi;
+}
+
 function byggjaSpurningaKort(questionId, spurning, buidSvarad, valkostir = {}) {
   const korti = document.createElement("article");
   korti.className = "spurning-kort" + (buidSvarad ? " svarad" : "");
@@ -3258,6 +3405,8 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad, valkostir = {}) {
   const aefingaSvaedi = document.createElement("div");
   aefingaSvaedi.hidden = true;
   korti.appendChild(aefingaSvaedi);
+
+  if (notandi) korti.appendChild(byggjaSpurningaGlosu(questionId, spurning));
 
   // Ein spurning í einu: engin "reyndu aftur" æfing (svarið er sýnt strax og
   // spurningin kemur aftur eftir nokkrar spurningar, sjá endurtaka).
@@ -3421,12 +3570,13 @@ function birtaSpurningamynd(korti, spurning) {
   mynd.src = spurning.image;
   mynd.alt = spurning.imageAlt || "";
   mynd.loading = "lazy";
-  korti.appendChild(mynd);
+  const glosa = korti.querySelector(".spurning-glosa"); // myndin kemur á undan glósuhnappnum
+  korti.insertBefore(mynd, glosa);
   if (spurning.imageCredit) {
     const heimild = document.createElement("p");
     heimild.className = "heimild-tilvitnun";
     heimild.textContent = `Mynd: ${spurning.imageCredit}`;
-    korti.appendChild(heimild);
+    korti.insertBefore(heimild, glosa);
   }
 }
 

@@ -4137,3 +4137,36 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
 .heimsalfa-takki.virkur b {
   color: var(--litur-lime);
 }
+
+/* Glósa við hverja spurningu */
+.spurning-glosa {
+  margin-top: 12px;
+}
+
+.glosa-svaedi {
+  margin-top: 8px;
+}
+
+.glosa-svaedi textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-baksvid);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+.glosa-adgerdir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.glosa-stada {
+  color: var(--litur-daufur);
+  font-size: 0.82rem;
+}
