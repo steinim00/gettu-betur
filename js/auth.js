@@ -94,6 +94,14 @@ export function vaktaInnskraningu({ requireAuth = true, requireAdmin = false } =
       notandagogn.role = "admin";
     }
 
+    // Aukaaðgangur sem var sameinaður í annan aðgang (sjá scripts/sameina-adganga): vísum á hinn aðganginn.
+    if (notandagogn.sameinadVid) {
+      alert("Þessi aðgangur hefur verið sameinaður öðrum aðgangi þínum. Skráðu þig inn með hinu Gmail-netfanginu.");
+      await signOut(auth);
+      window.location.href = "index.html";
+      return;
+    }
+
     if (requireAdmin && notandagogn.role !== "admin") {
       window.location.href = "leikur.html";
       return;

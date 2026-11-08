@@ -1171,7 +1171,7 @@ async function hladaNotendayfirlit() {
   yfirlitVerkefni.textContent = verkefnaSnap.size;
   yfirlitSpurningar.textContent = spurningarSnap.size;
   yfirlitVirkar.textContent = spurningarSnap.docs.filter((d) => d.data().active).length;
-  yfirlitNotendur.textContent = notendurSnap.docs.filter((d) => d.data().role !== "admin").length;
+  yfirlitNotendur.textContent = notendurSnap.docs.filter((d) => d.data().role !== "admin" && !d.data().sameinadVid).length;
 
   // Tölfræði hvers notanda er lesin beint af users/{uid} (fjoldiSvarad,
   // fjoldiRett, fjoldiPass, verkefnaStada, sidastSvaradAt) í stað þess að
@@ -1183,7 +1183,7 @@ async function hladaNotendayfirlit() {
   const rows = [];
   for (const notandiDoc of notendurSnap.docs) {
     const notandi = notandiDoc.data();
-    if (notandi.role === "admin") continue;
+    if (notandi.role === "admin" || notandi.sameinadVid) continue;
 
     const fjoldiSvarad = notandi.fjoldiSvarad || 0;
     const fjoldiPass = notandi.fjoldiPass || 0;
@@ -1860,7 +1860,7 @@ async function gefaSvariRett(rad) {
   const notendurSnap = await getDocs(collection(db, "users"));
   let fjoldi = 0;
   for (const n of notendurSnap.docs) {
-    if (n.data().role === "admin") continue;
+    if (n.data().role === "admin" || n.data().sameinadVid) continue;
     const tilraunSnap = await getDoc(doc(db, "users", n.id, "attempts", rad.qid));
     if (!tilraunSnap.exists()) continue;
     const svar = tilraunSnap.data().svar;
@@ -2109,7 +2109,7 @@ async function opnaNotendaValPanell(verkefniId, verkefni) {
   const notendurSnap = await getDocs(collection(db, "users"));
   const notendur = notendurSnap.docs
     .map((d) => ({ id: d.id, ...d.data() }))
-    .filter((n) => n.role !== "admin")
+    .filter((n) => n.role !== "admin" && !n.sameinadVid)
     .sort((a, b) => (a.nafn || a.email || "").localeCompare(b.nafn || b.email || "", "is"));
 
   const nuverandiLeyfdir = new Set(verkefni.leyfdirNotendur || []);
@@ -2420,7 +2420,7 @@ function saekjaSvarafjolda() {
   }
   const loforð = (async () => {
     const notendurSnap = await getDocs(collection(db, "users"));
-    const nemendur = notendurSnap.docs.filter((d) => d.data().role !== "admin");
+    const nemendur = notendurSnap.docs.filter((d) => d.data().role !== "admin" && !d.data().sameinadVid);
     const svaradPerSpurning = new Map();
     const sleptPerSpurning = new Map();
     const attemptSnaps = await Promise.all(
@@ -3493,7 +3493,7 @@ async function hladaTolfraedi() {
     const [notendurSnap, verkefnaSnap] = await Promise.all([getDocs(collection(db, "users")), getDocs(collection(db, "verkefni"))]);
     const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
     tolfraediVerkefnaTitlar = verkefnaTitlar;
-    const nemendur = notendurSnap.docs.filter((d) => d.data().role !== "admin" && (d.data().flokkur || "MS") !== "aðrir");
+    const nemendur = notendurSnap.docs.filter((d) => d.data().role !== "admin" && !d.data().sameinadVid && (d.data().flokkur || "MS") !== "aðrir");
     tolfraediNemendur = [];
     for (const n of nemendur) {
       const snap = await getDocs(collection(db, "users", n.id, "attempts"));
