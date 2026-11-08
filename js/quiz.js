@@ -1697,14 +1697,26 @@ function lesaDrog() {
   }
 }
 
+// Leitarreiturinn birtist aðeins þegar glósurnar eru orðnar nógu langar til að leit borgi sig.
+const NOTEPAD_LEIT_MIN_ORD = 200;
+
 function notepadOrdaTalning() {
   const t = notepadTexti.value.trim();
-  const n = t ? t.split(/\s+/).length : 0;
-  return `${n} ${n === 1 ? "orð" : "orð"}`;
+  return t ? t.split(/\s+/).length : 0;
+}
+
+function uppfaeraLeitarsynileika() {
+  const synilegt = notepadOrdaTalning() >= NOTEPAD_LEIT_MIN_ORD;
+  notepadLeit.parentElement.hidden = !synilegt;
+  if (!synilegt) {
+    notepadLeit.value = "";
+    notepadLeitStada.textContent = "";
+  }
 }
 
 function notepadStadaTexti(texti) {
-  notepadStada.textContent = `${texti} · ${notepadOrdaTalning()}`;
+  notepadStada.textContent = `${texti} · ${notepadOrdaTalning()} orð`;
+  uppfaeraLeitarsynileika();
 }
 
 function notepadRef() {
@@ -1832,6 +1844,7 @@ async function hladaGlosur() {
       if (drog !== null) {
         // Ovistað afrit úr tækinu (t.d. netið datt út) - notum það og vistum.
         notepadTexti.value = drog;
+        uppfaeraLeitarsynileika();
         notepadOvistad = true;
         notepadTexti.disabled = false;
         vistaNotepad();
@@ -1839,6 +1852,7 @@ async function hladaGlosur() {
       }
       notepadTexti.value = await saekjaNotepad();
     }
+    uppfaeraLeitarsynileika();
     notepadTexti.disabled = false;
     notepadStadaTexti("Aðeins þú sérð þetta. Vistast sjálfkrafa");
   } catch (villa) {
@@ -3187,6 +3201,7 @@ function byggjaSpurningaGlosu(questionId, spurning) {
         await setDoc(notepadRef(), { texti: ny, verkefniTitill: "Glósublokk", updatedAt: serverTimestamp() });
         notepadGildi = ny;
         notepadTexti.value = ny;
+        uppfaeraLeitarsynileika();
         hreinsaDrog();
         texti.value = "";
         stada.textContent = "Bætt við í Glósur ✓";

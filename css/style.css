@@ -4209,3 +4209,7 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
   font-family: inherit;
   font-size: 0.95rem;
 }
+
+.notepad-verkfaeri[hidden] {
+  display: none;
+}
