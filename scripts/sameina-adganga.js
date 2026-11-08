@@ -3,7 +3,8 @@
 // - svör (attempts) úr SEC færast yfir í PRI ef PRI á ekkert svar við spurningunni, eða ef svarið í SEC er betra
 //   (rétt > rangt > pass); teljarar (alls/rétt/pass og verkefnaStada) eru reiknaðir út frá raunverulegu svörunum
 // - skjátími og virknikort leggjast saman; endurtekningabunki og síðast virk/ur flytjast
-// - SEC verður að "sameinað" skjali (sameinadVid) og fær skilaboð við innskráningu (sjá js/auth.js); afrit af SEC er vistað í ./afrit-<SEC>.json
+// - SEC verður að "sameinað" skjali (sameinadVid): hægt er að skrá sig inn með báðum Gmail-netföngunum en forritið notar
+//   gögn PRI (sjá js/auth.js og firestore.rules); afrit af SEC er vistað í ./afrit-<SEC>.json
 const admin=require("firebase-admin");const fs=require("fs");
 admin.initializeApp({credential:admin.credential.cert(require(require("path").join(__dirname,"serviceAccountKey.json")))});
 const db=admin.firestore(); const FV=admin.firestore.FieldValue;

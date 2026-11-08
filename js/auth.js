@@ -94,12 +94,27 @@ export function vaktaInnskraningu({ requireAuth = true, requireAdmin = false } =
       notandagogn.role = "admin";
     }
 
-    // Aukaaðgangur sem var sameinaður í annan aðgang (sjá scripts/sameina-adganga): vísum á hinn aðganginn.
+    // Aukaaðgangur (t.d. annað Gmail sama nemanda, sjá scripts/sameina-adganga.js): notandaskjal hans vísar á
+    // aðalaðganginn (sameinadVid). Forritið notar þá gögn aðalaðgangsins - uid er sett á uid aðalaðgangsins
+    // (firestore.rules gefur aukaaðganginum sömu réttindi yfir þeim gögnum).
+    let virkurNotandi = user;
     if (notandagogn.sameinadVid) {
-      alert("Þessi aðgangur hefur verið sameinaður öðrum aðgangi þínum. Skráðu þig inn með hinu Gmail-netfanginu.");
-      await signOut(auth);
-      window.location.href = "index.html";
-      return;
+      const adalSnap = await getDoc(doc(db, "users", notandagogn.sameinadVid));
+      if (!adalSnap.exists()) {
+        alert("Þessi aðgangur er tengdur aðgangi sem finnst ekki lengur. Hafðu samband við kennarann.");
+        await signOut(auth);
+        window.location.href = "index.html";
+        return;
+      }
+      const adalUid = notandagogn.sameinadVid;
+      notandagogn = adalSnap.data();
+      virkurNotandi = new Proxy(user, {
+        get(skotmark, lykill) {
+          if (lykill === "uid") return adalUid;
+          const gildi = skotmark[lykill];
+          return typeof gildi === "function" ? gildi.bind(skotmark) : gildi;
+        }
+      });
     }
 
     if (requireAdmin && notandagogn.role !== "admin") {
@@ -107,6 +122,6 @@ export function vaktaInnskraningu({ requireAuth = true, requireAdmin = false } =
       return;
     }
 
-    callback(user, notandagogn);
+    callback(virkurNotandi, notandagogn);
   });
 }

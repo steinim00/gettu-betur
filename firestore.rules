@@ -11,6 +11,18 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Aukaaðgangur (t.d. annað Gmail sama nemanda): notendaskjal hans hefur sameinadVid = uid aðalaðgangsins.
+    // Slíkur aðgangur hefur sömu réttindi og aðalaðgangurinn yfir gögnum hans. "sameinadVid" setur aðeins admin
+    // (sjá scripts/sameina-adganga.js) - notandi má ekki breyta því sjálfur. get() er aðeins kallað þegar
+    // uid passar ekki beint, svo venjulegir notendur borga ekki aukalestur.
+    function aukaadgangurAd() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('sameinadVid', 'x');
+    }
+
+    function erEigandi(userId) {
+      return innskradur() && (request.auth.uid == userId || aukaadgangurAd() == userId);
+    }
+
     // Netföng sem fá sjálfkrafa admin-aðgang (haldist í takt við ADMIN_NETFONG í js/auth.js).
     function erAdminNetfang(email) {
       return email in ['steinim00@gmail.com'];
@@ -20,13 +32,15 @@ service cloud.firestore {
     // Notandi má almennt ekki hækka sjálfan sig í admin - nema netfangið hans sé á
     // ofangreindum lista, sem gerir sjálfheilun í js/auth.js kleifa.
     match /users/{userId} {
-      allow read: if innskradur() && (request.auth.uid == userId || erAdmin());
+      allow read: if erEigandi(userId) || erAdmin();
       allow create: if innskradur() && request.auth.uid == userId
+                    && !('sameinadVid' in request.resource.data)
                     && (request.resource.data.role == 'user'
                         || (request.resource.data.role == 'admin'
                             && erAdminNetfang(request.resource.data.email)));
       allow update: if erAdmin()
-                    || (innskradur() && request.auth.uid == userId
+                    || (erEigandi(userId)
+                        && request.resource.data.get('sameinadVid', '') == resource.data.get('sameinadVid', '')
                         && (request.resource.data.role == resource.data.role
                             || (request.resource.data.role == 'admin'
                                 && erAdminNetfang(resource.data.email))));
@@ -42,15 +56,15 @@ service cloud.firestore {
       // Réttmæti er ALDREI treyst frá biðlaranum - það er reiknað eftir á með því að
       // bera "svar" saman við answers/{questionId}.correctAnswers.
       match /attempts/{questionId} {
-        allow read: if innskradur() && (request.auth.uid == userId || erAdmin());
-        allow create: if innskradur() && request.auth.uid == userId
+        allow read: if erEigandi(userId) || erAdmin();
+        allow create: if erEigandi(userId)
                       && request.resource.data.keys().hasOnly(['svar', 'answeredAt'])
                       && request.resource.data.svar is string
                       && request.resource.data.svar.size() > 0
                       && request.resource.data.svar.size() < 200
                       && exists(/databases/$(database)/documents/questions/$(questionId));
         allow update: if false;
-        allow delete: if innskradur() && request.auth.uid == userId;
+        allow delete: if erEigandi(userId);
       }
 
       // Glósur notandans um verkefni - hreinir einkaminnispunktar, ólíkt
@@ -58,34 +72,34 @@ service cloud.firestore {
       // ein glósa á hvert verkefni.
       // Námsstokkar (á la Quizlet): hvert skjal er stokkur { nafn, spjold: [{ t: hugtak, d: skilgreining }] }.
       match /spjaldtafla/{id} {
-        allow read: if innskradur() && (request.auth.uid == userId || erAdmin());
-        allow create, update: if innskradur() && request.auth.uid == userId
+        allow read: if erEigandi(userId) || erAdmin();
+        allow create, update: if erEigandi(userId)
                       && request.resource.data.keys().hasOnly(['nafn', 'spjold', 'updatedAt'])
                       && (!('nafn' in request.resource.data) || (request.resource.data.nafn is string && request.resource.data.nafn.size() <= 80))
                       && request.resource.data.spjold is list
                       && request.resource.data.spjold.size() <= 500;
-        allow delete: if innskradur() && request.auth.uid == userId;
+        allow delete: if erEigandi(userId);
       }
 
       // Glósur við einstakar spurningar. Skjal-ID = spurningaID.
       match /spurningaGlosur/{questionId} {
-        allow read: if innskradur() && (request.auth.uid == userId || erAdmin());
-        allow create, update: if innskradur() && request.auth.uid == userId
+        allow read: if erEigandi(userId) || erAdmin();
+        allow create, update: if erEigandi(userId)
                       && request.resource.data.keys().hasOnly(['texti', 'spurning', 'verkefniId', 'updatedAt'])
                       && request.resource.data.texti is string
                       && request.resource.data.texti.size() < 2000
                       && request.resource.data.spurning is string
                       && request.resource.data.spurning.size() < 500;
-        allow delete: if innskradur() && request.auth.uid == userId;
+        allow delete: if erEigandi(userId);
       }
 
       match /glosur/{verkefniId} {
-        allow read: if innskradur() && (request.auth.uid == userId || erAdmin());
-        allow create, update: if innskradur() && request.auth.uid == userId
+        allow read: if erEigandi(userId) || erAdmin();
+        allow create, update: if erEigandi(userId)
                       && request.resource.data.keys().hasOnly(['texti', 'verkefniTitill', 'updatedAt'])
                       && request.resource.data.texti is string
                       && request.resource.data.texti.size() < (verkefniId == 'notepad' ? 50000 : 5000);
-        allow delete: if innskradur() && request.auth.uid == userId;
+        allow delete: if erEigandi(userId);
       }
     }
 
@@ -114,7 +128,8 @@ service cloud.firestore {
     match /answers/{questionId} {
       allow read: if erAdmin() ||
         (innskradur() &&
-         exists(/databases/$(database)/documents/users/$(request.auth.uid)/attempts/$(questionId)));
+         (exists(/databases/$(database)/documents/users/$(request.auth.uid)/attempts/$(questionId)) ||
+          exists(/databases/$(database)/documents/users/$(aukaadgangurAd())/attempts/$(questionId))));
       allow write: if erAdmin();
     }
 
@@ -154,9 +169,9 @@ service cloud.firestore {
     match /onlineStada/{uid} {
       allow get: if true;
       allow list: if false;
-      allow create, update: if innskradur() && (request.auth.uid == uid || erAdmin())
+      allow create, update: if (erEigandi(uid) || erAdmin())
                             && request.resource.data.keys().hasOnly(['t']);
-      allow delete: if innskradur() && (request.auth.uid == uid || erAdmin());
+      allow delete: if erEigandi(uid) || erAdmin();
     }
 
     // Yfirlit yfir virkar spurningar (meta/virkarSpurningar: { spurningar: { spurningaID: verkefniID } }).
