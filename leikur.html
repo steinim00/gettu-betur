@@ -138,13 +138,44 @@
       <h2>Glósurnar mínar</h2>
       <button type="button" class="smabtn" id="tilbakaFraGlosum">← Öll verkefni</button>
     </div>
-    <div class="notepad-verkfaeri" hidden>
-      <input type="search" id="notepadLeit" placeholder="Leita í glósum…" autocomplete="off" aria-label="Leita í glósum">
-      <button type="button" class="smabtn" id="notepadLeitBtn">Næsta</button>
-      <span id="notepadLeitStada" class="glosa-stada"></span>
+    <div class="notepad-adgerdir">
+      <button type="button" class="smabtn" id="spjaldBtn">🗂 Spjaldtafla</button>
+      <button type="button" class="smabtn" id="quizletBtn">📤 Flytja út í Quizlet</button>
+      <a class="smabtn" id="quizletTengill" href="https://quizlet.com/create-set" target="_blank" rel="noopener" hidden>Opna Quizlet ↗</a>
     </div>
-    <textarea id="notepadTexti" class="notepad" maxlength="49000" placeholder="Skrifaðu glósurnar þínar hér - allt á einum stað…" disabled></textarea>
-    <p class="heimild-tilvitnun" id="notepadStada">Aðeins þú sérð þetta. Vistast sjálfkrafa.</p>
+    <p class="heimild-tilvitnun" id="quizletStada" hidden></p>
+
+    <div id="notepadHluti">
+      <div class="notepad-verkfaeri" hidden>
+        <input type="search" id="notepadLeit" placeholder="Leita í glósum…" autocomplete="off" aria-label="Leita í glósum">
+        <button type="button" class="smabtn" id="notepadLeitBtn">Næsta</button>
+        <span id="notepadLeitStada" class="glosa-stada"></span>
+      </div>
+      <textarea id="notepadTexti" class="notepad" maxlength="49000" placeholder="Skrifaðu glósurnar þínar hér - allt á einum stað…&#10;&#10;Spjöld: skrifaðu hugtak - skilgreining á eina línu (t.d. „Valletta - höfuðborg Möltu“)." disabled></textarea>
+      <p class="heimild-tilvitnun" id="notepadStada">Aðeins þú sérð þetta. Vistast sjálfkrafa.</p>
+    </div>
+
+    <div id="spjaldSvaedi" hidden>
+      <div class="spjald-haus">
+        <span id="spjaldTalning" class="glosa-stada"></span>
+        <button type="button" class="smabtn" id="spjaldStokkaBtn">🔀 Stokka</button>
+        <button type="button" class="smabtn" id="spjaldHlidBtn">⇄ Skipta um hlið</button>
+        <button type="button" class="smabtn" id="spjaldLokaBtn">← Aftur í glósur</button>
+      </div>
+      <button type="button" class="spjald-kort" id="spjaldKort" aria-live="polite">
+        <span id="spjaldTexti"></span>
+        <small id="spjaldVisbending">Smelltu til að snúa spjaldinu</small>
+      </button>
+      <div class="spjald-adgerdir" id="spjaldAdgerdir" hidden>
+        <button type="button" class="smabtn" id="spjaldAfturBtn">🔁 Æfa aftur</button>
+        <button type="button" class="aðal-hnappur" id="spjaldKunniBtn">✓ Kunni</button>
+      </div>
+      <div class="spjald-lok" id="spjaldLok" hidden>
+        <h3>Búin! 🎉</h3>
+        <p id="spjaldLokTexti"></p>
+        <button type="button" class="aðal-hnappur" id="spjaldBytjaAftur">Byrja aftur</button>
+      </div>
+    </div>
   </div>
 
   <div id="verkefnaSvaedi" class="verkefna-yfirlit">

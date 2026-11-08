@@ -4213,3 +4213,95 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
 .notepad-verkfaeri[hidden] {
   display: none;
 }
+
+/* Glósur: Quizlet og spjaldtafla */
+.notepad-adgerdir {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.notepad-adgerdir .smabtn {
+  text-decoration: none;
+}
+
+.spjald-haus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.spjald-haus .glosa-stada {
+  margin-right: auto;
+}
+
+.spjald-kort {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 260px;
+  box-sizing: border-box;
+  padding: 28px 22px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.spjald-kort.snuid {
+  background: var(--litur-svart);
+  border-color: var(--litur-svart);
+  color: #ffffff;
+}
+
+.spjald-kort[hidden] {
+  display: none;
+}
+
+.spjald-kort small {
+  color: var(--litur-daufur);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.spjald-kort.snuid small {
+  color: var(--litur-lime);
+}
+
+.spjald-adgerdir {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.spjald-adgerdir > * {
+  flex: 1;
+  margin: 0;
+  min-height: 52px;
+}
+
+.spjald-adgerdir[hidden],
+.spjald-lok[hidden],
+#spjaldSvaedi[hidden],
+#notepadHluti[hidden],
+#quizletStada[hidden] {
+  display: none;
+}
+
+.spjald-lok {
+  padding: 28px 0;
+  text-align: center;
+}

@@ -1836,6 +1836,7 @@ notepadLeit.addEventListener("input", () => {
 
 async function hladaGlosur() {
   if (!notandi) return;
+  lokaSpjaldtoflu();
   notepadTexti.disabled = true;
   notepadStada.textContent = "Sæki glósur…";
   try {
@@ -1860,6 +1861,158 @@ async function hladaGlosur() {
     notepadStada.textContent = "Tókst ekki að sækja glósur - reyndu aftur.";
   }
 }
+
+// --- Spjaldtafla (á la Quizlet) og útflutningur í Quizlet, byggt á glósunum ---
+// Spjald = lína í glósunum sem er á forminu "hugtak - skilgreining" (líka –, —, = eða tab; eða "hugtak: skilgreining"
+// ef hugtakið er stutt), eða "❓ spurning" með glósu í línunum fyrir neðan (glósur við spurningar).
+function greinaSpjold(texti) {
+  const linur = texti.split(/\r?\n/);
+  const spjold = [];
+  for (let i = 0; i < linur.length; i++) {
+    const lina = linur[i].trim();
+    if (!lina || lina.startsWith("📁")) continue;
+    if (lina.startsWith("❓")) {
+      const hugtak = lina.replace(/^❓\s*/, "").trim();
+      const skil = [];
+      while (i + 1 < linur.length && linur[i + 1].trim()) skil.push(linur[++i].trim());
+      if (hugtak && skil.length) spjold.push({ t: hugtak, d: skil.join(" ") });
+      continue;
+    }
+    let m = lina.match(/^(.{1,100}?)(?:\t|\s[-–—=]\s)(.+)$/);
+    if (!m) {
+      const k = lina.match(/^([^:]{1,60}):\s+(.+)$/);
+      if (k && k[1].trim().split(/\s+/).length <= 5) m = k;
+    }
+    if (m && m[1].trim() && m[2].trim()) spjold.push({ t: m[1].trim(), d: m[2].trim() });
+  }
+  return spjold;
+}
+
+const spjaldBtn = document.getElementById("spjaldBtn");
+const quizletBtn = document.getElementById("quizletBtn");
+const quizletTengill = document.getElementById("quizletTengill");
+const quizletStada = document.getElementById("quizletStada");
+const notepadHluti = document.getElementById("notepadHluti");
+const spjaldSvaedi = document.getElementById("spjaldSvaedi");
+const spjaldKort = document.getElementById("spjaldKort");
+const spjaldTexti = document.getElementById("spjaldTexti");
+const spjaldVisbending = document.getElementById("spjaldVisbending");
+const spjaldTalning = document.getElementById("spjaldTalning");
+const spjaldAdgerdir = document.getElementById("spjaldAdgerdir");
+const spjaldLok = document.getElementById("spjaldLok");
+const spjaldLokTexti = document.getElementById("spjaldLokTexti");
+
+let spjaldAlls = 0;
+let spjaldBunki = [];
+let spjaldSnuid = false;
+let spjaldHlidSkilgr = false; // true = skilgreining fyrst
+
+function spjaldStokka(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function spjaldBirta() {
+  const kort = spjaldBunki[0];
+  spjaldLok.hidden = !!kort;
+  spjaldKort.hidden = !kort;
+  spjaldAdgerdir.hidden = !kort || !spjaldSnuid;
+  spjaldTalning.textContent = `${spjaldBunki.length} eftir af ${spjaldAlls}`;
+  if (!kort) {
+    spjaldLokTexti.textContent = `Þú fórst í gegnum öll ${spjaldAlls} spjöldin.`;
+    return;
+  }
+  const framhlid = spjaldHlidSkilgr ? kort.d : kort.t;
+  const bakhlid = spjaldHlidSkilgr ? kort.t : kort.d;
+  spjaldTexti.textContent = spjaldSnuid ? bakhlid : framhlid;
+  spjaldKort.classList.toggle("snuid", spjaldSnuid);
+  spjaldVisbending.textContent = spjaldSnuid ? (spjaldHlidSkilgr ? "Hugtak" : "Skilgreining") : "Smelltu til að snúa spjaldinu";
+}
+
+async function opnaSpjaldtoflu() {
+  await vistaNotepad();
+  const spjold = greinaSpjold(notepadTexti.value);
+  if (spjold.length === 0) {
+    quizletStada.hidden = false;
+    quizletStada.textContent = "Engin spjöld fundust. Skrifaðu hugtak - skilgreining á eina línu í glósunum (t.d. „Valletta - höfuðborg Möltu“).";
+    return;
+  }
+  quizletStada.hidden = true;
+  spjaldAlls = spjold.length;
+  spjaldBunki = spjold.slice();
+  spjaldStokka(spjaldBunki);
+  spjaldSnuid = false;
+  notepadHluti.hidden = true;
+  spjaldSvaedi.hidden = false;
+  spjaldBtn.hidden = true;
+  spjaldBirta();
+}
+
+function lokaSpjaldtoflu() {
+  spjaldSvaedi.hidden = true;
+  notepadHluti.hidden = false;
+  spjaldBtn.hidden = false;
+}
+
+spjaldBtn.addEventListener("click", opnaSpjaldtoflu);
+document.getElementById("spjaldLokaBtn").addEventListener("click", lokaSpjaldtoflu);
+spjaldKort.addEventListener("click", () => {
+  spjaldSnuid = !spjaldSnuid;
+  spjaldBirta();
+});
+document.getElementById("spjaldStokkaBtn").addEventListener("click", () => {
+  spjaldStokka(spjaldBunki);
+  spjaldSnuid = false;
+  spjaldBirta();
+});
+document.getElementById("spjaldHlidBtn").addEventListener("click", () => {
+  spjaldHlidSkilgr = !spjaldHlidSkilgr;
+  spjaldSnuid = false;
+  spjaldBirta();
+});
+document.getElementById("spjaldKunniBtn").addEventListener("click", () => {
+  spjaldBunki.shift();
+  spjaldSnuid = false;
+  spjaldBirta();
+});
+document.getElementById("spjaldAfturBtn").addEventListener("click", () => {
+  const kort = spjaldBunki.shift();
+  if (kort) spjaldBunki.splice(Math.min(3, spjaldBunki.length), 0, kort); // kemur aftur eftir nokkur spjöld
+  spjaldSnuid = false;
+  spjaldBirta();
+});
+document.getElementById("spjaldBytjaAftur").addEventListener("click", opnaSpjaldtoflu);
+
+// Útflutningur: hugtak<TAB>skilgreining á hverri línu - Quizlet: Create → Import, límdu textann.
+quizletBtn.addEventListener("click", async () => {
+  await vistaNotepad();
+  const spjold = greinaSpjold(notepadTexti.value);
+  quizletStada.hidden = false;
+  if (spjold.length === 0) {
+    quizletStada.textContent = "Engin spjöld fundust. Skrifaðu hugtak - skilgreining á eina línu í glósunum (t.d. „Valletta - höfuðborg Möltu“).";
+    quizletTengill.hidden = true;
+    return;
+  }
+  const utTexti = spjold.map((s) => `${s.t.replace(/\t/g, " ")}\t${s.d.replace(/\t/g, " ")}`).join("\n");
+  try {
+    await navigator.clipboard.writeText(utTexti);
+    quizletStada.textContent = `Afritað: ${spjold.length} spjöld ✓ Í Quizlet: Create → Import → límdu textann (Ctrl+V / Líma).`;
+  } catch (villa) {
+    // Ekkert klippiborð (t.d. ótryggt umhverfi): sýnum textann til að afrita.
+    quizletStada.textContent = `${spjold.length} spjöld. Afritaðu textann hér að neðan og límdu hann í Quizlet (Create → Import):`;
+    const pre = document.createElement("textarea");
+    pre.readOnly = true;
+    pre.className = "notepad";
+    pre.style.minHeight = "30vh";
+    pre.value = utTexti;
+    quizletStada.after(pre);
+    pre.select();
+  }
+  quizletTengill.hidden = false;
+});
+
 
 // Les tölfræðina beint af users/{uid} (fjoldiSvarad/fjoldiRett/fjoldiPass/
 // verkefnaStada) í stað þess að endurreikna úr öllum attempts- og
