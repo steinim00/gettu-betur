@@ -4354,3 +4354,125 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
 #spjaldAefing[hidden] {
   display: none;
 }
+
+/* Námsstokkar */
+.stokka-listi {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.stokkur-kort {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.stokkur-kort:hover {
+  border-color: var(--litur-svart);
+}
+
+.stokkur-kort span {
+  color: var(--litur-daufur);
+  font-size: 0.85rem;
+}
+
+.stokkur-nafn {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 4px 0 12px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  font-family: inherit;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.stokkur-nam-takkar .aðal-hnappur {
+  flex: 1 1 130px;
+}
+
+.laera-kort {
+  min-height: 140px;
+  cursor: default;
+  margin-bottom: 12px;
+}
+
+.prof-valkostir {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.prof-valkostur {
+  padding: 14px 16px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.prof-valkostur:hover:not(:disabled) {
+  border-color: var(--litur-svart);
+}
+
+.prof-valkostur.rett {
+  background: #d6f5d6;
+  border-color: #2e9d2e;
+}
+
+.prof-valkostur.rangt {
+  background: #fbdada;
+  border-color: #cf3b3b;
+}
+
+.para-net {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.para-flis {
+  min-height: 72px;
+  padding: 10px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  word-break: break-word;
+}
+
+.para-flis.valin {
+  border-color: var(--litur-svart);
+  background: var(--litur-lime);
+}
+
+.para-flis.vitlaust {
+  background: #fbdada;
+  border-color: #cf3b3b;
+}
+
+.para-flis.farid {
+  visibility: hidden;
+}
+
+#stokkaYfirlit[hidden],
+#stokkurRitill[hidden],
+#stokkurNam[hidden],
+#innflutningsSvaedi[hidden] {
+  display: none;
+}

@@ -1836,7 +1836,7 @@ notepadLeit.addEventListener("input", () => {
 
 async function hladaGlosur() {
   if (!notandi) return;
-  if (!spjaldSvaedi.hidden) lokaSpjoldum();
+  if (!spjaldSvaedi.hidden) lokaNamsstokkum();
   notepadTexti.disabled = true;
   notepadStada.textContent = "Sæki glósur…";
   try {
@@ -1862,103 +1862,158 @@ async function hladaGlosur() {
   }
 }
 
-// --- Spjöldin mín (á la Quizlet): nemandinn býr til sín eigin spjöld; æfa þau eða flytja út í Quizlet ---
-// users/{uid}/spjaldtafla/stokkur = { spjold: [{ t: hugtak, d: skilgreining }], updatedAt }. Ein lesning, eitt skrif.
+// --- Námsstokkar: mín útgáfa af Quizlet ---
+// users/{uid}/spjaldtafla/{stokkurId} = { nafn, spjold: [{ t: hugtak, d: skilgreining }], updatedAt }.
+// Nemandinn býr til eigin stokka og spjöld, flytur inn/út (Quizlet-snið) og æfir: spjöld, læra, próf, para saman.
 const SPJOLD_MAX = 500;
-const spjaldBtn = document.getElementById("spjaldBtn");
-const spjaldSvaedi = document.getElementById("spjaldSvaedi");
-const spjaldRitill = document.getElementById("spjaldRitill");
-const spjaldAefing = document.getElementById("spjaldAefing");
-const spjaldListi = document.getElementById("spjaldListi");
-const spjaldTalning = document.getElementById("spjaldTalning");
-const spjaldAefTalning = document.getElementById("spjaldAefTalning");
-const spjaldVistunStada = document.getElementById("spjaldVistunStada");
-const spjaldAefaBtn = document.getElementById("spjaldAefaBtn");
-const quizletBtn = document.getElementById("quizletBtn");
-const quizletTengill = document.getElementById("quizletTengill");
-const quizletStada = document.getElementById("quizletStada");
-const notepadHluti = document.getElementById("notepadHluti");
-const spjaldKort = document.getElementById("spjaldKort");
-const spjaldTexti = document.getElementById("spjaldTexti");
-const spjaldVisbending = document.getElementById("spjaldVisbending");
-const spjaldAdgerdir = document.getElementById("spjaldAdgerdir");
-const spjaldLok = document.getElementById("spjaldLok");
-const spjaldLokTexti = document.getElementById("spjaldLokTexti");
+const $ = (id) => document.getElementById(id);
+const spjaldBtn = $("spjaldBtn");
+const spjaldSvaedi = $("spjaldSvaedi");
+const stokkaYfirlit = $("stokkaYfirlit");
+const stokkurRitill = $("stokkurRitill");
+const stokkurNam = $("stokkurNam");
+const stokkaListiEl = $("stokkaListi");
+const stokkaStada = $("stokkaStada");
+const spjaldListi = $("spjaldListi");
+const spjaldTalning = $("spjaldTalning");
+const spjaldVistunStada = $("spjaldVistunStada");
+const stokkurNafn = $("stokkurNafn");
+const quizletBtn = $("quizletBtn");
+const quizletTengill = $("quizletTengill");
+const quizletStada = $("quizletStada");
+const notepadHluti = $("notepadHluti");
+const namInnihald = $("namInnihald");
+const namTitill = $("namTitill");
+const innflutningsSvaedi = $("innflutningsSvaedi");
+const innflutningsTexti = $("innflutningsTexti");
+const innflutningsStada = $("innflutningsStada");
 
-let spjoldGogn = null; // [{ t, d }] - null = ekki sótt
-let spjoldOvistud = false;
-let spjoldTimi = null;
-let spjoldSaekir = null;
+let stokkar = null; // Map id -> { id, nafn, spjold }
+let stokkarSaekir = null;
+let valinnStokkur = null;
+const stokkarOvistadir = new Set();
+let stokkaTimi = null;
 
-function spjaldRef() {
-  return doc(db, "users", notandi.uid, "spjaldtafla", "stokkur");
-}
+const stokkaRef = (id) => doc(db, "users", notandi.uid, "spjaldtafla", id);
 
-function saekjaSpjold() {
-  if (spjoldGogn) return Promise.resolve(spjoldGogn);
-  if (!spjoldSaekir) {
-    spjoldSaekir = getDoc(spjaldRef())
-      .then((snap) => (spjoldGogn = snap.exists() ? (snap.data().spjold || []).map((s) => ({ t: s.t || "", d: s.d || "" })) : []))
-      .finally(() => (spjoldSaekir = null));
+function saekjaStokka() {
+  if (stokkar) return Promise.resolve(stokkar);
+  if (!stokkarSaekir) {
+    stokkarSaekir = getDocs(collection(db, "users", notandi.uid, "spjaldtafla"))
+      .then((snap) => {
+        stokkar = new Map(
+          snap.docs.map((d) => [
+            d.id,
+            { id: d.id, nafn: d.data().nafn || "Spjöldin mín", spjold: (d.data().spjold || []).map((s) => ({ t: s.t || "", d: s.d || "" })) }
+          ])
+        );
+        return stokkar;
+      })
+      .finally(() => (stokkarSaekir = null));
   }
-  return spjoldSaekir;
+  return stokkarSaekir;
 }
 
-async function vistaSpjold() {
-  clearTimeout(spjoldTimi);
-  if (!notandi || !spjoldOvistud || !spjoldGogn) return;
-  const spjold = spjoldGogn.filter((s) => s.t.trim() || s.d.trim()).slice(0, SPJOLD_MAX);
+async function vistaStokka() {
+  clearTimeout(stokkaTimi);
+  if (!notandi || !stokkar || stokkarOvistadir.size === 0) return;
   if (navigator.onLine === false) {
     spjaldVistunStada.textContent = "Ónettengt - vistast þegar netið kemur aftur.";
     return;
   }
-  spjoldOvistud = false;
+  const ids = [...stokkarOvistadir];
+  stokkarOvistadir.clear();
   spjaldVistunStada.textContent = "Vista…";
   try {
-    await setDoc(spjaldRef(), { spjold, updatedAt: serverTimestamp() });
-    if (!spjoldOvistud) spjaldVistunStada.textContent = "Vistað ✓ (aðeins þú sérð þetta)";
+    for (const id of ids) {
+      const s = stokkar.get(id);
+      if (!s) continue;
+      const spjold = s.spjold.filter((x) => x.t.trim() || x.d.trim()).slice(0, SPJOLD_MAX);
+      await setDoc(stokkaRef(id), { nafn: (s.nafn || "Stokkur").slice(0, 80), spjold, updatedAt: serverTimestamp() });
+    }
+    if (stokkarOvistadir.size === 0) spjaldVistunStada.textContent = "Vistað ✓ (aðeins þú sérð þetta)";
   } catch (villa) {
     console.error(villa);
-    spjoldOvistud = true;
+    ids.forEach((id) => stokkarOvistadir.add(id));
     spjaldVistunStada.textContent = "Tókst ekki að vista - reynir aftur";
-    spjoldTimi = setTimeout(vistaSpjold, 5000);
+    stokkaTimi = setTimeout(vistaStokka, 5000);
   }
 }
 
-function spjoldBreytt() {
-  spjoldOvistud = true;
+function stokkurBreyttur() {
+  if (!valinnStokkur) return;
+  stokkarOvistadir.add(valinnStokkur.id);
   spjaldVistunStada.textContent = "Breytt";
-  clearTimeout(spjoldTimi);
-  spjoldTimi = setTimeout(vistaSpjold, 1200);
+  clearTimeout(stokkaTimi);
+  stokkaTimi = setTimeout(vistaStokka, 1200);
   uppfaeraSpjaldTalningu();
 }
 
-window.addEventListener("online", () => vistaSpjold());
+window.addEventListener("online", () => vistaStokka());
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") vistaSpjold();
+  if (document.visibilityState === "hidden") vistaStokka();
 });
-window.addEventListener("pagehide", () => vistaSpjold());
+window.addEventListener("pagehide", () => vistaStokka());
 
-function fullSpjold() {
-  return (spjoldGogn || []).filter((s) => s.t.trim() && s.d.trim());
-}
+const fullSpjold = (s) => (s?.spjold || []).filter((x) => x.t.trim() && x.d.trim());
 
 function uppfaeraSpjaldTalningu() {
-  const n = fullSpjold().length;
+  const n = fullSpjold(valinnStokkur).length;
   spjaldTalning.textContent = `${n} ${n === 1 ? "spjald" : "spjöld"}`;
-  spjaldAefaBtn.disabled = n === 0;
+  stokkurRitill.querySelectorAll("[data-nam]").forEach((b) => (b.disabled = n === 0));
   quizletBtn.disabled = n === 0;
 }
 
+function synaStokkaUndirsidu(hver) {
+  stokkaYfirlit.hidden = hver !== "yfirlit";
+  stokkurRitill.hidden = hver !== "ritill";
+  stokkurNam.hidden = hver !== "nam";
+}
+
+function byggjaStokkaYfirlit() {
+  synaStokkaUndirsidu("yfirlit");
+  valinnStokkur = null;
+  stokkaListiEl.innerHTML = "";
+  const listi = [...stokkar.values()].sort((a, b) => a.nafn.localeCompare(b.nafn, "is"));
+  if (!listi.length) {
+    stokkaListiEl.innerHTML = '<p class="heimild-tilvitnun">Engir stokkar ennþá - ýttu á „Nýr stokkur“.</p>';
+    return;
+  }
+  listi.forEach((s) => {
+    const kort = document.createElement("button");
+    kort.type = "button";
+    kort.className = "stokkur-kort";
+    const n = fullSpjold(s).length;
+    kort.innerHTML = "<strong></strong><span></span>";
+    kort.firstChild.textContent = s.nafn;
+    kort.lastChild.textContent = `${n} ${n === 1 ? "spjald" : "spjöld"}`;
+    kort.addEventListener("click", () => opnaStokk(s.id));
+    stokkaListiEl.appendChild(kort);
+  });
+}
+
+function opnaStokk(id) {
+  valinnStokkur = stokkar.get(id);
+  if (!valinnStokkur) return;
+  synaStokkaUndirsidu("ritill");
+  stokkurNafn.value = valinnStokkur.nafn;
+  quizletStada.hidden = true;
+  quizletTengill.hidden = true;
+  innflutningsSvaedi.hidden = true;
+  spjaldVistunStada.textContent = "Aðeins þú sérð þetta. Vistast sjálfkrafa.";
+  byggjaSpjaldaRitil();
+}
+
 function byggjaSpjaldaRitil() {
+  const stokkur = valinnStokkur;
   spjaldListi.innerHTML = "";
-  if (spjoldGogn.length === 0) {
+  if (stokkur.spjold.length === 0) {
     const tomt = document.createElement("p");
     tomt.className = "heimild-tilvitnun";
-    tomt.textContent = "Engin spjöld ennþá - ýttu á „Nýtt spjald“.";
+    tomt.textContent = "Engin spjöld ennþá - ýttu á „Nýtt spjald“ eða „Flytja inn“.";
     spjaldListi.appendChild(tomt);
   }
-  spjoldGogn.forEach((s) => {
+  stokkur.spjold.forEach((s) => {
     const rod = document.createElement("div");
     rod.className = "spjald-rod";
     const t = document.createElement("input");
@@ -1981,16 +2036,16 @@ function byggjaSpjaldaRitil() {
     eyda.setAttribute("aria-label", "Eyða spjaldi");
     t.addEventListener("input", () => {
       s.t = t.value;
-      spjoldBreytt();
+      stokkurBreyttur();
     });
     d.addEventListener("input", () => {
       s.d = d.value;
-      spjoldBreytt();
+      stokkurBreyttur();
     });
     eyda.addEventListener("click", () => {
-      spjoldGogn.splice(spjoldGogn.indexOf(s), 1);
+      stokkur.spjold.splice(stokkur.spjold.indexOf(s), 1);
       byggjaSpjaldaRitil();
-      spjoldBreytt();
+      stokkurBreyttur();
     });
     rod.append(t, d, eyda);
     spjaldListi.appendChild(rod);
@@ -1998,49 +2053,117 @@ function byggjaSpjaldaRitil() {
   uppfaeraSpjaldTalningu();
 }
 
-async function opnaSpjoldin() {
+async function opnaNamsstokka() {
   await vistaNotepad();
   notepadHluti.hidden = true;
   spjaldSvaedi.hidden = false;
   spjaldBtn.hidden = true;
-  spjaldRitill.hidden = false;
-  spjaldAefing.hidden = true;
-  quizletStada.hidden = true;
-  quizletTengill.hidden = true;
-  spjaldVistunStada.textContent = "Sæki spjöld…";
+  synaStokkaUndirsidu("yfirlit");
+  stokkaStada.textContent = "Sæki stokka…";
+  stokkaListiEl.innerHTML = "";
   try {
-    await saekjaSpjold();
-    spjaldVistunStada.textContent = "Aðeins þú sérð þetta. Vistast sjálfkrafa.";
-    byggjaSpjaldaRitil();
+    await saekjaStokka();
+    stokkaStada.textContent = "";
+    byggjaStokkaYfirlit();
   } catch (villa) {
     console.error(villa);
-    spjaldVistunStada.textContent = "Tókst ekki að sækja spjöldin - reyndu aftur.";
+    stokkaStada.textContent = "Tókst ekki að sækja stokkana - reyndu aftur.";
   }
 }
 
-function lokaSpjoldum() {
-  vistaSpjold();
+function lokaNamsstokkum() {
+  vistaStokka();
   spjaldSvaedi.hidden = true;
   notepadHluti.hidden = false;
   spjaldBtn.hidden = false;
 }
 
-spjaldBtn.addEventListener("click", opnaSpjoldin);
-document.getElementById("spjaldLokaBtn").addEventListener("click", lokaSpjoldum);
-document.getElementById("spjaldNyttBtn").addEventListener("click", () => {
-  if (!spjoldGogn) return;
-  if (spjoldGogn.length >= SPJOLD_MAX) {
-    spjaldVistunStada.textContent = `Hámark er ${SPJOLD_MAX} spjöld.`;
+spjaldBtn.addEventListener("click", opnaNamsstokka);
+$("spjaldLokaBtn").addEventListener("click", lokaNamsstokkum);
+$("stokkaTilbakaBtn").addEventListener("click", () => {
+  vistaStokka();
+  byggjaStokkaYfirlit();
+});
+$("namTilbakaBtn").addEventListener("click", () => {
+  namInnihald.innerHTML = "";
+  synaStokkaUndirsidu("ritill");
+});
+
+$("stokkurNyrBtn").addEventListener("click", async () => {
+  const id = doc(collection(db, "users", notandi.uid, "spjaldtafla")).id;
+  stokkar.set(id, { id, nafn: "Nýr stokkur", spjold: [] });
+  valinnStokkur = stokkar.get(id);
+  stokkarOvistadir.add(id);
+  opnaStokk(id);
+  vistaStokka();
+  stokkurNafn.select();
+});
+
+stokkurNafn.addEventListener("input", () => {
+  if (!valinnStokkur) return;
+  valinnStokkur.nafn = stokkurNafn.value;
+  stokkurBreyttur();
+});
+
+$("stokkurEydaBtn").addEventListener("click", async () => {
+  if (!valinnStokkur || !confirm(`Eyða stokknum „${valinnStokkur.nafn}“ og öllum spjöldum hans?`)) return;
+  const id = valinnStokkur.id;
+  try {
+    await deleteDoc(stokkaRef(id));
+  } catch (villa) {
+    console.error(villa);
+  }
+  stokkarOvistadir.delete(id);
+  stokkar.delete(id);
+  byggjaStokkaYfirlit();
+});
+
+$("spjaldNyttBtn").addEventListener("click", () => {
+  if (!valinnStokkur) return;
+  if (valinnStokkur.spjold.length >= SPJOLD_MAX) {
+    spjaldVistunStada.textContent = `Hámark er ${SPJOLD_MAX} spjöld í stokk.`;
     return;
   }
-  spjoldGogn.unshift({ t: "", d: "" });
+  valinnStokkur.spjold.unshift({ t: "", d: "" });
   byggjaSpjaldaRitil();
   spjaldListi.querySelector("input")?.focus();
 });
 
+// Innflutningur: ein lína = eitt spjald (hugtak og skilgreining aðskilin með tab, " - ", " – ", " — " eða " = ").
+function greinaInnflutning(texti) {
+  const spjold = [];
+  texti.split(/\r?\n/).forEach((lina) => {
+    const m = lina.trim().match(/^(.{1,200}?)(?:\t|\s[-–—=]\s)(.+)$/);
+    if (m && m[1].trim() && m[2].trim()) spjold.push({ t: m[1].trim().slice(0, 200), d: m[2].trim().slice(0, 600) });
+  });
+  return spjold;
+}
+
+$("innflutningsOpnaBtn").addEventListener("click", () => {
+  innflutningsSvaedi.hidden = !innflutningsSvaedi.hidden;
+  innflutningsStada.textContent = "";
+  if (!innflutningsSvaedi.hidden) innflutningsTexti.focus();
+});
+$("innflutningsHaettaBtn").addEventListener("click", () => (innflutningsSvaedi.hidden = true));
+$("innflutningsBtn").addEventListener("click", () => {
+  if (!valinnStokkur) return;
+  const ny = greinaInnflutning(innflutningsTexti.value);
+  if (!ny.length) {
+    innflutningsStada.textContent = "Engin spjöld fundust - eitt spjald á línu: hugtak - skilgreining.";
+    return;
+  }
+  const pláss = SPJOLD_MAX - valinnStokkur.spjold.length;
+  valinnStokkur.spjold.push(...ny.slice(0, Math.max(0, pláss)));
+  innflutningsTexti.value = "";
+  innflutningsSvaedi.hidden = true;
+  byggjaSpjaldaRitil();
+  stokkurBreyttur();
+  spjaldVistunStada.textContent = `${Math.min(ny.length, Math.max(0, pláss))} spjöld flutt inn ✓`;
+});
+
 // Útflutningur: hugtak<TAB>skilgreining á hverri línu - Quizlet: Create → Import, límdu textann.
 quizletBtn.addEventListener("click", async () => {
-  const spjold = fullSpjold();
+  const spjold = fullSpjold(valinnStokkur);
   if (!spjold.length) return;
   const clean = (s) => s.replace(/[\t\r\n]+/g, " ").trim();
   const utTexti = spjold.map((s) => `${clean(s.t)}\t${clean(s.d)}`).join("\n");
@@ -2061,79 +2184,280 @@ quizletBtn.addEventListener("click", async () => {
   quizletTengill.hidden = false;
 });
 
-// Æfing: spjald snúið með smelli; "Kunni" tekur það úr bunkanum, "Æfa aftur" setur það aftar.
-let spjaldBunki = [];
-let spjaldAlls = 0;
-let spjaldSnuid = false;
-let spjaldHlidSkilgr = false; // true = skilgreining fyrst
-
-function spjaldStokka(arr) {
+// --- Æfingar ---
+const NAM_HEITI = { spjold: "🗂 Spjöld", laera: "✍️ Læra", prof: "✅ Próf", para: "🧩 Para saman" };
+const stokka = (arr) => {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
+  return arr;
+};
+const einfaldaSvar = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[.,;:!?"'„“()]/g, "").replace(/\s+/g, " ").trim();
+
+function nyHnappur(texti, klasi, onclick) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = klasi;
+  b.textContent = texti;
+  if (onclick) b.addEventListener("click", onclick);
+  return b;
 }
 
-function spjaldBirta() {
-  const kort = spjaldBunki[0];
-  spjaldLok.hidden = !!kort;
-  spjaldKort.hidden = !kort;
-  spjaldAdgerdir.hidden = !kort || !spjaldSnuid;
-  spjaldAefTalning.textContent = `${spjaldBunki.length} eftir af ${spjaldAlls}`;
-  if (!kort) {
-    spjaldLokTexti.textContent = `Þú fórst í gegnum öll ${spjaldAlls} spjöldin.`;
+function lokaskjar(el, texti, endurtaka) {
+  el.innerHTML = "";
+  const h3 = document.createElement("h3");
+  h3.textContent = "Búin! 🎉";
+  const p = document.createElement("p");
+  p.textContent = texti;
+  const kassi = document.createElement("div");
+  kassi.className = "spjald-lok";
+  kassi.append(h3, p, nyHnappur("Byrja aftur", "aðal-hnappur", endurtaka));
+  el.appendChild(kassi);
+}
+
+function byrjaNam(nam) {
+  const spjold = fullSpjold(valinnStokkur);
+  if (!spjold.length) return;
+  if ((nam === "prof" || nam === "para") && spjold.length < 2) {
+    quizletStada.hidden = false;
+    quizletStada.textContent = "Þetta þarf að minnsta kosti 2 spjöld.";
     return;
   }
-  const framhlid = spjaldHlidSkilgr ? kort.d : kort.t;
-  const bakhlid = spjaldHlidSkilgr ? kort.t : kort.d;
-  spjaldTexti.textContent = spjaldSnuid ? bakhlid : framhlid;
-  spjaldKort.classList.toggle("snuid", spjaldSnuid);
-  spjaldVisbending.textContent = spjaldSnuid ? (spjaldHlidSkilgr ? "Hugtak" : "Skilgreining") : "Smelltu til að snúa spjaldinu";
+  synaStokkaUndirsidu("nam");
+  namTitill.textContent = `${valinnStokkur.nafn} · ${NAM_HEITI[nam]}`;
+  ({ spjold: namSpjold, laera: namLaera, prof: namProf, para: namPara })[nam](spjold);
 }
 
-function byrjaAefingu() {
-  const spjold = fullSpjold();
-  if (!spjold.length) return;
-  spjaldAlls = spjold.length;
-  spjaldBunki = spjold.slice();
-  spjaldStokka(spjaldBunki);
-  spjaldSnuid = false;
-  spjaldRitill.hidden = true;
-  spjaldAefing.hidden = false;
-  spjaldBirta();
+stokkurRitill.querySelectorAll("[data-nam]").forEach((b) => b.addEventListener("click", () => byrjaNam(b.dataset.nam)));
+
+// Spjöld: smella til að snúa; Kunni / Æfa aftur.
+function namSpjold(spjold) {
+  let bunki = stokka(spjold.slice());
+  const alls = bunki.length;
+  let snuid = false;
+  let skilgrFyrst = false;
+  const synd = () => {
+    namInnihald.innerHTML = "";
+    const haus = document.createElement("div");
+    haus.className = "spjald-haus";
+    const tal = document.createElement("span");
+    tal.className = "glosa-stada";
+    tal.textContent = `${bunki.length} eftir af ${alls}`;
+    tal.style.marginRight = "auto";
+    haus.append(
+      tal,
+      nyHnappur("🔀 Stokka", "smabtn", () => {
+        stokka(bunki);
+        snuid = false;
+        synd();
+      }),
+      nyHnappur("⇄ Skipta um hlið", "smabtn", () => {
+        skilgrFyrst = !skilgrFyrst;
+        snuid = false;
+        synd();
+      })
+    );
+    namInnihald.appendChild(haus);
+    const kort = bunki[0];
+    if (!kort) return lokaskjar(namInnihald, `Þú fórst í gegnum öll ${alls} spjöldin.`, () => namSpjold(spjold));
+    const fram = skilgrFyrst ? kort.d : kort.t;
+    const bak = skilgrFyrst ? kort.t : kort.d;
+    const k = nyHnappur("", "spjald-kort" + (snuid ? " snuid" : ""), () => {
+      snuid = !snuid;
+      synd();
+    });
+    k.setAttribute("aria-live", "polite");
+    const t = document.createElement("span");
+    t.textContent = snuid ? bak : fram;
+    const sm = document.createElement("small");
+    sm.textContent = snuid ? (skilgrFyrst ? "Hugtak" : "Skilgreining") : "Smelltu til að snúa spjaldinu";
+    k.append(t, sm);
+    namInnihald.appendChild(k);
+    if (snuid) {
+      const ad = document.createElement("div");
+      ad.className = "spjald-adgerdir";
+      ad.append(
+        nyHnappur("🔁 Æfa aftur", "smabtn", () => {
+          bunki.shift();
+          bunki.splice(Math.min(3, bunki.length), 0, kort);
+          snuid = false;
+          synd();
+        }),
+        nyHnappur("✓ Kunni", "aðal-hnappur", () => {
+          bunki.shift();
+          snuid = false;
+          synd();
+        })
+      );
+      namInnihald.appendChild(ad);
+    }
+  };
+  synd();
 }
 
-spjaldAefaBtn.addEventListener("click", byrjaAefingu);
-document.getElementById("spjaldBytjaAftur").addEventListener("click", byrjaAefingu);
-document.getElementById("spjaldTilbakaBtn").addEventListener("click", () => {
-  spjaldAefing.hidden = true;
-  spjaldRitill.hidden = false;
-});
-spjaldKort.addEventListener("click", () => {
-  spjaldSnuid = !spjaldSnuid;
-  spjaldBirta();
-});
-document.getElementById("spjaldStokkaBtn").addEventListener("click", () => {
-  spjaldStokka(spjaldBunki);
-  spjaldSnuid = false;
-  spjaldBirta();
-});
-document.getElementById("spjaldHlidBtn").addEventListener("click", () => {
-  spjaldHlidSkilgr = !spjaldHlidSkilgr;
-  spjaldSnuid = false;
-  spjaldBirta();
-});
-document.getElementById("spjaldKunniBtn").addEventListener("click", () => {
-  spjaldBunki.shift();
-  spjaldSnuid = false;
-  spjaldBirta();
-});
-document.getElementById("spjaldAfturBtn").addEventListener("click", () => {
-  const kort = spjaldBunki.shift();
-  if (kort) spjaldBunki.splice(Math.min(3, spjaldBunki.length), 0, kort);
-  spjaldSnuid = false;
-  spjaldBirta();
-});
+// Læra: skrifaðu skilgreininguna; rangt kemur aftur seinna.
+function namLaera(spjold) {
+  let bunki = stokka(spjold.slice());
+  const alls = bunki.length;
+  const fyrsta = new Map(); // spjald -> rétt í fyrstu tilraun?
+  const tilraunir = new Map();
+  const synd = () => {
+    namInnihald.innerHTML = "";
+    const kort = bunki[0];
+    if (!kort) {
+      const rettFyrsta = [...fyrsta.values()].filter(Boolean).length;
+      return lokaskjar(namInnihald, `${rettFyrsta} af ${alls} rétt í fyrstu tilraun.`, () => namLaera(spjold));
+    }
+    const tal = document.createElement("p");
+    tal.className = "glosa-stada";
+    tal.textContent = `${bunki.length} eftir af ${alls}`;
+    const k = document.createElement("div");
+    k.className = "spjald-kort laera-kort";
+    const t = document.createElement("span");
+    t.textContent = kort.t;
+    const sm = document.createElement("small");
+    sm.textContent = "Hver er skilgreiningin?";
+    k.append(t, sm);
+    const form = document.createElement("form");
+    form.className = "svar-form";
+    const inn = document.createElement("input");
+    inn.type = "text";
+    inn.placeholder = "Skrifaðu svarið…";
+    inn.autocomplete = "off";
+    const senda = nyHnappur("Svara", "", null);
+    senda.type = "submit";
+    const nidurstada = document.createElement("p");
+    nidurstada.className = "spurning-nidurstada";
+    const urslit = (rett, passad = false) => {
+      form.querySelectorAll("input,button").forEach((e) => (e.disabled = true));
+      tilraunir.set(kort, (tilraunir.get(kort) || 0) + 1);
+      if (!fyrsta.has(kort)) fyrsta.set(kort, rett);
+      nidurstada.textContent = rett ? "Rétt! 🎉" : `${passad ? "Pass" : "Ekki rétt"}. Rétt svar: ${kort.d}`;
+      nidurstada.className = "spurning-nidurstada " + (rett ? "rett" : "rangt");
+      const ad = document.createElement("div");
+      ad.className = "spjald-adgerdir";
+      if (!rett && !passad) {
+        ad.appendChild(
+          nyHnappur("Ég hafði rétt", "smabtn", () => {
+            if (tilraunir.get(kort) === 1) fyrsta.set(kort, true);
+            bunki.shift();
+            synd();
+          })
+        );
+      }
+      ad.appendChild(
+        nyHnappur("Áfram →", "aðal-hnappur", () => {
+          bunki.shift();
+          if (!rett) bunki.splice(Math.min(3, bunki.length), 0, kort);
+          synd();
+        })
+      );
+      namInnihald.appendChild(ad);
+      ad.lastChild.focus();
+    };
+    const pass = nyHnappur("Pass", "sleppa-btn", () => urslit(false, true));
+    form.append(inn, senda, pass);
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!inn.value.trim()) return;
+      urslit(einfaldaSvar(inn.value) === einfaldaSvar(kort.d));
+    });
+    namInnihald.append(tal, k, form, nidurstada);
+    inn.focus({ preventScroll: true });
+  };
+  synd();
+}
+
+// Próf: fjölvalsspurningar (hugtak → rétt skilgreining af allt að 4).
+function namProf(spjold) {
+  const spurn = stokka(spjold.slice()).slice(0, 15);
+  let nr = 0;
+  let rett = 0;
+  const synd = () => {
+    namInnihald.innerHTML = "";
+    if (nr >= spurn.length) return lokaskjar(namInnihald, `${rett} af ${spurn.length} rétt.`, () => namProf(spjold));
+    const kort = spurn[nr];
+    const tal = document.createElement("p");
+    tal.className = "glosa-stada";
+    tal.textContent = `Spurning ${nr + 1} af ${spurn.length}`;
+    const k = document.createElement("div");
+    k.className = "spjald-kort laera-kort";
+    const t = document.createElement("span");
+    t.textContent = kort.t;
+    k.appendChild(t);
+    const valkostir = stokka([kort, ...stokka(spjold.filter((s) => s !== kort && s.d !== kort.d)).slice(0, 3)]);
+    const listi = document.createElement("div");
+    listi.className = "prof-valkostir";
+    valkostir.forEach((v) => {
+      const b = nyHnappur(v.d, "prof-valkostur", () => {
+        listi.querySelectorAll("button").forEach((x) => {
+          x.disabled = true;
+          if (x.textContent === kort.d) x.classList.add("rett");
+        });
+        if (v === kort) rett++;
+        else b.classList.add("rangt");
+        listi.after(nyHnappur(nr + 1 >= spurn.length ? "Sjá niðurstöðu →" : "Næsta →", "aðal-hnappur", () => {
+          nr++;
+          synd();
+        }));
+      });
+      listi.appendChild(b);
+    });
+    namInnihald.append(tal, k, listi);
+  };
+  synd();
+}
+
+// Para saman: pörum hugtök við skilgreiningar sem hraðast.
+function namPara(spjold) {
+  const hopur = stokka(spjold.slice()).slice(0, 6);
+  const flisar = stokka(hopur.flatMap((s) => [{ s, gerd: "t", texti: s.t }, { s, gerd: "d", texti: s.d }]));
+  let valin = null;
+  let eftir = hopur.length;
+  const upphaf = Date.now();
+  namInnihald.innerHTML = "";
+  const tal = document.createElement("p");
+  tal.className = "glosa-stada";
+  tal.textContent = `${eftir} pör eftir`;
+  const net = document.createElement("div");
+  net.className = "para-net";
+  flisar.forEach((f) => {
+    const b = nyHnappur(f.texti, "para-flis", () => {
+      if (b.classList.contains("farid")) return;
+      if (!valin) {
+        valin = { f, b };
+        b.classList.add("valin");
+        return;
+      }
+      if (valin.b === b) {
+        b.classList.remove("valin");
+        valin = null;
+        return;
+      }
+      const fyrri = valin;
+      valin = null;
+      if (fyrri.f.s === f.s && fyrri.f.gerd !== f.gerd) {
+        [fyrri.b, b].forEach((x) => {
+          x.classList.remove("valin");
+          x.classList.add("farid");
+          x.disabled = true;
+        });
+        eftir--;
+        tal.textContent = `${eftir} pör eftir`;
+        if (eftir === 0) {
+          const sek = Math.round((Date.now() - upphaf) / 100) / 10;
+          lokaskjar(namInnihald, `Allt parað á ${sek} sekúndum.`, () => namPara(spjold));
+        }
+      } else {
+        [fyrri.b, b].forEach((x) => x.classList.add("vitlaust"));
+        setTimeout(() => [fyrri.b, b].forEach((x) => x.classList.remove("valin", "vitlaust")), 500);
+      }
+    });
+    net.appendChild(b);
+  });
+  namInnihald.append(tal, net);
+}
 
 // Les tölfræðina beint af users/{uid} (fjoldiSvarad/fjoldiRett/fjoldiPass/
 // verkefnaStada) í stað þess að endurreikna úr öllum attempts- og
