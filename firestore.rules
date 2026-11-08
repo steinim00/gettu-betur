@@ -56,6 +56,16 @@ service cloud.firestore {
       // Glósur notandans um verkefni - hreinir einkaminnispunktar, ólíkt
       // attempts mega þær breytast/eyðast frjálst. Skjal-ID = verkefniID,
       // ein glósa á hvert verkefni.
+      // Spjöldin mín (á la Quizlet): eitt skjal með lista af { t: hugtak, d: skilgreining }.
+      match /spjaldtafla/{id} {
+        allow read: if innskradur() && (request.auth.uid == userId || erAdmin());
+        allow create, update: if innskradur() && request.auth.uid == userId
+                      && request.resource.data.keys().hasOnly(['spjold', 'updatedAt'])
+                      && request.resource.data.spjold is list
+                      && request.resource.data.spjold.size() <= 500;
+        allow delete: if innskradur() && request.auth.uid == userId;
+      }
+
       // Glósur við einstakar spurningar. Skjal-ID = spurningaID.
       match /spurningaGlosur/{questionId} {
         allow read: if innskradur() && (request.auth.uid == userId || erAdmin());

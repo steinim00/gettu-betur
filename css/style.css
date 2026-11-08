@@ -4305,3 +4305,52 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
   padding: 28px 0;
   text-align: center;
 }
+
+/* Spjöldin mín: ritill */
+.spjald-rod {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr auto;
+  gap: 8px;
+  align-items: start;
+  margin-bottom: 8px;
+}
+
+.spjald-rod input,
+.spjald-rod textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+@media (max-width: 600px) {
+  .spjald-rod {
+    grid-template-columns: 1fr auto;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--litur-jadar);
+  }
+
+  .spjald-rod input {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .spjald-rod button {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .spjald-rod textarea {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+#spjaldRitill[hidden],
+#spjaldAefing[hidden] {
+  display: none;
+}

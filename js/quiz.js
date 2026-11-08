@@ -1836,7 +1836,7 @@ notepadLeit.addEventListener("input", () => {
 
 async function hladaGlosur() {
   if (!notandi) return;
-  lokaSpjaldtoflu();
+  if (!spjaldSvaedi.hidden) lokaSpjoldum();
   notepadTexti.disabled = true;
   notepadStada.textContent = "Sæki glósur…";
   try {
@@ -1862,48 +1862,208 @@ async function hladaGlosur() {
   }
 }
 
-// --- Spjaldtafla (á la Quizlet) og útflutningur í Quizlet, byggt á glósunum ---
-// Spjald = lína í glósunum sem er á forminu "hugtak - skilgreining" (líka –, —, = eða tab; eða "hugtak: skilgreining"
-// ef hugtakið er stutt), eða "❓ spurning" með glósu í línunum fyrir neðan (glósur við spurningar).
-function greinaSpjold(texti) {
-  const linur = texti.split(/\r?\n/);
-  const spjold = [];
-  for (let i = 0; i < linur.length; i++) {
-    const lina = linur[i].trim();
-    if (!lina || lina.startsWith("📁")) continue;
-    if (lina.startsWith("❓")) {
-      const hugtak = lina.replace(/^❓\s*/, "").trim();
-      const skil = [];
-      while (i + 1 < linur.length && linur[i + 1].trim()) skil.push(linur[++i].trim());
-      if (hugtak && skil.length) spjold.push({ t: hugtak, d: skil.join(" ") });
-      continue;
-    }
-    let m = lina.match(/^(.{1,100}?)(?:\t|\s[-–—=]\s)(.+)$/);
-    if (!m) {
-      const k = lina.match(/^([^:]{1,60}):\s+(.+)$/);
-      if (k && k[1].trim().split(/\s+/).length <= 5) m = k;
-    }
-    if (m && m[1].trim() && m[2].trim()) spjold.push({ t: m[1].trim(), d: m[2].trim() });
-  }
-  return spjold;
-}
-
+// --- Spjöldin mín (á la Quizlet): nemandinn býr til sín eigin spjöld; æfa þau eða flytja út í Quizlet ---
+// users/{uid}/spjaldtafla/stokkur = { spjold: [{ t: hugtak, d: skilgreining }], updatedAt }. Ein lesning, eitt skrif.
+const SPJOLD_MAX = 500;
 const spjaldBtn = document.getElementById("spjaldBtn");
+const spjaldSvaedi = document.getElementById("spjaldSvaedi");
+const spjaldRitill = document.getElementById("spjaldRitill");
+const spjaldAefing = document.getElementById("spjaldAefing");
+const spjaldListi = document.getElementById("spjaldListi");
+const spjaldTalning = document.getElementById("spjaldTalning");
+const spjaldAefTalning = document.getElementById("spjaldAefTalning");
+const spjaldVistunStada = document.getElementById("spjaldVistunStada");
+const spjaldAefaBtn = document.getElementById("spjaldAefaBtn");
 const quizletBtn = document.getElementById("quizletBtn");
 const quizletTengill = document.getElementById("quizletTengill");
 const quizletStada = document.getElementById("quizletStada");
 const notepadHluti = document.getElementById("notepadHluti");
-const spjaldSvaedi = document.getElementById("spjaldSvaedi");
 const spjaldKort = document.getElementById("spjaldKort");
 const spjaldTexti = document.getElementById("spjaldTexti");
 const spjaldVisbending = document.getElementById("spjaldVisbending");
-const spjaldTalning = document.getElementById("spjaldTalning");
 const spjaldAdgerdir = document.getElementById("spjaldAdgerdir");
 const spjaldLok = document.getElementById("spjaldLok");
 const spjaldLokTexti = document.getElementById("spjaldLokTexti");
 
-let spjaldAlls = 0;
+let spjoldGogn = null; // [{ t, d }] - null = ekki sótt
+let spjoldOvistud = false;
+let spjoldTimi = null;
+let spjoldSaekir = null;
+
+function spjaldRef() {
+  return doc(db, "users", notandi.uid, "spjaldtafla", "stokkur");
+}
+
+function saekjaSpjold() {
+  if (spjoldGogn) return Promise.resolve(spjoldGogn);
+  if (!spjoldSaekir) {
+    spjoldSaekir = getDoc(spjaldRef())
+      .then((snap) => (spjoldGogn = snap.exists() ? (snap.data().spjold || []).map((s) => ({ t: s.t || "", d: s.d || "" })) : []))
+      .finally(() => (spjoldSaekir = null));
+  }
+  return spjoldSaekir;
+}
+
+async function vistaSpjold() {
+  clearTimeout(spjoldTimi);
+  if (!notandi || !spjoldOvistud || !spjoldGogn) return;
+  const spjold = spjoldGogn.filter((s) => s.t.trim() || s.d.trim()).slice(0, SPJOLD_MAX);
+  if (navigator.onLine === false) {
+    spjaldVistunStada.textContent = "Ónettengt - vistast þegar netið kemur aftur.";
+    return;
+  }
+  spjoldOvistud = false;
+  spjaldVistunStada.textContent = "Vista…";
+  try {
+    await setDoc(spjaldRef(), { spjold, updatedAt: serverTimestamp() });
+    if (!spjoldOvistud) spjaldVistunStada.textContent = "Vistað ✓ (aðeins þú sérð þetta)";
+  } catch (villa) {
+    console.error(villa);
+    spjoldOvistud = true;
+    spjaldVistunStada.textContent = "Tókst ekki að vista - reynir aftur";
+    spjoldTimi = setTimeout(vistaSpjold, 5000);
+  }
+}
+
+function spjoldBreytt() {
+  spjoldOvistud = true;
+  spjaldVistunStada.textContent = "Breytt";
+  clearTimeout(spjoldTimi);
+  spjoldTimi = setTimeout(vistaSpjold, 1200);
+  uppfaeraSpjaldTalningu();
+}
+
+window.addEventListener("online", () => vistaSpjold());
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") vistaSpjold();
+});
+window.addEventListener("pagehide", () => vistaSpjold());
+
+function fullSpjold() {
+  return (spjoldGogn || []).filter((s) => s.t.trim() && s.d.trim());
+}
+
+function uppfaeraSpjaldTalningu() {
+  const n = fullSpjold().length;
+  spjaldTalning.textContent = `${n} ${n === 1 ? "spjald" : "spjöld"}`;
+  spjaldAefaBtn.disabled = n === 0;
+  quizletBtn.disabled = n === 0;
+}
+
+function byggjaSpjaldaRitil() {
+  spjaldListi.innerHTML = "";
+  if (spjoldGogn.length === 0) {
+    const tomt = document.createElement("p");
+    tomt.className = "heimild-tilvitnun";
+    tomt.textContent = "Engin spjöld ennþá - ýttu á „Nýtt spjald“.";
+    spjaldListi.appendChild(tomt);
+  }
+  spjoldGogn.forEach((s) => {
+    const rod = document.createElement("div");
+    rod.className = "spjald-rod";
+    const t = document.createElement("input");
+    t.type = "text";
+    t.maxLength = 200;
+    t.placeholder = "Hugtak";
+    t.value = s.t;
+    t.setAttribute("aria-label", "Hugtak");
+    const d = document.createElement("textarea");
+    d.rows = 2;
+    d.maxLength = 600;
+    d.placeholder = "Skilgreining";
+    d.value = s.d;
+    d.setAttribute("aria-label", "Skilgreining");
+    const eyda = document.createElement("button");
+    eyda.type = "button";
+    eyda.className = "smabtn";
+    eyda.textContent = "✕";
+    eyda.title = "Eyða spjaldi";
+    eyda.setAttribute("aria-label", "Eyða spjaldi");
+    t.addEventListener("input", () => {
+      s.t = t.value;
+      spjoldBreytt();
+    });
+    d.addEventListener("input", () => {
+      s.d = d.value;
+      spjoldBreytt();
+    });
+    eyda.addEventListener("click", () => {
+      spjoldGogn.splice(spjoldGogn.indexOf(s), 1);
+      byggjaSpjaldaRitil();
+      spjoldBreytt();
+    });
+    rod.append(t, d, eyda);
+    spjaldListi.appendChild(rod);
+  });
+  uppfaeraSpjaldTalningu();
+}
+
+async function opnaSpjoldin() {
+  await vistaNotepad();
+  notepadHluti.hidden = true;
+  spjaldSvaedi.hidden = false;
+  spjaldBtn.hidden = true;
+  spjaldRitill.hidden = false;
+  spjaldAefing.hidden = true;
+  quizletStada.hidden = true;
+  quizletTengill.hidden = true;
+  spjaldVistunStada.textContent = "Sæki spjöld…";
+  try {
+    await saekjaSpjold();
+    spjaldVistunStada.textContent = "Aðeins þú sérð þetta. Vistast sjálfkrafa.";
+    byggjaSpjaldaRitil();
+  } catch (villa) {
+    console.error(villa);
+    spjaldVistunStada.textContent = "Tókst ekki að sækja spjöldin - reyndu aftur.";
+  }
+}
+
+function lokaSpjoldum() {
+  vistaSpjold();
+  spjaldSvaedi.hidden = true;
+  notepadHluti.hidden = false;
+  spjaldBtn.hidden = false;
+}
+
+spjaldBtn.addEventListener("click", opnaSpjoldin);
+document.getElementById("spjaldLokaBtn").addEventListener("click", lokaSpjoldum);
+document.getElementById("spjaldNyttBtn").addEventListener("click", () => {
+  if (!spjoldGogn) return;
+  if (spjoldGogn.length >= SPJOLD_MAX) {
+    spjaldVistunStada.textContent = `Hámark er ${SPJOLD_MAX} spjöld.`;
+    return;
+  }
+  spjoldGogn.unshift({ t: "", d: "" });
+  byggjaSpjaldaRitil();
+  spjaldListi.querySelector("input")?.focus();
+});
+
+// Útflutningur: hugtak<TAB>skilgreining á hverri línu - Quizlet: Create → Import, límdu textann.
+quizletBtn.addEventListener("click", async () => {
+  const spjold = fullSpjold();
+  if (!spjold.length) return;
+  const clean = (s) => s.replace(/[\t\r\n]+/g, " ").trim();
+  const utTexti = spjold.map((s) => `${clean(s.t)}\t${clean(s.d)}`).join("\n");
+  quizletStada.hidden = false;
+  try {
+    await navigator.clipboard.writeText(utTexti);
+    quizletStada.textContent = `Afritað: ${spjold.length} spjöld ✓ Í Quizlet: Create → Import → límdu textann (Ctrl+V / Líma).`;
+  } catch (villa) {
+    quizletStada.textContent = `${spjold.length} spjöld. Afritaðu textann hér að neðan og límdu hann í Quizlet (Create → Import):`;
+    const reitur = document.createElement("textarea");
+    reitur.readOnly = true;
+    reitur.className = "notepad";
+    reitur.style.minHeight = "30vh";
+    reitur.value = utTexti;
+    quizletStada.after(reitur);
+    reitur.select();
+  }
+  quizletTengill.hidden = false;
+});
+
+// Æfing: spjald snúið með smelli; "Kunni" tekur það úr bunkanum, "Æfa aftur" setur það aftar.
 let spjaldBunki = [];
+let spjaldAlls = 0;
 let spjaldSnuid = false;
 let spjaldHlidSkilgr = false; // true = skilgreining fyrst
 
@@ -1919,7 +2079,7 @@ function spjaldBirta() {
   spjaldLok.hidden = !!kort;
   spjaldKort.hidden = !kort;
   spjaldAdgerdir.hidden = !kort || !spjaldSnuid;
-  spjaldTalning.textContent = `${spjaldBunki.length} eftir af ${spjaldAlls}`;
+  spjaldAefTalning.textContent = `${spjaldBunki.length} eftir af ${spjaldAlls}`;
   if (!kort) {
     spjaldLokTexti.textContent = `Þú fórst í gegnum öll ${spjaldAlls} spjöldin.`;
     return;
@@ -1931,33 +2091,24 @@ function spjaldBirta() {
   spjaldVisbending.textContent = spjaldSnuid ? (spjaldHlidSkilgr ? "Hugtak" : "Skilgreining") : "Smelltu til að snúa spjaldinu";
 }
 
-async function opnaSpjaldtoflu() {
-  await vistaNotepad();
-  const spjold = greinaSpjold(notepadTexti.value);
-  if (spjold.length === 0) {
-    quizletStada.hidden = false;
-    quizletStada.textContent = "Engin spjöld fundust. Skrifaðu hugtak - skilgreining á eina línu í glósunum (t.d. „Valletta - höfuðborg Möltu“).";
-    return;
-  }
-  quizletStada.hidden = true;
+function byrjaAefingu() {
+  const spjold = fullSpjold();
+  if (!spjold.length) return;
   spjaldAlls = spjold.length;
   spjaldBunki = spjold.slice();
   spjaldStokka(spjaldBunki);
   spjaldSnuid = false;
-  notepadHluti.hidden = true;
-  spjaldSvaedi.hidden = false;
-  spjaldBtn.hidden = true;
+  spjaldRitill.hidden = true;
+  spjaldAefing.hidden = false;
   spjaldBirta();
 }
 
-function lokaSpjaldtoflu() {
-  spjaldSvaedi.hidden = true;
-  notepadHluti.hidden = false;
-  spjaldBtn.hidden = false;
-}
-
-spjaldBtn.addEventListener("click", opnaSpjaldtoflu);
-document.getElementById("spjaldLokaBtn").addEventListener("click", lokaSpjaldtoflu);
+spjaldAefaBtn.addEventListener("click", byrjaAefingu);
+document.getElementById("spjaldBytjaAftur").addEventListener("click", byrjaAefingu);
+document.getElementById("spjaldTilbakaBtn").addEventListener("click", () => {
+  spjaldAefing.hidden = true;
+  spjaldRitill.hidden = false;
+});
 spjaldKort.addEventListener("click", () => {
   spjaldSnuid = !spjaldSnuid;
   spjaldBirta();
@@ -1979,40 +2130,10 @@ document.getElementById("spjaldKunniBtn").addEventListener("click", () => {
 });
 document.getElementById("spjaldAfturBtn").addEventListener("click", () => {
   const kort = spjaldBunki.shift();
-  if (kort) spjaldBunki.splice(Math.min(3, spjaldBunki.length), 0, kort); // kemur aftur eftir nokkur spjöld
+  if (kort) spjaldBunki.splice(Math.min(3, spjaldBunki.length), 0, kort);
   spjaldSnuid = false;
   spjaldBirta();
 });
-document.getElementById("spjaldBytjaAftur").addEventListener("click", opnaSpjaldtoflu);
-
-// Útflutningur: hugtak<TAB>skilgreining á hverri línu - Quizlet: Create → Import, límdu textann.
-quizletBtn.addEventListener("click", async () => {
-  await vistaNotepad();
-  const spjold = greinaSpjold(notepadTexti.value);
-  quizletStada.hidden = false;
-  if (spjold.length === 0) {
-    quizletStada.textContent = "Engin spjöld fundust. Skrifaðu hugtak - skilgreining á eina línu í glósunum (t.d. „Valletta - höfuðborg Möltu“).";
-    quizletTengill.hidden = true;
-    return;
-  }
-  const utTexti = spjold.map((s) => `${s.t.replace(/\t/g, " ")}\t${s.d.replace(/\t/g, " ")}`).join("\n");
-  try {
-    await navigator.clipboard.writeText(utTexti);
-    quizletStada.textContent = `Afritað: ${spjold.length} spjöld ✓ Í Quizlet: Create → Import → límdu textann (Ctrl+V / Líma).`;
-  } catch (villa) {
-    // Ekkert klippiborð (t.d. ótryggt umhverfi): sýnum textann til að afrita.
-    quizletStada.textContent = `${spjold.length} spjöld. Afritaðu textann hér að neðan og límdu hann í Quizlet (Create → Import):`;
-    const pre = document.createElement("textarea");
-    pre.readOnly = true;
-    pre.className = "notepad";
-    pre.style.minHeight = "30vh";
-    pre.value = utTexti;
-    quizletStada.after(pre);
-    pre.select();
-  }
-  quizletTengill.hidden = false;
-});
-
 
 // Les tölfræðina beint af users/{uid} (fjoldiSvarad/fjoldiRett/fjoldiPass/
 // verkefnaStada) í stað þess að endurreikna úr öllum attempts- og
