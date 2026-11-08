@@ -108,6 +108,7 @@
         innbyggðri. Til þess þarf lítið Google-forrit (<em>Apps Script</em>) - ókeypis, engin önnur
         þjónusta, og sett upp einu sinni (um 5 mínútur):
       </p>
+      <p class="undirtitill-vinstri"><strong>Nýtt: tímasettar sendingar.</strong> Kóðinn hér fyrir neðan er útgáfa 2. Ef þú ert með eldri útgáfu: límdu nýja kóðann yfir þann gamla (haltu lykilorðinu), ýttu á <em>Deploy → Manage deployments → ✏️ → Version: New version → Deploy</em> (slóðin helst óbreytt), veldu fallið <code>uppsetning</code> og ýttu á <em>Run</em> einu sinni (samþykktu heimildirnar). Þá sér tímastillir um að senda tímasettar áminningar á 5 mínútna fresti.</p>
       <ol class="undirtitill-vinstri" style="padding-left:20px;">
         <li>Farðu á <a class="tengill" href="https://script.google.com" target="_blank" rel="noopener">script.google.com</a> → <em>Nýtt verkefni</em>. Eyddu kóðanum sem er þar og límdu kóðann hér fyrir neðan. Breyttu <code>BREYTTU-MER</code> í þitt eigið lykilorð.</li>
         <li><em>Deploy</em> → <em>New deployment</em> → tegund <em>Web app</em>. <em>Execute as:</em> Me, <em>Who has access:</em> Anyone → <em>Deploy</em>. Samþykktu heimildirnar (Gmail og ytri tengingar).</li>
@@ -170,6 +171,16 @@
           <button type="button" class="smabtn" id="ytaVidHaettaBtn">Hætta við</button>
           <span id="ytaVidStada" class="undirtitill-vinstri" style="margin:0;"></span>
         </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center;">
+          <label class="undirtitill-vinstri" style="margin:0;display:flex;align-items:center;gap:6px;">
+            Senda síðar:
+            <input type="datetime-local" id="ytaVidTimi">
+          </label>
+          <button type="button" class="smabtn" id="ytaVidTimasetjaBtn">⏰ Tímasetja</button>
+          <button type="button" class="smabtn" id="ytaVidAfturkallaBtn" hidden>Hætta við tímasetta</button>
+          <span id="ytaVidTimasettStada" class="undirtitill-vinstri" style="margin:0;"></span>
+        </div>
+        <p class="undirtitill-vinstri" style="margin:6px 0 0;">Stök sending úr Gmail á tilteknum tíma. Ef nemandinn er online rétt áður en pósturinn fer er hætt við.</p>
       </div>
 
       <table id="notendaTafla">

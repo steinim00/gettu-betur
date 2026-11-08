@@ -20,6 +20,7 @@ import {
   deleteField,
   increment,
   serverTimestamp,
+  Timestamp,
   writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
@@ -37,7 +38,12 @@ import {
   byggjaPostHtml,
   myndaForskodun,
   mailtoSlod,
-  sendaPost
+  sendaPost,
+  timasetjaPost,
+  afturkallaTimasetta,
+  saekjaTimasettar,
+  hreinsaTimasettar,
+  skriptaStillt
 } from "./aminningar.js";
 
 let adminNetfang = ""; // netfang innskráða admin (prufupóstar)
@@ -821,6 +827,8 @@ function opnaYtaVid(r) {
     ytaVidValkostir.appendChild(kort);
   });
   ytaVidUppfaeraMailto();
+  ytaVidTimi.value = "";
+  ytaVidUppfaeraTimasetningu();
   ytaVidPanell.hidden = false;
   ytaVidPanell.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
@@ -828,6 +836,137 @@ function opnaYtaVid(r) {
 ytaVidHaettaBtn.addEventListener("click", () => {
   ytaVidPanell.hidden = true;
 });
+
+// ---- Tímasettar áminningar (stakar sendingar, Apps Script sér um sendinguna) ----
+const ytaVidTimi = document.getElementById("ytaVidTimi");
+const ytaVidTimasetjaBtn = document.getElementById("ytaVidTimasetjaBtn");
+const ytaVidAfturkallaBtn = document.getElementById("ytaVidAfturkallaBtn");
+const ytaVidTimasettStada = document.getElementById("ytaVidTimasettStada");
+
+function formatTimaKl(ms) {
+  return new Date(ms).toLocaleString("is-IS", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+function timiSemInnslattur(ms) {
+  return new Date(ms - new Date(ms).getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+const FELLD_ASTAEDUR = { online: "nemandinn var online", of_sein: "sendingin varð of sein", villa: "villa við sendingu" };
+
+function ytaVidUppfaeraTimasetningu() {
+  const r = ytaVidNotandi;
+  const bid = r?.aaetladAminning;
+  ytaVidAfturkallaBtn.hidden = !bid;
+  ytaVidTimasettStada.textContent = bid
+    ? `⏰ Áminning áætluð ${formatTimaKl(bid.kl)}`
+    : r?.aminningFelld
+      ? `Síðasta tímasetta áminning (${formatTimaKl(r.aminningFelld.kl)}) var ekki send: ${FELLD_ASTAEDUR[r.aminningFelld.astaeda] || r.aminningFelld.astaeda}.`
+      : "";
+  if (!ytaVidTimi.value || bid) {
+    const sjalfgefid = bid ? bid.kl : (() => { const d = new Date(Date.now() + 24 * 3600000); d.setHours(17, 0, 0, 0); return d.getTime(); })();
+    ytaVidTimi.value = timiSemInnslattur(sjalfgefid);
+  }
+}
+
+ytaVidTimasetjaBtn.addEventListener("click", async () => {
+  const r = ytaVidNotandi;
+  const a = hladaAminningar().find((x) => x.id === ytaVidValinId);
+  if (!r || !a) return;
+  if (!r.email) {
+    ytaVidTimasettStada.textContent = "Notandinn hefur ekkert netfang skráð.";
+    return;
+  }
+  if (!skriptaStillt()) {
+    ytaVidTimasettStada.textContent = "Tímasetning krefst Apps Script (Stillingar → Áminningar).";
+    return;
+  }
+  const kl = new Date(ytaVidTimi.value).getTime();
+  if (!kl || kl < Date.now() + 10 * 60000) {
+    ytaVidTimasettStada.textContent = "Veldu tíma sem er að minnsta kosti 10 mínútum fram í tímann.";
+    return;
+  }
+  ytaVidTimasetjaBtn.disabled = true;
+  ytaVidTimasettStada.textContent = "Tímasetja…";
+  try {
+    await timasetjaPost({
+      id: r.uid,
+      uid: r.uid,
+      sendaKl: kl,
+      til: r.email,
+      nafn: r.nafn,
+      aminning: a,
+      dagar: dagarSidanVirk(r),
+      kyn: r.kyn,
+      myndahamur: ytaVidMyndahamur.value
+    });
+    r.aaetladAminning = { id: a.id, kl };
+    r.aminningFelld = null;
+    await updateDoc(doc(db, "users", r.uid), { aaetladAminning: r.aaetladAminning, aminningFelld: deleteField() });
+    ytaVidUppfaeraTimasetningu();
+    birtaNotendaRadir();
+  } catch (villa) {
+    console.error(villa);
+    ytaVidTimasettStada.textContent = "Tókst ekki að tímasetja: " + villa.message;
+  }
+  ytaVidTimasetjaBtn.disabled = false;
+});
+
+ytaVidAfturkallaBtn.addEventListener("click", async () => {
+  const r = ytaVidNotandi;
+  if (!r?.aaetladAminning) return;
+  ytaVidAfturkallaBtn.disabled = true;
+  try {
+    await afturkallaTimasetta(r.uid);
+    await updateDoc(doc(db, "users", r.uid), { aaetladAminning: deleteField() });
+    r.aaetladAminning = null;
+    ytaVidTimasettStada.textContent = "Hætt við tímasettu áminninguna.";
+    ytaVidAfturkallaBtn.hidden = true;
+    birtaNotendaRadir();
+  } catch (villa) {
+    console.error(villa);
+    ytaVidTimasettStada.textContent = "Tókst ekki að hætta við: " + villa.message;
+  }
+  ytaVidAfturkallaBtn.disabled = false;
+});
+
+// Sækir niðurstöður tímasettra áminninga frá Apps Script (sent / hætt við) og skráir þær á notendurna.
+let timasettarSamstillast = false;
+async function samstillaTimasettar() {
+  if (timasettarSamstillast || !skriptaStillt()) return;
+  const nu = Date.now();
+  const bidandi = notendaRadir.filter((r) => r.aaetladAminning && r.aaetladAminning.kl <= nu);
+  if (bidandi.length === 0) return;
+  timasettarSamstillast = true;
+  try {
+    const listi = await saekjaTimasettar();
+    const hreinsa = [];
+    for (const r of bidandi) {
+      const h = listi.find((x) => x.id === r.uid);
+      if (h && h.stada === "bid") continue; // enn í bið
+      const breytingar = { aaetladAminning: deleteField() };
+      if (h && h.stada === "sent") {
+        Object.assign(breytingar, { sidastYttVid: Timestamp.fromMillis(h.timi), fjoldiYttVid: increment(1), aminningFelld: deleteField() });
+        r.sidastYttVid = h.timi;
+        r.fjoldiYttVid += 1;
+        r.aminningFelld = null;
+      } else if (h) {
+        breytingar.aminningFelld = { kl: h.timi || r.aaetladAminning.kl, astaeda: h.stada, villa: h.villa || null };
+        r.aminningFelld = breytingar.aminningFelld;
+      } else if (nu - r.aaetladAminning.kl < 24 * 3600000) {
+        continue; // Apps Script hefur ekki skráð neitt ennþá - reyna aftur seinna
+      }
+      await updateDoc(doc(db, "users", r.uid), breytingar);
+      r.aaetladAminning = null;
+      if (h) hreinsa.push(r.uid);
+    }
+    if (hreinsa.length) await hreinsaTimasettar(hreinsa);
+    birtaNotendaRadir();
+  } catch (villa) {
+    console.warn("Tókst ekki að samstilla tímasettar áminningar", villa);
+  } finally {
+    timasettarSamstillast = false;
+  }
+}
 
 async function skraYttVid(r) {
   await updateDoc(doc(db, "users", r.uid), { sidastYttVid: serverTimestamp(), fjoldiYttVid: increment(1) });
@@ -1099,12 +1238,15 @@ async function hladaNotendayfirlit() {
       verkefnaSundurlidun,
       biolistiSed: notandi.biolistiSed || {},
       biolistiUm: notandi.biolistiUm || {},
+      aaetladAminning: notandi.aaetladAminning || null,
+      aminningFelld: notandi.aminningFelld || null,
       ahugavertSmellir: notandi.ahugavertSmellir || {}
     });
   }
 
   notendaRadir = rows;
   birtaNotendaRadir();
+  samstillaTimasettar();
 }
 
 // "Nýjustu svör": 15 nýjustu spurningarnar sem nemandi hefur svarað, sóttar í bútum
@@ -1376,7 +1518,8 @@ function birtaNotendaRadir() {
       const ytaBtn = document.createElement("button");
       ytaBtn.type = "button";
       ytaBtn.className = "smabtn yta-vid-btn";
-      ytaBtn.textContent = "👋 Ýta við";
+      ytaBtn.textContent = r.aaetladAminning ? "👋 Ýta við ⏰" : "👋 Ýta við";
+      if (r.aaetladAminning) ytaBtn.title = `Áminning áætluð ${formatTimaKl(r.aaetladAminning.kl)}`;
       ytaBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         opnaYtaVid(r);

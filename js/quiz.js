@@ -535,6 +535,13 @@ window.addEventListener(
   { passive: true }
 );
 
+// Tímasett áminning bíður þessa notanda: onlineStada/<uid> sýnir Apps Script hvenær hann var síðast virkur.
+let bidAminning = false;
+function skraOnlineStodu() {
+  if (!notandi || !bidAminning) return;
+  setDoc(doc(db, "onlineStada", notandi.uid), { t: serverTimestamp() }).catch(() => {});
+}
+
 function vistaSkjatima() {
   stodvaTimamaelingu();
   if (!notandi) {
@@ -547,7 +554,10 @@ function vistaSkjatima() {
   // notandinn gerði eitthvað frá síðustu vistun (opinn, ónotaður flipi er ekki
   // "virkur").
   const breytingar = {};
-  if (hreyfingSidanVistun || sekundur >= 1) breytingar.lastActive = serverTimestamp();
+  if (hreyfingSidanVistun || sekundur >= 1) {
+    breytingar.lastActive = serverTimestamp();
+    skraOnlineStodu();
+  }
   hreyfingSidanVistun = false;
   if (sekundur >= 1) {
     breytingar.screenTimeSeconds = increment(sekundur);
@@ -580,6 +590,7 @@ function skraVirkni() {
   if (nuna - sidastaVirkniSkrif < 120000) return;
   sidastaVirkniSkrif = nuna;
   updateDoc(doc(db, "users", notandi.uid), { lastActive: serverTimestamp() }).catch(() => {});
+  skraOnlineStodu();
 }
 ["click", "touchstart", "keydown"].forEach((heiti) => {
   document.addEventListener(heiti, skraVirkni, { passive: true });
@@ -621,6 +632,9 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
   biolistiSed = gogn?.biolistiSed || {};
   notandaKyn = gogn?.kyn || kynNemandaUrNafni(gogn?.nafn);
   kveikjaBeta(gogn, user);
+  // Tímasett áminning bíður nemandans: skráum að hann er online svo hætt sé við sendinguna (sjá Ýta við í stjórnborðinu).
+  bidAminning = !!gogn?.aaetladAminning && !!user && gogn.role !== "admin";
+  if (bidAminning) skraOnlineStodu();
   // "Hver er" flipinn sést aðeins hjá admin (ekki í "Sjá eins og nemandi").
   hverErBtn.hidden = !erKennileitaYfirferd();
 

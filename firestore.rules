@@ -125,6 +125,17 @@ service cloud.firestore {
       allow write: if erAdmin();
     }
 
+    // Hvenær nemandi með tímasetta áminningu var síðast virkur (onlineStada/<uid> = { t }). Apps Script les
+    // eitt skjal (get, ekki list) til að hætta við sendingu ef nemandinn er online. Nemandinn skrifar það
+    // aðeins á meðan áminning bíður (sjá skraOnlineStodu í js/quiz.js).
+    match /onlineStada/{uid} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if innskradur() && (request.auth.uid == uid || erAdmin())
+                            && request.resource.data.keys().hasOnly(['t']);
+      allow delete: if innskradur() && (request.auth.uid == uid || erAdmin());
+    }
+
     // Yfirlit yfir virkar spurningar (meta/virkarSpurningar: { spurningar: { spurningaID: verkefniID } }).
     // Nemendur lesa eitt lítið skjal í stað allra spurninganna til að sjá fjölda í verkefnalistanum.
     // Admin uppfærir það sjálfkrafa (js/admin.js, samstillaSpurningayfirlit).

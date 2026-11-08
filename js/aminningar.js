@@ -134,28 +134,138 @@ export function postStillt() {
 }
 
 // Kóðinn sem kennarinn límir í Google Apps Script (sjá Stillingar → Áminningar).
-export const APPS_SCRIPT_KODI = `// Gettu Betur - sendir áminningarpósta úr þínum Gmail.
+// Útgáfa 2: bætir við tímasettum sendingum ("Senda síðar" í Ýta við). Notið EKKI ${...} eða bakstrik hér.
+export const APPS_SCRIPT_KODI = `// Gettu Betur - sendir áminningarpósta úr þínum Gmail (útgáfa 2: tímasettar sendingar).
 const LYKILORD = 'BREYTTU-MER'; // sama lykilorð og í Stillingar á stjórnborðinu
+const VERKEFNI = 'ms-gettu-betur'; // Firebase-verkefnið (ekki breyta)
+const ONLINE_MIN = 6; // nemandi sem var virkur síðustu 6 mín telst online - þá er hætt við sendinguna
+const MAX_SEINKUN_KLST = 12; // tímasett sending sem er meira en 12 klst of sein er ekki send
 
 function doPost(e) {
   try {
     const gogn = JSON.parse(e.postData.contents);
     if (gogn.lykilord !== LYKILORD) return svar({ ok: false, villa: 'Rangt lykilorð' });
-    let html = gogn.html;
-    const myndir = {};
-    if (gogn.mynd) {
-      myndir.aminning = UrlFetchApp.fetch(gogn.mynd).getBlob().setName('aminning.png');
-      html = html.split(gogn.mynd).join('cid:aminning');
-    }
-    GmailApp.sendEmail(gogn.til, gogn.efni, gogn.texti, { htmlBody: html, inlineImages: myndir, name: 'Gettu Betur' });
+    if (gogn.adgerd === 'timasetja') return svar(timasetja(gogn));
+    if (gogn.adgerd === 'afturkalla') return svar(afturkalla(gogn.id));
+    if (gogn.adgerd === 'stada') return svar({ ok: true, version: 2, listi: stadaListi() });
+    if (gogn.adgerd === 'hreinsa') return svar(hreinsa(gogn.ids || []));
+    sendaPostinn(gogn);
     return svar({ ok: true });
   } catch (villa) {
     return svar({ ok: false, villa: String(villa) });
   }
 }
 
+function sendaPostinn(p) {
+  let html = p.html;
+  const myndir = {};
+  if (p.mynd) {
+    myndir.aminning = UrlFetchApp.fetch(p.mynd).getBlob().setName('aminning.png');
+    html = html.split(p.mynd).join('cid:aminning');
+  }
+  GmailApp.sendEmail(p.til, p.efni, p.texti, { htmlBody: html, inlineImages: myndir, name: 'Gettu Betur' });
+}
+
 function svar(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// --- Tímasettar sendingar: ein á hvern nemanda (id = uid), geymdar þjappaðar í Script Properties ---
+function geyma(id, hlutur) {
+  const gz = Utilities.base64Encode(Utilities.gzip(Utilities.newBlob(JSON.stringify(hlutur), 'application/json')).getBytes());
+  if (gz.length > 8500) throw new Error('Áminningin er of stór til að geyma (' + gz.length + ' stafir). Prófaðu "Engin mynd".');
+  PropertiesService.getScriptProperties().setProperty('t_' + id, gz);
+}
+
+function lesa(id) {
+  const gz = PropertiesService.getScriptProperties().getProperty('t_' + id);
+  if (!gz) return null;
+  const json = Utilities.ungzip(Utilities.newBlob(Utilities.base64Decode(gz), 'application/x-gzip')).getDataAsString();
+  return JSON.parse(json);
+}
+
+function timasetja(g) {
+  if (!g.id || !g.uid || !g.pakki || !g.pakki.til) throw new Error('Vantar gögn');
+  if (!(g.kl > Date.now())) throw new Error('Tíminn er liðinn');
+  geyma(g.id, { id: g.id, uid: g.uid, kl: g.kl, stada: 'bid', pakki: g.pakki });
+  return { ok: true, version: 2 };
+}
+
+function afturkalla(id) {
+  PropertiesService.getScriptProperties().deleteProperty('t_' + id);
+  return { ok: true };
+}
+
+function stadaListi() {
+  const lyklar = PropertiesService.getScriptProperties().getKeys().filter(function (k) { return k.indexOf('t_') === 0; });
+  return lyklar.map(function (k) {
+    const h = lesa(k.slice(2));
+    return h && { id: h.id, uid: h.uid, kl: h.kl, stada: h.stada, timi: h.timi || null, villa: h.villa || null };
+  }).filter(Boolean);
+}
+
+function hreinsa(ids) {
+  ids.forEach(function (id) {
+    const h = lesa(id);
+    if (h && h.stada !== 'bid') PropertiesService.getScriptProperties().deleteProperty('t_' + id);
+  });
+  return { ok: true };
+}
+
+// Er nemandinn online? Vefsíðan skráir "onlineStada/<uid>" á meðan nemandi með tímasetta áminningu er virkur.
+function erOnline(uid) {
+  const slod = 'https://firestore.googleapis.com/v1/projects/' + VERKEFNI + '/databases/(default)/documents/onlineStada/' + encodeURIComponent(uid);
+  const r = UrlFetchApp.fetch(slod, { muteHttpExceptions: true });
+  if (r.getResponseCode() === 404) return false;
+  if (r.getResponseCode() !== 200) throw new Error('Firestore svaraði ' + r.getResponseCode());
+  const f = JSON.parse(r.getContentText()).fields;
+  const t = f && f.t && f.t.timestampValue;
+  return !!t && Date.now() - new Date(t).getTime() < ONLINE_MIN * 60000;
+}
+
+function loka(h, stada, villa) {
+  delete h.pakki;
+  h.stada = stada;
+  h.timi = Date.now();
+  if (villa) h.villa = villa;
+  geyma(h.id, h);
+}
+
+// Keyrir á 5 mínútna fresti (sjá uppsetning() hér fyrir neðan).
+function athugaTimasettar() {
+  const laas = LockService.getScriptLock();
+  if (!laas.tryLock(20000)) return;
+  try {
+    const lyklar = PropertiesService.getScriptProperties().getKeys().filter(function (k) { return k.indexOf('t_') === 0; });
+    lyklar.forEach(function (k) {
+      const h = lesa(k.slice(2));
+      if (!h || h.stada !== 'bid' || h.kl > Date.now()) return;
+      if (Date.now() - h.kl > MAX_SEINKUN_KLST * 3600000) return loka(h, 'of_sein');
+      let online;
+      try {
+        online = erOnline(h.uid);
+      } catch (villa) {
+        return; // reyna aftur næst
+      }
+      if (online) return loka(h, 'online');
+      try {
+        sendaPostinn(h.pakki);
+        loka(h, 'sent');
+      } catch (villa) {
+        loka(h, 'villa', String(villa));
+      }
+    });
+  } finally {
+    laas.releaseLock();
+  }
+}
+
+// Keyrðu þetta fall EINU SINNI (Run) til að búa til 5 mínútna tímastillinn.
+function uppsetning() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'athugaTimasettar') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('athugaTimasettar').timeBased().everyMinutes(5).create();
 }`;
 
 export function fyrstaNafn(nafn) {
@@ -249,31 +359,60 @@ export function mailtoSlod(til, aminning, ctx) {
   return `mailto:${encodeURIComponent(til)}?subject=${encodeURIComponent(fyllaInn(aminning.titill, ctx))}&body=${encodeURIComponent(byggjaPostTexta(aminning, ctx))}`;
 }
 
+// Pakkinn sem Apps Script sendir (líka tímasettur).
+function byggjaSkriptuPakka({ til, nafn, aminning, dagar, kyn, sendandi, myndahamur = "lit" }) {
+  const ctx = { nafn, dagar, kyn, sendandi };
+  return {
+    til,
+    efni: efnislina(aminning.titill, ctx),
+    html: byggjaPostHtml(aminning, ctx, myndahamur),
+    texti: byggjaPostTexta(aminning, ctx),
+    mynd: myndahamur === "engin" ? "" : myndaSlod(aminning)
+  };
+}
+
+async function skriptaKall(body) {
+  const sk = lesaSkriptuStillingar();
+  let svar;
+  try {
+    svar = await fetch(sk.url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ lykilord: sk.lykilord, ...body })
+    });
+  } catch (villa) {
+    throw new Error("Náði ekki sambandi við Apps Script (athugaðu slóðina).");
+  }
+  const j = await svar.json().catch(() => null);
+  if (!j || !j.ok) throw new Error(j?.villa || "Apps Script svaraði ekki rétt.");
+  return j;
+}
+
+// Tímasett sending (stök): Apps Script sendir póstinn á tímanum sendaKl (ms) nema nemandinn sé online.
+// Krefst útgáfu 2 af Apps Script kóðanum - gamla útgáfan neitar (og sendir ekkert).
+export async function timasetjaPost({ id, uid, sendaKl, ...rest }) {
+  if (!skriptaStillt()) throw new Error("Tímasettar sendingar krefjast Apps Script (Stillingar → Áminningar).");
+  const j = await skriptaKall({ adgerd: "timasetja", id, uid, kl: sendaKl, pakki: byggjaSkriptuPakka(rest) });
+  if (!j.version || j.version < 2) throw new Error("Apps Script kóðinn er gamall - uppfærðu hann (Stillingar → Áminningar).");
+}
+
+export const afturkallaTimasetta = (id) => skriptaKall({ adgerd: "afturkalla", id });
+export async function saekjaTimasettar() {
+  const j = await skriptaKall({ adgerd: "stada" });
+  return j.listi || [];
+}
+export const hreinsaTimasettar = (ids) => skriptaKall({ adgerd: "hreinsa", ids });
+
 // Sendir póst um EmailJS. Kastar villu ef það er ekki stillt eða sendingin mistekst.
 export async function sendaPost({ til, nafn, aminning, dagar, kyn, sendandi, myndahamur = "lit" }) {
   if (!postStillt()) throw new Error("Póstsending er ekki stillt (sjá Stillingar → Áminningar).");
   const ctx = { nafn, dagar, kyn, sendandi };
   if (skriptaStillt()) {
-    const sk = lesaSkriptuStillingar();
-    let svar;
     try {
-      svar = await fetch(sk.url, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          lykilord: sk.lykilord,
-          til,
-          efni: efnislina(aminning.titill, ctx),
-          html: byggjaPostHtml(aminning, ctx, myndahamur),
-          texti: byggjaPostTexta(aminning, ctx),
-          mynd: myndahamur === "engin" ? "" : myndaSlod(aminning)
-        })
-      });
+      await skriptaKall(byggjaSkriptuPakka({ til, nafn, aminning, dagar, kyn, sendandi, myndahamur }));
     } catch (villa) {
-      throw new Error("Náði ekki sambandi við Apps Script (athugaðu slóðina). Gæti samt hafa sendst - kíktu í Sent í Gmail.");
+      throw new Error(villa.message.startsWith("Náði ekki") ? villa.message + " Gæti samt hafa sendst - kíktu í Sent í Gmail." : villa.message);
     }
-    const j = await svar.json().catch(() => null);
-    if (!j || !j.ok) throw new Error(j?.villa || "Apps Script svaraði ekki rétt.");
     return;
   }
   const s = lesaPostStillingar();
