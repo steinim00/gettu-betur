@@ -4191,3 +4191,21 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
   outline: none;
   border-color: var(--litur-svart);
 }
+
+.notepad-verkfaeri {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.notepad-verkfaeri input[type="search"] {
+  flex: 1 1 180px;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  font-family: inherit;
+  font-size: 0.95rem;
+}

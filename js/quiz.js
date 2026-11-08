@@ -65,6 +65,9 @@ let betaVirkt = false;
 const glosurSvaedi = document.getElementById("glosurSvaedi");
 const notepadTexti = document.getElementById("notepadTexti");
 const notepadStada = document.getElementById("notepadStada");
+const notepadLeit = document.getElementById("notepadLeit");
+const notepadLeitBtn = document.getElementById("notepadLeitBtn");
+const notepadLeitStada = document.getElementById("notepadLeitStada");
 const tilbakaFraGlosum = document.getElementById("tilbakaFraGlosum");
 
 const verkefnaSvaedi = document.getElementById("verkefnaSvaedi");
@@ -1668,6 +1671,42 @@ let notepadSaekir = null;
 let notepadTimi = null;
 let notepadOvistad = false;
 
+// Öryggisafrit í tækinu: ef netið dettur út eða síðunni er lokað áður en vistun klárast tapast ekkert -
+// ovistað afritið er sótt aftur næst og vistað þegar netið er komið.
+const notepadDrog = () => `gb_notepad_drog_${notandi?.uid}`;
+function geymaDrog(texti) {
+  try {
+    localStorage.setItem(notepadDrog(), JSON.stringify({ texti, ovistad: true }));
+  } catch (villa) {
+    console.warn(villa);
+  }
+}
+function hreinsaDrog() {
+  try {
+    localStorage.removeItem(notepadDrog());
+  } catch (villa) {
+    console.warn(villa);
+  }
+}
+function lesaDrog() {
+  try {
+    const d = JSON.parse(localStorage.getItem(notepadDrog()) || "null");
+    return d && d.ovistad && typeof d.texti === "string" ? d.texti : null;
+  } catch (villa) {
+    return null;
+  }
+}
+
+function notepadOrdaTalning() {
+  const t = notepadTexti.value.trim();
+  const n = t ? t.split(/\s+/).length : 0;
+  return `${n} ${n === 1 ? "orð" : "orð"}`;
+}
+
+function notepadStadaTexti(texti) {
+  notepadStada.textContent = `${texti} · ${notepadOrdaTalning()}`;
+}
+
 function notepadRef() {
   return doc(db, "users", notandi.uid, "glosur", NOTEPAD_ID);
 }
@@ -1704,39 +1743,104 @@ async function vistaNotepad() {
   clearTimeout(notepadTimi);
   if (!notandi || !notepadOvistad) return;
   const texti = notepadTexti.value;
+  if (navigator.onLine === false) {
+    notepadStadaTexti("Ónettengt - vistað í tækinu, vistast þegar netið kemur aftur");
+    return;
+  }
   notepadOvistad = false;
-  notepadStada.textContent = "Vista…";
+  notepadStadaTexti("Vista…");
   try {
     await setDoc(notepadRef(), { texti, verkefniTitill: "Glósublokk", updatedAt: serverTimestamp() });
     notepadGildi = texti;
-    if (!notepadOvistad) notepadStada.textContent = "Vistað ✓ (aðeins þú sérð þetta)";
+    if (!notepadOvistad) {
+      hreinsaDrog();
+      notepadStadaTexti("Vistað ✓ (aðeins þú sérð þetta)");
+    }
   } catch (villa) {
     console.error(villa);
     notepadOvistad = true;
-    notepadStada.textContent = "Tókst ekki að vista - reynir aftur…";
+    notepadStadaTexti("Tókst ekki að vista - reynir aftur");
     notepadTimi = setTimeout(vistaNotepad, 5000);
   }
 }
 
 notepadTexti.addEventListener("input", () => {
   notepadOvistad = true;
-  notepadStada.textContent = "Breytt…";
+  geymaDrog(notepadTexti.value);
+  notepadStadaTexti("Breytt");
   clearTimeout(notepadTimi);
   notepadTimi = setTimeout(vistaNotepad, 1200);
 });
+window.addEventListener("online", () => vistaNotepad());
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") vistaNotepad();
 });
 window.addEventListener("pagehide", () => vistaNotepad());
+
+// Leit: finnur næsta stað (hástafa- og broddstafaóháð) og velur textann; byrjar aftur efst í lokin.
+let notepadLeitPos = 0;
+let notepadLeitOrd = "";
+function einfalda(s) {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+function leitaIGlosum() {
+  const q = einfalda(notepadLeit.value.trim());
+  if (!q) {
+    notepadLeitStada.textContent = "";
+    return;
+  }
+  const heild = einfalda(notepadTexti.value);
+  if (q !== notepadLeitOrd) {
+    notepadLeitOrd = q;
+    notepadLeitPos = 0;
+  }
+  const samtals = heild.split(q).length - 1;
+  if (!samtals) {
+    notepadLeitStada.textContent = "Ekkert fannst";
+    return;
+  }
+  let i = heild.indexOf(q, notepadLeitPos);
+  if (i === -1) i = heild.indexOf(q, 0);
+  notepadLeitPos = i + q.length;
+  const nr = heild.slice(0, i).split(q).length;
+  notepadLeitStada.textContent = `${nr} af ${samtals}`;
+  notepadTexti.focus({ preventScroll: true });
+  notepadTexti.setSelectionRange(i, i + q.length);
+  // Skrunar textareitinn að valda textanum.
+  const linur = notepadTexti.value.slice(0, i).split("\n").length;
+  notepadTexti.scrollTop = Math.max(0, (linur - 3) * 26);
+}
+notepadLeitBtn.addEventListener("click", leitaIGlosum);
+notepadLeit.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    leitaIGlosum();
+  }
+});
+notepadLeit.addEventListener("input", () => {
+  notepadLeitOrd = "";
+  notepadLeitStada.textContent = "";
+});
 
 async function hladaGlosur() {
   if (!notandi) return;
   notepadTexti.disabled = true;
   notepadStada.textContent = "Sæki glósur…";
   try {
-    if (!notepadOvistad) notepadTexti.value = await saekjaNotepad();
+    if (!notepadOvistad) {
+      const drog = lesaDrog();
+      if (drog !== null) {
+        // Ovistað afrit úr tækinu (t.d. netið datt út) - notum það og vistum.
+        notepadTexti.value = drog;
+        notepadOvistad = true;
+        notepadTexti.disabled = false;
+        vistaNotepad();
+        return;
+      }
+      notepadTexti.value = await saekjaNotepad();
+    }
     notepadTexti.disabled = false;
-    notepadStada.textContent = "Aðeins þú sérð þetta. Vistast sjálfkrafa.";
+    notepadStadaTexti("Aðeins þú sérð þetta. Vistast sjálfkrafa");
   } catch (villa) {
     console.error(villa);
     notepadStada.textContent = "Tókst ekki að sækja glósur - reyndu aftur.";
@@ -3083,6 +3187,7 @@ function byggjaSpurningaGlosu(questionId, spurning) {
         await setDoc(notepadRef(), { texti: ny, verkefniTitill: "Glósublokk", updatedAt: serverTimestamp() });
         notepadGildi = ny;
         notepadTexti.value = ny;
+        hreinsaDrog();
         texti.value = "";
         stada.textContent = "Bætt við í Glósur ✓";
       }
