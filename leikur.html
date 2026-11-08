@@ -138,21 +138,8 @@
       <h2>Glósurnar mínar</h2>
       <button type="button" class="smabtn" id="tilbakaFraGlosum">← Öll verkefni</button>
     </div>
-    <div class="glosur-adgerdir">
-      <button type="button" class="aðal-hnappur" id="nyGlosaBtn">➕ Bæta við glósu</button>
-    </div>
-    <form id="nyGlosaForm" class="glosa-box" hidden>
-      <label for="nyGlosaVerkefni">Um hvaða verkefni?</label>
-      <select id="nyGlosaVerkefni" required></select>
-      <label for="nyGlosaTexti">Glósan þín</label>
-      <textarea id="nyGlosaTexti" rows="6" maxlength="4900" required placeholder="Skrifaðu það sem þú vilt muna…"></textarea>
-      <p class="heimild-tilvitnun" id="nyGlosaStada">Aðeins þú sérð þetta. Ein glósa á hvert verkefni.</p>
-      <div class="glosur-form-takkar">
-        <button type="submit" class="aðal-hnappur" id="nyGlosaVistaBtn">Vista glósu</button>
-        <button type="button" class="smabtn" id="nyGlosaHaettaBtn">Hætta við</button>
-      </div>
-    </form>
-    <div id="glosurListi"></div>
+    <textarea id="notepadTexti" class="notepad" maxlength="49000" placeholder="Skrifaðu glósurnar þínar hér - allt á einum stað…" disabled></textarea>
+    <p class="heimild-tilvitnun" id="notepadStada">Aðeins þú sérð þetta. Vistast sjálfkrafa.</p>
   </div>
 
   <div id="verkefnaSvaedi" class="verkefna-yfirlit">
@@ -173,14 +160,6 @@
       <button type="button" class="smabtn" id="faraBeintISpurningarBtn">Fara beint í spurningar →</button>
     </div>
     <h2 id="verkefnaTitill"></h2>
-    <div class="glosa-box" id="glosaBox" hidden>
-      <div class="hluti-titill" style="margin-top:0;">
-        <h3>📝 Mín glósa</h3>
-        <button type="button" class="smabtn" id="vistaGlosuBtn">Vista glósu</button>
-      </div>
-      <textarea id="glosaTextarea" rows="4" placeholder="Skrifaðu glósur um þetta efni hér…"></textarea>
-      <p class="heimild-tilvitnun" id="glosaStada">Aðeins þú sérð þetta.</p>
-    </div>
     <div id="glaerurInnihald"></div>
     <button type="button" class="aðal-hnappur" id="afromISpurningar">Fara beint í spurningar</button>
   </div>

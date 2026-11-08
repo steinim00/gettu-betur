@@ -63,19 +63,9 @@ const mittEfniListi = document.getElementById("mittEfniListi");
 const mittEfniAllirBtn = document.getElementById("mittEfniAllirBtn");
 let betaVirkt = false;
 const glosurSvaedi = document.getElementById("glosurSvaedi");
+const notepadTexti = document.getElementById("notepadTexti");
+const notepadStada = document.getElementById("notepadStada");
 const tilbakaFraGlosum = document.getElementById("tilbakaFraGlosum");
-const glosurListi = document.getElementById("glosurListi");
-const glosaBox = document.getElementById("glosaBox");
-const glosaTextarea = document.getElementById("glosaTextarea");
-const vistaGlosuBtn = document.getElementById("vistaGlosuBtn");
-const glosaStada = document.getElementById("glosaStada");
-const nyGlosaBtn = document.getElementById("nyGlosaBtn");
-const nyGlosaForm = document.getElementById("nyGlosaForm");
-const nyGlosaVerkefni = document.getElementById("nyGlosaVerkefni");
-const nyGlosaTexti = document.getElementById("nyGlosaTexti");
-const nyGlosaStada = document.getElementById("nyGlosaStada");
-const nyGlosaVistaBtn = document.getElementById("nyGlosaVistaBtn");
-const nyGlosaHaettaBtn = document.getElementById("nyGlosaHaettaBtn");
 
 const verkefnaSvaedi = document.getElementById("verkefnaSvaedi");
 const verkefnaListi = document.getElementById("verkefnaListi");
@@ -1427,6 +1417,7 @@ document.addEventListener("keydown", (e) => {
 byggjaRodunarLista();
 
 function synaSvaedi(svaedi) {
+  if (notepadOvistad) vistaNotepad();
   minStadaSvaedi.hidden = svaedi !== "minstada";
   glosurSvaedi.hidden = svaedi !== "glosur";
   ahugavertSvaedi.hidden = svaedi !== "ahugavert";
@@ -1669,198 +1660,86 @@ glosurBtn.addEventListener("click", () => {
   hladaGlosur();
 });
 
-// Sækir (ef til) og birtir glósu notandans fyrir verkefnið sem verið er að
-// skoða glærur fyrir - kallað úr opnaVerkefni(). Ein glósa á hvert verkefni,
-// skjal-ID = verkefniID.
-async function hladaGlosa(verkefniId) {
-  if (!notandi) {
-    glosaBox.hidden = true;
-    return;
-  }
-  glosaBox.hidden = false;
-  glosaTextarea.value = "";
-  glosaStada.textContent = "Sæki glósu…";
+// --- Glósur: einn stór notepad (users/{uid}/glosur/notepad) sem vistast sjálfkrafa ---
+// Fyrsta skipti sem notepadinn er opnaður eru eldri glósur (við verkefni og spurningar) fluttar inn í hann.
+const NOTEPAD_ID = "notepad";
+let notepadGildi = null; // síðasta hlaðna/vistaða gildi (null = ekki hlaðið)
+let notepadSaekir = null;
+let notepadTimi = null;
+let notepadOvistad = false;
 
-  const snap = await getDoc(doc(db, "users", notandi.uid, "glosur", verkefniId));
-  glosaTextarea.value = snap.exists() ? snap.data().texti || "" : "";
-  glosaStada.textContent = "Aðeins þú sérð þetta.";
+function notepadRef() {
+  return doc(db, "users", notandi.uid, "glosur", NOTEPAD_ID);
 }
 
-vistaGlosuBtn.addEventListener("click", async () => {
-  if (!notandi || !valdVerkefniId) return;
-  const texti = glosaTextarea.value.trim();
-  vistaGlosuBtn.disabled = true;
-  glosaStada.textContent = "Vista…";
+function saekjaNotepad() {
+  if (notepadGildi !== null) return Promise.resolve(notepadGildi);
+  if (!notepadSaekir) {
+    notepadSaekir = (async () => {
+      const snap = await getDoc(notepadRef());
+      if (snap.exists()) return snap.data().texti || "";
+      const [g, sg] = await Promise.all([
+        getDocs(collection(db, "users", notandi.uid, "glosur")),
+        getDocs(collection(db, "users", notandi.uid, "spurningaGlosur"))
+      ]);
+      const hlutar = [];
+      g.docs
+        .filter((d) => d.id !== NOTEPAD_ID && (d.data().texti || "").trim())
+        .sort((a, b) => (a.data().verkefniTitill || "").localeCompare(b.data().verkefniTitill || "", "is"))
+        .forEach((d) => hlutar.push(`📁 ${d.data().verkefniTitill || "Verkefni"}\n${d.data().texti.trim()}`));
+      sg.docs
+        .filter((d) => (d.data().texti || "").trim())
+        .forEach((d) => hlutar.push(`❓ ${d.data().spurning || "Spurning"}\n${d.data().texti.trim()}`));
+      const texti = hlutar.join("\n\n").slice(0, 49000);
+      if (texti) await setDoc(notepadRef(), { texti, verkefniTitill: "Glósublokk", updatedAt: serverTimestamp() });
+      return texti;
+    })()
+      .then((t) => (notepadGildi = t))
+      .finally(() => (notepadSaekir = null));
+  }
+  return notepadSaekir;
+}
 
+async function vistaNotepad() {
+  clearTimeout(notepadTimi);
+  if (!notandi || !notepadOvistad) return;
+  const texti = notepadTexti.value;
+  notepadOvistad = false;
+  notepadStada.textContent = "Vista…";
   try {
-    await setDoc(doc(db, "users", notandi.uid, "glosur", valdVerkefniId), {
-      texti,
-      verkefniTitill: verkefnaTitill.textContent,
-      updatedAt: serverTimestamp()
-    });
-    glosaStada.textContent = "Vistað ✓ (aðeins þú sérð þetta)";
+    await setDoc(notepadRef(), { texti, verkefniTitill: "Glósublokk", updatedAt: serverTimestamp() });
+    notepadGildi = texti;
+    if (!notepadOvistad) notepadStada.textContent = "Vistað ✓ (aðeins þú sérð þetta)";
   } catch (villa) {
     console.error(villa);
-    glosaStada.textContent = "Tókst ekki að vista - reyndu aftur.";
-  } finally {
-    vistaGlosuBtn.disabled = false;
+    notepadOvistad = true;
+    notepadStada.textContent = "Tókst ekki að vista - reynir aftur…";
+    notepadTimi = setTimeout(vistaNotepad, 5000);
   }
+}
+
+notepadTexti.addEventListener("input", () => {
+  notepadOvistad = true;
+  notepadStada.textContent = "Breytt…";
+  clearTimeout(notepadTimi);
+  notepadTimi = setTimeout(vistaNotepad, 1200);
 });
-
-// "Bæta við glósu" í Glósur flipanum: velja verkefni og skrifa glósu. Ein glósa
-// á hvert verkefni (skjal-ID = verkefniID), svo glósa sem þegar er til opnast
-// til breytingar í stað þess að búa til nýja.
-let nyGlosaTitlar = new Map();
-
-async function opnaNyjaGlosu() {
-  nyGlosaForm.hidden = false;
-  nyGlosaBtn.hidden = true;
-  nyGlosaTexti.value = "";
-  nyGlosaStada.textContent = "Sæki verkefni…";
-  const snap = await getDocs(query(collection(db, "verkefni"), where("active", "==", true)));
-  const verkefni = snap.docs
-    .filter((d) => synilegtNotanda(d.data()))
-    .sort((a, b) => (a.data().title || "").localeCompare(b.data().title || "", "is"));
-  nyGlosaTitlar = new Map(verkefni.map((d) => [d.id, d.data().title]));
-  nyGlosaVerkefni.innerHTML = "";
-  verkefni.forEach((d) => nyGlosaVerkefni.appendChild(new Option(d.data().title, d.id)));
-  nyGlosaStada.textContent = "Aðeins þú sérð þetta. Ein glósa á hvert verkefni.";
-  await fyllaInnFyrriGlosu();
-  nyGlosaTexti.focus();
-}
-
-async function fyllaInnFyrriGlosu() {
-  const id = nyGlosaVerkefni.value;
-  if (!id) return;
-  const snap = await getDoc(doc(db, "users", notandi.uid, "glosur", id));
-  nyGlosaTexti.value = snap.exists() ? snap.data().texti || "" : "";
-  nyGlosaStada.textContent = nyGlosaTexti.value
-    ? "Þú átt þegar glósu um þetta verkefni - þú ert að breyta henni."
-    : "Aðeins þú sérð þetta. Ein glósa á hvert verkefni.";
-}
-
-function lokaNyrriGlosu() {
-  nyGlosaForm.hidden = true;
-  nyGlosaBtn.hidden = false;
-}
-
-nyGlosaBtn.addEventListener("click", opnaNyjaGlosu);
-nyGlosaHaettaBtn.addEventListener("click", lokaNyrriGlosu);
-nyGlosaVerkefni.addEventListener("change", fyllaInnFyrriGlosu);
-nyGlosaForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const id = nyGlosaVerkefni.value;
-  const texti = nyGlosaTexti.value.trim();
-  if (!notandi || !id || !texti) return;
-  nyGlosaVistaBtn.disabled = true;
-  nyGlosaStada.textContent = "Vista…";
-  try {
-    await setDoc(doc(db, "users", notandi.uid, "glosur", id), {
-      texti,
-      verkefniTitill: nyGlosaTitlar.get(id) || "",
-      updatedAt: serverTimestamp()
-    });
-    lokaNyrriGlosu();
-    hladaGlosur();
-  } catch (villa) {
-    console.error(villa);
-    nyGlosaStada.textContent = "Tókst ekki að vista - reyndu aftur.";
-  } finally {
-    nyGlosaVistaBtn.disabled = false;
-  }
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") vistaNotepad();
 });
+window.addEventListener("pagehide", () => vistaNotepad());
 
-// "Glósurnar mínar" - yfirlit yfir öll verkefni sem notandinn hefur skrifað
-// glósu um, með flýtileið til að breyta eða eyða hverri glósu.
 async function hladaGlosur() {
   if (!notandi) return;
-  nyGlosaBtn.hidden = false;
-  nyGlosaForm.hidden = true;
-  glosurListi.innerHTML = skeletonKort(3, 1);
-
-  const [glosurSnap, spurningaGlosur] = await Promise.all([
-    getDocs(collection(db, "users", notandi.uid, "glosur")),
-    (spurningaGlosurMinni = null, saekjaSpurningaGlosur())
-  ]);
-  const glosur = glosurSnap.docs.filter((d) => (d.data().texti || "").trim().length > 0);
-
-  glosurListi.innerHTML = "";
-  if (glosur.length === 0 && spurningaGlosur.size === 0) {
-    glosurListi.innerHTML = "<p>Engar glósur ennþá.</p>";
-    return;
-  }
-
-  glosur.forEach((gDoc) => {
-    const gogn = gDoc.data();
-    const kort = document.createElement("article");
-    kort.className = "spurning-kort";
-
-    const titill = document.createElement("h3");
-    titill.textContent = gogn.verkefniTitill || "Ótengt verkefni";
-    kort.appendChild(titill);
-
-    const texti = document.createElement("p");
-    texti.style.whiteSpace = "pre-wrap";
-    texti.textContent = gogn.texti;
-    kort.appendChild(texti);
-
-    const breytaBtn = document.createElement("button");
-    breytaBtn.type = "button";
-    breytaBtn.className = "smabtn";
-    breytaBtn.textContent = "Breyta glósu →";
-    breytaBtn.addEventListener("click", async () => {
-      const verkefniSnap = await getDoc(doc(db, "verkefni", gDoc.id));
-      if (!verkefniSnap.exists()) {
-        alert("Þetta verkefni er ekki lengur til.");
-        return;
-      }
-      opnaVerkefni(gDoc.id, verkefniSnap.data());
-    });
-
-    const eydaBtn = document.createElement("button");
-    eydaBtn.type = "button";
-    eydaBtn.className = "smabtn";
-    eydaBtn.textContent = "Eyða glósu";
-    eydaBtn.addEventListener("click", async () => {
-      if (!confirm(`Eyða glósunni um "${gogn.verkefniTitill}"?`)) return;
-      await deleteDoc(gDoc.ref);
-      hladaGlosur();
-    });
-
-    kort.appendChild(breytaBtn);
-    kort.appendChild(eydaBtn);
-    glosurListi.appendChild(kort);
-  });
-
-  // Glósur við einstakar spurningar
-  if (spurningaGlosur.size > 0) {
-    const fyrirsogn = document.createElement("h3");
-    fyrirsogn.textContent = "Glósur um spurningar";
-    fyrirsogn.style.margin = "22px 0 10px";
-    glosurListi.appendChild(fyrirsogn);
-    [...spurningaGlosur.entries()]
-      .sort((a, b) => (b[1].updatedAt?.toMillis?.() ?? 0) - (a[1].updatedAt?.toMillis?.() ?? 0))
-      .forEach(([qId, g]) => {
-        const kort = document.createElement("article");
-        kort.className = "spurning-kort";
-        const q = document.createElement("h3");
-        q.textContent = g.spurning || "Spurning";
-        const t = document.createElement("p");
-        t.style.whiteSpace = "pre-wrap";
-        t.textContent = g.texti;
-        const eyda = document.createElement("button");
-        eyda.type = "button";
-        eyda.className = "smabtn";
-        eyda.textContent = "Eyða glósu";
-        eyda.addEventListener("click", async () => {
-          if (!confirm("Eyða þessari glósu?")) return;
-          await deleteDoc(doc(db, "users", notandi.uid, "spurningaGlosur", qId));
-          spurningaGlosurMinni = null;
-          hladaGlosur();
-        });
-        kort.append(q, t, eyda);
-        glosurListi.appendChild(kort);
-      });
+  notepadTexti.disabled = true;
+  notepadStada.textContent = "Sæki glósur…";
+  try {
+    if (!notepadOvistad) notepadTexti.value = await saekjaNotepad();
+    notepadTexti.disabled = false;
+    notepadStada.textContent = "Aðeins þú sérð þetta. Vistast sjálfkrafa.";
+  } catch (villa) {
+    console.error(villa);
+    notepadStada.textContent = "Tókst ekki að sækja glósur - reyndu aftur.";
   }
 }
 
@@ -2364,7 +2243,6 @@ function opnaVerkefni(verkefniId, verkefni) {
     return;
   }
 
-  hladaGlosa(verkefniId);
 
   verkefnaTitill.textContent = verkefni.title;
   glaerurInnihald.innerHTML = "";
@@ -3147,23 +3025,7 @@ async function svaraEndurtekningu(questionId, hraSvar, form, nidurstada, spurnin
   valkostir.eftirLokid?.();
 }
 
-// --- Glósa við hverja spurningu ---
-// users/{uid}/spurningaGlosur/{spurningaID} = { texti, spurning (texti spurningarinnar), verkefniId, updatedAt }.
-// Öll glósusöfnin eru sótt einu sinni á lotu (fá skjöl) svo hnappurinn geti sýnt hvort glósa er til.
-let spurningaGlosurMinni = null;
-function saekjaSpurningaGlosur() {
-  if (!spurningaGlosurMinni) {
-    spurningaGlosurMinni = getDocs(collection(db, "users", notandi.uid, "spurningaGlosur"))
-      .then((snap) => new Map(snap.docs.map((d) => [d.id, d.data()])))
-      .catch((villa) => {
-        console.error(villa);
-        spurningaGlosurMinni = null;
-        return new Map();
-      });
-  }
-  return spurningaGlosurMinni;
-}
-
+// --- Glósa við spurningu: bætist neðst í notepadinn (Glósur-flipann) ---
 function byggjaSpurningaGlosu(questionId, spurning) {
   const kassi = document.createElement("div");
   kassi.className = "spurning-glosa";
@@ -3180,44 +3042,25 @@ function byggjaSpurningaGlosu(questionId, spurning) {
   const texti = document.createElement("textarea");
   texti.rows = 3;
   texti.maxLength = 1900;
-  texti.placeholder = "Glósa um þessa spurningu - aðeins þú sérð hana…";
+  texti.placeholder = "Glósa um þessa spurningu - bætist neðst í Glósur…";
   const adgerdir = document.createElement("div");
   adgerdir.className = "glosa-adgerdir";
   const vistaBtn = document.createElement("button");
   vistaBtn.type = "button";
   vistaBtn.className = "smabtn";
-  vistaBtn.textContent = "Vista";
-  const eydaBtn = document.createElement("button");
-  eydaBtn.type = "button";
-  eydaBtn.className = "smabtn";
-  eydaBtn.textContent = "Eyða";
-  eydaBtn.hidden = true;
+  vistaBtn.textContent = "Bæta í glósur";
   const stada = document.createElement("span");
   stada.className = "glosa-stada";
-  adgerdir.append(vistaBtn, eydaBtn, stada);
+  adgerdir.append(vistaBtn, stada);
   svaedi.append(texti, adgerdir);
   kassi.append(takki, svaedi);
 
-  const uppfaeraTakka = (til) => {
-    takki.textContent = til ? "📝 Glósa ✓" : "📝 Glósa";
-    eydaBtn.hidden = !til;
-  };
-  saekjaSpurningaGlosur().then((m) => {
-    const g = m.get(questionId);
-    if (g) {
-      texti.value = g.texti || "";
-      uppfaeraTakka(true);
-    }
-  });
-
-  takki.addEventListener("click", async () => {
+  takki.addEventListener("click", () => {
     const opna = svaedi.hidden;
     svaedi.hidden = !opna;
     takki.setAttribute("aria-expanded", String(opna));
     if (opna) {
       stada.textContent = "";
-      const m = await saekjaSpurningaGlosur();
-      if (!texti.value && m.get(questionId)) texti.value = m.get(questionId).texti || "";
       texti.focus({ preventScroll: true });
     }
   });
@@ -3229,32 +3072,25 @@ function byggjaSpurningaGlosu(questionId, spurning) {
       return;
     }
     vistaBtn.disabled = true;
-    stada.textContent = "Vista…";
+    stada.textContent = "Bæti við…";
     try {
-      const gogn = { texti: t, spurning: (spurning?.text || "").slice(0, 480), verkefniId: spurning?.verkefniId || "", updatedAt: serverTimestamp() };
-      await setDoc(doc(db, "users", notandi.uid, "spurningaGlosur", questionId), gogn);
-      (await saekjaSpurningaGlosur()).set(questionId, { ...gogn, texti: t });
-      uppfaeraTakka(true);
-      stada.textContent = "Vistað ✓";
+      await vistaNotepad(); // ekki missa breytingar sem bíða
+      const nuv = await saekjaNotepad();
+      const ny = (nuv ? nuv.replace(/\s+$/, "") + "\n\n" : "") + `❓ ${spurning?.text || "Spurning"}\n${t}`;
+      if (ny.length > 49000) {
+        stada.textContent = "Glósurnar eru orðnar of langar.";
+      } else {
+        await setDoc(notepadRef(), { texti: ny, verkefniTitill: "Glósublokk", updatedAt: serverTimestamp() });
+        notepadGildi = ny;
+        notepadTexti.value = ny;
+        texti.value = "";
+        stada.textContent = "Bætt við í Glósur ✓";
+      }
     } catch (villa) {
       console.error(villa);
       stada.textContent = "Tókst ekki að vista - reyndu aftur.";
     }
     vistaBtn.disabled = false;
-  });
-
-  eydaBtn.addEventListener("click", async () => {
-    try {
-      await deleteDoc(doc(db, "users", notandi.uid, "spurningaGlosur", questionId));
-      (await saekjaSpurningaGlosur()).delete(questionId);
-      texti.value = "";
-      uppfaeraTakka(false);
-      svaedi.hidden = true;
-      takki.setAttribute("aria-expanded", "false");
-    } catch (villa) {
-      console.error(villa);
-      stada.textContent = "Tókst ekki að eyða - reyndu aftur.";
-    }
   });
 
   return kassi;

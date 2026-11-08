@@ -73,7 +73,7 @@ service cloud.firestore {
         allow create, update: if innskradur() && request.auth.uid == userId
                       && request.resource.data.keys().hasOnly(['texti', 'verkefniTitill', 'updatedAt'])
                       && request.resource.data.texti is string
-                      && request.resource.data.texti.size() < 5000;
+                      && request.resource.data.texti.size() < (verkefniId == 'notepad' ? 50000 : 5000);
         allow delete: if innskradur() && request.auth.uid == userId;
       }
     }

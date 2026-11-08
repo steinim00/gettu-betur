@@ -4170,3 +4170,24 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
   color: var(--litur-daufur);
   font-size: 0.82rem;
 }
+
+/* Glósur: einn stór notepad */
+.notepad {
+  display: block;
+  width: 100%;
+  min-height: 60vh;
+  box-sizing: border-box;
+  padding: 16px 18px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  color: var(--litur-texti);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.notepad:focus {
+  outline: none;
+  border-color: var(--litur-svart);
+}
