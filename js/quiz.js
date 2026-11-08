@@ -433,8 +433,13 @@ function formatSkjatimi(sekundur) {
 let virkTimamaeling = null;
 let ovistadurSkjatimi = 0;
 
+// Admin er ekki mældur (hjartsláttur, skjátími, virkni) - sparar skrif og heldur tölunum hreinum.
+function maelaNotanda() {
+  return !!notandi && !erAdminNotandi;
+}
+
 function hefjaTimamaelingu() {
-  if (notandi && document.visibilityState === "visible" && !virkTimamaeling) {
+  if (maelaNotanda() && document.visibilityState === "visible" && !virkTimamaeling) {
     virkTimamaeling = Date.now();
   }
 }
@@ -544,7 +549,7 @@ function skraOnlineStodu() {
 
 function vistaSkjatima() {
   stodvaTimamaelingu();
-  if (!notandi) {
+  if (!maelaNotanda()) {
     hefjaTimamaelingu();
     return;
   }
@@ -585,7 +590,7 @@ function vistaSkjatima() {
 // á 2 mínútna fresti svo tíðar smellir/áslættir skrifaflæði ekki yfir kvótann.
 let sidastaVirkniSkrif = 0;
 function skraVirkni() {
-  if (!notandi) return;
+  if (!maelaNotanda()) return;
   const nuna = Date.now();
   if (nuna - sidastaVirkniSkrif < 120000) return;
   sidastaVirkniSkrif = nuna;
@@ -609,7 +614,7 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("beforeunload", () => {
   stodvaTimamaelingu();
   lokaSkrunarlotu();
-  if (notandi && (ovistadurSkjatimi >= 1 || Object.keys(bidHeatmap).length)) {
+  if (maelaNotanda() && (ovistadurSkjatimi >= 1 || Object.keys(bidHeatmap).length)) {
     const sekundur = Math.round(ovistadurSkjatimi);
     const breytingar = {};
     if (sekundur >= 1) Object.assign(breytingar, { screenTimeSeconds: increment(sekundur) }, virkniReitur(sekundur));
@@ -644,7 +649,7 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
     minStadaBtn.hidden = false;
     glosurBtn.hidden = false;
     hefjaTimamaelingu();
-    updateDoc(doc(db, "users", user.uid), { lastActive: serverTimestamp() }).catch(() => {});
+    if (!erAdminNotandi) updateDoc(doc(db, "users", user.uid), { lastActive: serverTimestamp() }).catch(() => {});
 
     // "Mín staða" er upphafspunktur innskráðra nemenda - þau sjá eigin
     // stöðu um leið og þau koma inn, frekar en að þurfa að smella á hnapp.
