@@ -221,6 +221,7 @@ async function hladaAllt(sjalfvirkt = false) {
       await hladaNotendayfirlit();
       return;
     }
+    athugaKonnunOpnun(); // könnunarflipinn var opinn við hleðslu (#konnun)
     await Promise.all([
       hladaNotendayfirlit(),
       hladaVerkefnayfirlit(),
@@ -3748,3 +3749,117 @@ function athugaAhugavertOpnun() {
 }
 document.getElementById("stjornNav").addEventListener("click", () => setTimeout(athugaAhugavertOpnun, 0));
 vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, () => athugaAhugavertOpnun());
+
+// --- Könnun: svör nemenda (konnun/<KONNUN_ID>/svor/<uid>, sjá js/quiz.js) ---
+const KONNUN_ID = "nov2026";
+const KONNUN_SKALAR = [
+  ["aefingar", "Æfingarnar", "📅"],
+  ["thjalfariSkemmtilegur", "Þjálfari skemmtilegur", "😄"],
+  ["thjalfariSaetur", "Þjálfari sætur", "😍"],
+  ["orka", "Orka núna", "⚡"]
+];
+const KONNUN_DAGAR = ["Mánudagur", "Þriðjudagur", "Miðvikudagur", "Fimmtudagur", "Föstudagur", "Laugardagur", "Sunnudagur"];
+const konnunTafla = document.getElementById("konnunTafla").querySelector("tbody");
+const konnunStada = document.getElementById("konnunStada");
+const konnunSamantekt = document.getElementById("konnunSamantekt");
+const konnunDreifing = document.getElementById("konnunDreifing");
+const konnunOsvarad = document.getElementById("konnunOsvarad");
+let konnunHladin = false;
+
+async function hladaKonnun() {
+  konnunHladin = true;
+  konnunStada.textContent = "Sæki svör…";
+  let snap;
+  try {
+    snap = await getDocs(collection(db, "konnun", KONNUN_ID, "svor"));
+  } catch (villa) {
+    console.error(villa);
+    konnunStada.textContent = "Tókst ekki að sækja svörin.";
+    return;
+  }
+  const svor = snap.docs
+    .map((d) => ({ uid: d.id, ref: d.ref, ...d.data() }))
+    .sort((x, y) => (y.updatedAt?.toMillis?.() ?? 0) - (x.updatedAt?.toMillis?.() ?? 0));
+  konnunStada.textContent = `${svor.length} ${svor.length === 1 ? "svar" : "svör"}`;
+
+  // Samantekt: meðaltöl á skölunum
+  konnunSamantekt.innerHTML = "";
+  KONNUN_SKALAR.forEach(([lykill, heiti, takn]) => {
+    const gildi = svor.map((s) => s[lykill]).filter((v) => typeof v === "number");
+    const medal = gildi.length ? (gildi.reduce((a, b) => a + b, 0) / gildi.length).toFixed(1) : "—";
+    const kort = document.createElement("div");
+    kort.className = "tolu-kort";
+    kort.innerHTML = `<div class="tolu-kort-haus"><span class="tolu-kort-takn">${takn}</span> <span></span></div><div class="tolu-kort-gildi"><span class="tala"></span></div>`;
+    kort.querySelector(".tolu-kort-haus span:last-child").textContent = heiti;
+    kort.querySelector(".tala").textContent = medal === "—" ? medal : `${medal} / 10`;
+    konnunSamantekt.appendChild(kort);
+  });
+
+  // Dreifing: vikudagar og sebrahestar
+  konnunDreifing.innerHTML = "";
+  const dreifing = (titill, flokkar, telja) => {
+    const kassi = document.createElement("div");
+    kassi.className = "biolisti-admin";
+    const h4 = document.createElement("h4");
+    h4.textContent = titill;
+    const listi = document.createElement("div");
+    listi.className = "biolisti-admin-listi";
+    flokkar.forEach((f) => {
+      const nofn = svor.filter((s) => telja(s, f)).map((s) => (s.nafn || "?").split(" ")[0]);
+      const flis = document.createElement("span");
+      flis.className = "biolisti-admin-flis";
+      flis.textContent = `${f}: ${nofn.length}${nofn.length ? " (" + nofn.join(", ") + ")" : ""}`;
+      listi.appendChild(flis);
+    });
+    kassi.append(h4, listi);
+    konnunDreifing.appendChild(kassi);
+  };
+  if (svor.length) {
+    dreifing("📆 Vikudagar sem henta", KONNUN_DAGAR, (s, d) => (s.vikudagar || []).includes(d));
+    const sebraFlokkar = [...new Set(["Mjög hlynnt/ur", "Frekar hlynnt/ur", "Hvorki né", "Frekar andvíg/ur", "Mjög andvíg/ur", ...svor.map((s) => s.sebrahestar).filter(Boolean)])];
+    dreifing("🦓 Appelsínugulir sebrahestar", sebraFlokkar, (s, f) => s.sebrahestar === f);
+  }
+
+  konnunTafla.innerHTML = "";
+  if (!svor.length) konnunTafla.innerHTML = `<tr><td colspan="10">Enginn hefur svarað ennþá.</td></tr>`;
+  svor.forEach((s) => {
+    const tr = document.createElement("tr");
+    const td = (texti) => {
+      const el = document.createElement("td");
+      el.textContent = texti ?? "—";
+      tr.appendChild(el);
+      return el;
+    };
+    td(s.nafn || "—");
+    td((s.vikudagar || []).map((d) => d.slice(0, 3)).join(", ") || "—");
+    KONNUN_SKALAR.forEach(([lykill]) => td(typeof s[lykill] === "number" ? String(s[lykill]) : "—"));
+    td(s.sebrahestar || "—");
+    td(s.lokaord || "—").style.whiteSpace = "pre-wrap";
+    td(s.updatedAt?.toMillis ? formatDagsStutt(s.updatedAt.toMillis()) : "—");
+    const adgerd = document.createElement("td");
+    const eyda = document.createElement("button");
+    eyda.type = "button";
+    eyda.className = "smabtn";
+    eyda.textContent = "Eyða";
+    eyda.addEventListener("click", async () => {
+      if (!confirm(`Eyða svari frá ${s.nafn || "þessum notanda"}? Hann/hún getur þá svarað aftur.`)) return;
+      await deleteDoc(s.ref);
+      await updateDoc(doc(db, "users", s.uid), { [`konnunSvarad.${KONNUN_ID}`]: deleteField() }).catch((v) => console.warn(v));
+      hladaKonnun();
+    });
+    adgerd.appendChild(eyda);
+    tr.appendChild(adgerd);
+    konnunTafla.appendChild(tr);
+  });
+
+  // Hverjir í liðinu eiga eftir að svara
+  const svarad = new Set(svor.map((s) => s.uid));
+  const eftir = (notendaRadir || []).filter((r) => r.lid && !svarad.has(r.uid)).map((r) => r.nafn);
+  konnunOsvarad.textContent = eftir.length ? `Eiga eftir að svara (liðið): ${eftir.join(", ")}` : svor.length ? "Allir í liðinu hafa svarað ✓" : "";
+}
+
+function athugaKonnunOpnun() {
+  if (!konnunHladin && document.getElementById("sida-konnun").classList.contains("virk")) hladaKonnun();
+}
+document.getElementById("stjornNav").addEventListener("click", () => setTimeout(athugaKonnunOpnun, 0));
+document.getElementById("konnunEndurhladaBtn").addEventListener("click", hladaKonnun);

@@ -565,6 +565,7 @@ vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
   biolistiSed = gogn?.biolistiSed || {};
   notandaKyn = gogn?.kyn || kynNemandaUrNafni(gogn?.nafn);
   kveikjaBeta(gogn, user);
+  konnunUpphaf(gogn, user);
   // Tímasett áminning bíður nemandans: skráum að hann er online svo hætt sé við sendinguna (sjá Ýta við í stjórnborðinu).
   bidAminning = !!gogn?.aaetladAminning && !!user && gogn.role !== "admin";
   if (bidAminning) skraOnlineStodu();
@@ -653,7 +654,8 @@ const BETA_FYRIRSAGNIR = {
   glosur: ["Glósur", ""],
   ahugavert: ["Áhugavert efni", ""],
   biolisti: ["Bíólisti", ""],
-  hverer: ["Hver er", ""]
+  hverer: ["Hver er", ""],
+  konnun: ["Könnun", ""]
 };
 const BETA_LEIDIR = {
   minstada: "heim",
@@ -663,10 +665,11 @@ const BETA_LEIDIR = {
   hverEr: "hverer",
   glosur: "glosur",
   ahugavert: "ahugavert",
-  biolisti: "biolisti"
+  biolisti: "biolisti",
+  konnun: "konnun"
 };
 
-const BETA_SIDUR = ["heim", "verkefni", "glosur", "ahugavert", "biolisti", "hverer"];
+const BETA_SIDUR = ["heim", "verkefni", "glosur", "ahugavert", "biolisti", "hverer", "konnun"];
 let betaUpphafsLeid = "heim";
 let betaFyrstaHledsla = true;
 
@@ -705,6 +708,9 @@ function betaFaraI(leid) {
   } else if (leid === "biolisti") {
     synaSvaedi("biolisti");
     hladaBiolista();
+  } else if (leid === "konnun") {
+    synaSvaedi("konnun");
+    hladaKonnun();
   } else if (leid === "hverer") {
     if (erKennileitaYfirferd()) hverErBtn.click();
   } else if (leid === "stjornbord") {
@@ -1425,6 +1431,7 @@ function synaSvaedi(svaedi) {
   glosurSvaedi.hidden = svaedi !== "glosur";
   ahugavertSvaedi.hidden = svaedi !== "ahugavert";
   biolistiSvaedi.hidden = svaedi !== "biolisti";
+  konnunSvaedi.hidden = svaedi !== "konnun";
   if (betaVirkt) uppfaeraBetaNav(svaedi);
   hverErSvaedi.hidden = svaedi !== "hverEr";
   verkefnaSvaedi.hidden = svaedi !== "verkefni";
@@ -1661,6 +1668,228 @@ minStadaBtn.addEventListener("click", () => {
 glosurBtn.addEventListener("click", () => {
   synaSvaedi("glosur");
   hladaGlosur();
+});
+
+// --- Könnun: stutt könnun fyrir liðið (svörin sér aðeins þjálfarinn í stjórnborðinu) ---
+// konnun/{KONNUN_ID}/svor/{uid} = svörin; users/{uid}.konnunSvarad.{KONNUN_ID} = true þegar búið er að svara
+// (svo borðinn á Heim hverfi án þess að lesa aukaskjal).
+const KONNUN_ID = "nov2026";
+const KONNUN_SPURNINGAR = [
+  { id: "nafn", gerd: "texti", texti: "Nafn", skylda: true },
+  {
+    id: "vikudagar",
+    gerd: "fjolval",
+    texti: "Hvaða vikudagar henta þér til æfingar?",
+    valkostir: ["Mánudagur", "Þriðjudagur", "Miðvikudagur", "Fimmtudagur", "Föstudagur", "Laugardagur", "Sunnudagur"],
+    skylda: true
+  },
+  {
+    id: "aefingar",
+    gerd: "skali",
+    texti: "Á skalanum 1-10, þar sem 1 er mjög leiðinlegt en 10 mjög skemmtilegt, hvernig finnst þér Gettu betur æfingarnar hafa verið hingað til?",
+    skylda: true
+  },
+  {
+    id: "thjalfariSkemmtilegur",
+    gerd: "skali",
+    texti: "Á skalanum 1-10, þar sem 1 er mjög leiðinlegt en 10 mjög skemmtilegt, hversu skemmtilegur finnst þér Gettu betur þjálfarinn?",
+    skylda: true
+  },
+  {
+    id: "thjalfariSaetur",
+    gerd: "skali",
+    texti: "Á skalanum 1-10, þar sem 1 er mjög ljótur en 10 mjög sætur, hversu sætur finnst þér Gettu betur þjálfarinn?",
+    skylda: true
+  },
+  {
+    id: "orka",
+    gerd: "skali",
+    texti: "Á skalanum 1-10, þar sem 1 er mjög lítið en 10 mjög mikið, hversu mikla orku ertu með núna?",
+    skylda: true
+  },
+  {
+    id: "sebrahestar",
+    gerd: "val",
+    texti: "Hversu hlynnt/ur eða andvíg/ur ertu appelsínugulum sebrahestum?",
+    valkostir: ["Mjög hlynnt/ur", "Frekar hlynnt/ur", "Hvorki né", "Frekar andvíg/ur", "Mjög andvíg/ur"],
+    skylda: true
+  },
+  { id: "lokaord", gerd: "langtexti", texti: "Eitthvað sem þú vilt koma að að lokum í trúnaði?", skylda: false }
+];
+
+const konnunSvaedi = document.getElementById("konnunSvaedi");
+const konnunForm = document.getElementById("konnunForm");
+const konnunBordi = document.getElementById("konnunBordi");
+let konnunSvarad = false;
+let konnunNafn = "";
+
+function konnunRef() {
+  return doc(db, "konnun", KONNUN_ID, "svor", notandi.uid);
+}
+
+// Borðinn á Heim: sést þar til nemandinn hefur svarað (admin sér hann aðeins í "Sjá eins og nemandi").
+function konnunUpphaf(gogn, user) {
+  konnunSvarad = !!gogn?.konnunSvarad?.[KONNUN_ID];
+  konnunNafn = gogn?.nafn || "";
+  konnunBordi.innerHTML = "";
+  konnunBordi.hidden = !user || konnunSvarad || erKennileitaYfirferd();
+  if (konnunBordi.hidden) return;
+  const takki = document.createElement("button");
+  takki.type = "button";
+  takki.className = "konnun-bordi";
+  takki.innerHTML = "<strong>📋 Könnun</strong><span>Svaraðu stuttri könnun - tekur um eina mínútu →</span>";
+  takki.addEventListener("click", () => {
+    synaSvaedi("konnun");
+    hladaKonnun();
+  });
+  konnunBordi.appendChild(takki);
+}
+
+function byggjaKonnunarForm(fyrriSvor) {
+  konnunForm.innerHTML = "";
+  const inngangur = document.createElement("p");
+  inngangur.className = "heimild-tilvitnun";
+  inngangur.textContent = "Aðeins þjálfarinn sér svörin.";
+  konnunForm.appendChild(inngangur);
+
+  KONNUN_SPURNINGAR.forEach((sp, nr) => {
+    const hopur = document.createElement("fieldset");
+    hopur.className = "konnun-spurning";
+    hopur.dataset.id = sp.id;
+    const titill = document.createElement("legend");
+    titill.textContent = `${nr + 1}. ${sp.texti}${sp.skylda ? "" : " (valfrjálst)"}`;
+    hopur.appendChild(titill);
+    const fyrra = fyrriSvor?.[sp.id];
+
+    if (sp.gerd === "texti") {
+      const inn = document.createElement("input");
+      inn.type = "text";
+      inn.name = sp.id;
+      inn.maxLength = 80;
+      inn.value = fyrra ?? konnunNafn;
+      inn.setAttribute("aria-label", sp.texti);
+      hopur.appendChild(inn);
+    } else if (sp.gerd === "langtexti") {
+      const inn = document.createElement("textarea");
+      inn.name = sp.id;
+      inn.rows = 4;
+      inn.maxLength = 2000;
+      inn.value = fyrra ?? "";
+      inn.setAttribute("aria-label", sp.texti);
+      hopur.appendChild(inn);
+    } else {
+      const valkostir = sp.gerd === "skali" ? Array.from({ length: 10 }, (_, i) => String(i + 1)) : sp.valkostir;
+      const rod = document.createElement("div");
+      rod.className = "konnun-valkostir" + (sp.gerd === "skali" ? " konnun-skali" : "");
+      valkostir.forEach((v) => {
+        const merki = document.createElement("label");
+        merki.className = "konnun-valkostur";
+        const inn = document.createElement("input");
+        inn.type = sp.gerd === "fjolval" ? "checkbox" : "radio";
+        inn.name = sp.id;
+        inn.value = v;
+        inn.checked = sp.gerd === "fjolval" ? (fyrra || []).includes(v) : String(fyrra ?? "") === v;
+        const texti = document.createElement("span");
+        texti.textContent = v;
+        merki.append(inn, texti);
+        rod.appendChild(merki);
+      });
+      hopur.appendChild(rod);
+    }
+    const villa = document.createElement("p");
+    villa.className = "konnun-villa";
+    villa.hidden = true;
+    villa.textContent = "Þessari spurningu þarf að svara.";
+    hopur.appendChild(villa);
+    konnunForm.appendChild(hopur);
+  });
+
+  const senda = document.createElement("button");
+  senda.type = "submit";
+  senda.className = "aðal-hnappur";
+  senda.textContent = fyrriSvor ? "Uppfæra svör" : "Senda svör";
+  const stada = document.createElement("p");
+  stada.className = "heimild-tilvitnun";
+  stada.id = "konnunStada";
+  konnunForm.append(senda, stada);
+}
+
+async function hladaKonnun() {
+  if (!notandi) {
+    konnunForm.innerHTML = "<p>Skráðu þig inn til að svara könnuninni.</p>";
+    return;
+  }
+  konnunForm.innerHTML = skeletonKort(3, 1);
+  let fyrri = null;
+  // Aðeins lesið ef nemandinn hefur þegar svarað (þá getur hann breytt svörunum).
+  if (konnunSvarad) {
+    try {
+      const snap = await getDoc(konnunRef());
+      if (snap.exists()) fyrri = snap.data();
+    } catch (villa) {
+      console.error(villa);
+    }
+  }
+  byggjaKonnunarForm(fyrri);
+}
+
+function lesaKonnunarSvor() {
+  const svor = {};
+  let fyrstaVilla = null;
+  KONNUN_SPURNINGAR.forEach((sp) => {
+    const hopur = konnunForm.querySelector(`fieldset[data-id="${sp.id}"]`);
+    let gildi;
+    if (sp.gerd === "texti" || sp.gerd === "langtexti") gildi = hopur.querySelector("input, textarea").value.trim();
+    else if (sp.gerd === "fjolval") gildi = [...hopur.querySelectorAll("input:checked")].map((i) => i.value);
+    else {
+      const valid = hopur.querySelector("input:checked");
+      gildi = valid ? (sp.gerd === "skali" ? Number(valid.value) : valid.value) : null;
+    }
+    const tomt = gildi === null || gildi === "" || (Array.isArray(gildi) && gildi.length === 0);
+    const villa = sp.skylda && tomt;
+    hopur.querySelector(".konnun-villa").hidden = !villa;
+    hopur.classList.toggle("vantar", villa);
+    if (villa && !fyrstaVilla) fyrstaVilla = hopur;
+    svor[sp.id] = tomt ? (sp.gerd === "fjolval" ? [] : sp.gerd === "skali" ? null : "") : gildi;
+  });
+  return { svor, fyrstaVilla };
+}
+
+konnunForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!notandi) return;
+  const { svor, fyrstaVilla } = lesaKonnunarSvor();
+  const stada = document.getElementById("konnunStada");
+  if (fyrstaVilla) {
+    stada.textContent = "Það vantar svar við einni eða fleiri spurningum.";
+    fyrstaVilla.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  const senda = konnunForm.querySelector('button[type="submit"]');
+  senda.disabled = true;
+  stada.textContent = "Sendi…";
+  try {
+    await setDoc(konnunRef(), { ...svor, updatedAt: serverTimestamp() });
+    await updateDoc(doc(db, "users", notandi.uid), { [`konnunSvarad.${KONNUN_ID}`]: true });
+    konnunSvarad = true;
+    konnunBordi.hidden = true;
+    konnunForm.innerHTML = "";
+    const takk = document.createElement("div");
+    takk.className = "spjald-lok";
+    takk.innerHTML = "<h3>Takk fyrir! 🎉</h3><p>Svörin þín eru komin til þjálfarans.</p>";
+    const heim = document.createElement("button");
+    heim.type = "button";
+    heim.className = "aðal-hnappur";
+    heim.textContent = "Aftur á Heim";
+    heim.addEventListener("click", () => betaFaraI("heim"));
+    takk.appendChild(heim);
+    konnunForm.appendChild(takk);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (villa) {
+    console.error(villa);
+    stada.textContent = "Tókst ekki að senda - reyndu aftur.";
+    senda.disabled = false;
+  }
 });
 
 // --- Glósur: einn stór notepad (users/{uid}/glosur/notepad) sem vistast sjálfkrafa ---

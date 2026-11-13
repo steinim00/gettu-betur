@@ -4476,3 +4476,152 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
 #innflutningsSvaedi[hidden] {
   display: none;
 }
+
+/* Könnun */
+.konnun-bordi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 14px 18px;
+  border: 1.5px solid var(--litur-svart);
+  border-left: 6px solid var(--litur-lime);
+  background: var(--litur-svart);
+  color: #ffffff;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.konnun-bordi strong {
+  font-size: 1.15rem;
+}
+
+.konnun-bordi span {
+  color: #d9d9d2;
+  font-size: 0.9rem;
+}
+
+#konnunBordi[hidden],
+#konnunSvaedi[hidden] {
+  display: none;
+}
+
+.konnun-form {
+  max-width: 720px;
+}
+
+.konnun-spurning {
+  margin: 0 0 14px;
+  padding: 16px 18px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-korti);
+}
+
+.konnun-spurning.vantar {
+  border-color: #cf3b3b;
+}
+
+.konnun-spurning legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 0;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.konnun-spurning input[type="text"],
+.konnun-spurning textarea {
+  clear: both;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-baksvid);
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.konnun-valkostir {
+  clear: both;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.konnun-valkostur {
+  position: relative;
+  display: flex;
+  cursor: pointer;
+}
+
+.konnun-valkostur input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.konnun-valkostur span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1.5px solid var(--litur-jadar);
+  background: var(--litur-korti);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.konnun-skali .konnun-valkostur span {
+  min-width: 42px;
+  padding: 0;
+}
+
+.konnun-valkostur input:checked + span {
+  background: var(--litur-svart);
+  border-color: var(--litur-svart);
+  color: #ffffff;
+}
+
+.konnun-valkostur input:focus-visible + span {
+  outline: 2px solid var(--litur-svart);
+  outline-offset: 2px;
+}
+
+.konnun-villa {
+  clear: both;
+  margin: 8px 0 0;
+  color: #cf3b3b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.konnun-villa[hidden] {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .konnun-skali {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .konnun-skali .konnun-valkostur span {
+    width: 100%;
+  }
+}
+
+.konnun-dreifing {
+  margin: 12px 0;
+}
+
+#konnunTafla td {
+  vertical-align: top;
+}
