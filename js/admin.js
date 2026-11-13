@@ -1240,6 +1240,7 @@ async function hladaNotendayfirlit() {
       biolistiSed: notandi.biolistiSed || {},
       biolistiUm: notandi.biolistiUm || {},
       aaetladAminning: notandi.aaetladAminning || null,
+      konnunOpnad: notandi.konnunOpnad || {},
       aminningFelld: notandi.aminningFelld || null,
       ahugavertSmellir: notandi.ahugavertSmellir || {}
     });
@@ -1248,6 +1249,7 @@ async function hladaNotendayfirlit() {
   notendaRadir = rows;
   birtaNotendaRadir();
   samstillaTimasettar();
+  if (typeof konnunHladin !== "undefined" && konnunHladin) hladaKonnun(); // uppfæra "opnuðu"/"eiga eftir" listana
 }
 
 // "Nýjustu svör": 15 nýjustu spurningarnar sem nemandi hefur svarað, sóttar í bútum
@@ -3764,6 +3766,7 @@ const konnunStada = document.getElementById("konnunStada");
 const konnunSamantekt = document.getElementById("konnunSamantekt");
 const konnunDreifing = document.getElementById("konnunDreifing");
 const konnunOsvarad = document.getElementById("konnunOsvarad");
+const konnunOpnud = document.getElementById("konnunOpnud");
 let konnunHladin = false;
 
 async function hladaKonnun() {
@@ -3856,6 +3859,29 @@ async function hladaKonnun() {
   const svarad = new Set(svor.map((s) => s.uid));
   const eftir = (notendaRadir || []).filter((r) => r.lid && !svarad.has(r.uid)).map((r) => r.nafn);
   konnunOsvarad.textContent = eftir.length ? `Eiga eftir að svara (liðið): ${eftir.join(", ")}` : svor.length ? "Allir í liðinu hafa svarað ✓" : "";
+
+  // Hverjir hafa opnað könnunina (skráð tímabundið, sjá skraKonnunOpnun í js/quiz.js)
+  const opnud = (notendaRadir || [])
+    .map((r) => ({ r, o: r.konnunOpnad?.[KONNUN_ID] }))
+    .filter((x) => x.o && x.o.fjoldi)
+    .sort((x, y) => (y.o.sidast?.toMillis?.() ?? 0) - (x.o.sidast?.toMillis?.() ?? 0));
+  konnunOpnud.innerHTML = "";
+  if (opnud.length) {
+    const h4 = document.createElement("h4");
+    h4.textContent = "👀 Opnuðu könnunina";
+    const listi = document.createElement("div");
+    listi.className = "biolisti-admin-listi";
+    opnud.forEach(({ r, o }) => {
+      const flis = document.createElement("span");
+      flis.className = "biolisti-admin-flis";
+      const sidast = o.sidast?.toMillis ? formatDagsStutt(o.sidast.toMillis()) : "?";
+      flis.textContent = `${r.nafn} · ${o.fjoldi}× · síðast ${sidast}${svarad.has(r.uid) ? " · svaraði ✓" : " · hefur ekki svarað"}`;
+      listi.appendChild(flis);
+    });
+    konnunOpnud.append(h4, listi);
+  } else if ((notendaRadir || []).length) {
+    konnunOpnud.innerHTML = '<p class="undirtitill-vinstri">Enginn hefur opnað könnunina síðan skráning hófst.</p>';
+  }
 }
 
 function athugaKonnunOpnun() {

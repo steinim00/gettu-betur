@@ -1722,6 +1722,19 @@ const konnunForm = document.getElementById("konnunForm");
 const konnunBordi = document.getElementById("konnunBordi");
 let konnunSvarad = false;
 let konnunNafn = "";
+// Tímabundið: skráir hverjir opna könnunina (users/{uid}.konnunOpnad.{KONNUN_ID}) - aðeins í sólarhring.
+const KONNUN_OPNUN_SKRAD_TIL = Date.parse("2026-11-14T17:12:00Z");
+let konnunOpnunSkrad = false;
+
+function skraKonnunOpnun() {
+  if (!notandi || erAdminNotandi || konnunOpnunSkrad || Date.now() > KONNUN_OPNUN_SKRAD_TIL) return;
+  konnunOpnunSkrad = true; // einu sinni á hverja síðuhleðslu
+  const lykill = `konnunOpnad.${KONNUN_ID}`;
+  updateDoc(doc(db, "users", notandi.uid), {
+    [`${lykill}.sidast`]: serverTimestamp(),
+    [`${lykill}.fjoldi`]: increment(1)
+  }).catch((villa) => console.warn(villa));
+}
 
 function konnunRef() {
   return doc(db, "konnun", KONNUN_ID, "svor", notandi.uid);
@@ -1815,6 +1828,7 @@ function byggjaKonnunarForm(fyrriSvor) {
 }
 
 async function hladaKonnun() {
+  skraKonnunOpnun();
   if (!notandi) {
     konnunForm.innerHTML = "<p>Skráðu þig inn til að svara könnuninni.</p>";
     return;
