@@ -179,7 +179,7 @@ service cloud.firestore {
       allow read: if erEigandi(userId) || erAdmin();
       allow create, update: if erEigandi(userId)
                     && request.resource.data.keys().hasOnly(['nafn', 'vikudagar', 'aefingar', 'thjalfariSkemmtilegur',
-                                                              'thjalfariSaetur', 'orka', 'sebrahestar', 'lokaord', 'updatedAt'])
+                                                              'thjalfariTiskuvit', 'orka', 'sebrahestar', 'lokaord', 'updatedAt'])
                     && request.resource.data.nafn is string && request.resource.data.nafn.size() <= 80
                     && request.resource.data.vikudagar is list && request.resource.data.vikudagar.size() <= 7
                     && request.resource.data.lokaord is string && request.resource.data.lokaord.size() <= 2000;

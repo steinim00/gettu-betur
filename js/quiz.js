@@ -1696,9 +1696,9 @@ const KONNUN_SPURNINGAR = [
     skylda: true
   },
   {
-    id: "thjalfariSaetur",
+    id: "thjalfariTiskuvit",
     gerd: "skali",
-    texti: "Á skalanum 1-10, þar sem 1 er mjög ljótur en 10 mjög sætur, hversu sætur finnst þér Gettu betur þjálfarinn?",
+    texti: "Á skalanum 1-10, þar sem 1 er mjög lítið en 10 mjög mikið, hversu mikið tískuvit finnst þér Gettu betur þjálfarinn hafa?",
     skylda: true
   },
   {

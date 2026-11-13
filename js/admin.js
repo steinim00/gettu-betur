@@ -3755,7 +3755,7 @@ const KONNUN_ID = "nov2026";
 const KONNUN_SKALAR = [
   ["aefingar", "Æfingarnar", "📅"],
   ["thjalfariSkemmtilegur", "Þjálfari skemmtilegur", "😄"],
-  ["thjalfariSaetur", "Þjálfari sætur", "😍"],
+  ["thjalfariTiskuvit", "Tískuvit þjálfara", "🕶️"],
   ["orka", "Orka núna", "⚡"]
 ];
 const KONNUN_DAGAR = ["Mánudagur", "Þriðjudagur", "Miðvikudagur", "Fimmtudagur", "Föstudagur", "Laugardagur", "Sunnudagur"];
