@@ -4625,3 +4625,45 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
 #konnunTafla td {
   vertical-align: top;
 }
+
+/* Sérverkefni á Heim */
+#serverkefniSvaedi[hidden] {
+  display: none;
+}
+
+.serverkefni-kort {
+  margin-bottom: 12px;
+  padding: 16px 18px;
+  border: 1.5px solid var(--litur-svart);
+  border-left: 6px solid var(--litur-lime);
+  background: var(--litur-korti);
+}
+
+.serverkefni-merki {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--litur-daufur);
+}
+
+.serverkefni-kort h3 {
+  margin: 4px 0 2px;
+  font-size: 1.2rem;
+}
+
+.serverkefni-kort p {
+  margin: 0 0 12px;
+  color: var(--litur-daufur);
+  font-size: 0.9rem;
+}
+
+.serverkefni-hnappar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.serverkefni-hnappar .aðal-hnappur {
+  margin: 0;
+}

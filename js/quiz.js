@@ -173,7 +173,7 @@ function uthlutadVerkefniFyrirNotanda(verkefniDocs) {
   if (!notandi || erAdminNotandi) return [];
   return verkefniDocs.filter((d) => {
     const v = d.data();
-    return v.active && !erHradaVerkefni(v) && (v.leyfdirNotendur || []).includes(notandi.uid);
+    return v.active && !erHradaVerkefni(v) && !v.serverkefni && (v.leyfdirNotendur || []).includes(notandi.uid);
   });
 }
 
@@ -2725,6 +2725,7 @@ async function hladaMinaStodu() {
   const notandaGogn = notandiSnap.data() || {};
 
   birtaVikuAherslu(verkefnaSnap);
+  birtaServerkefni(verkefnaSnap, notandaGogn);
   if (betaVirkt) birtaMittEfni(notandaGogn.ahugavertTek || {});
 
   // Núverandi óvistaður skjátími (síðan á síðustu skrifum) talinn með svo talan sé lifandi.
@@ -2985,6 +2986,59 @@ function opnaSpurningarBeint(verkefniId, verkefni, hoppaIOsvaradar = true) {
 // núna "Hraðaspurningar". Finnur verkefnið með titilleit, svo ekkert
 // harðkóðað skjal-ID þarf að uppfæra ef verkefnið er endurskapað.
 const VIKU_AHERSLA_LEIT = "hraðaspurningar";
+// Sérverkefni: glærur og 10 spurningar sem þjálfarinn hefur valið sérstaklega fyrir nemandann
+// (verkefni með serverkefni: true, takmörkuð við hann - sjá scripts/serverkefni.js). Birtist á Heim undir
+// könnuninni og hverfur þegar öllum spurningunum hefur verið svarað.
+const serverkefniSvaedi = document.getElementById("serverkefniSvaedi");
+async function birtaServerkefni(verkefnaSnap, notandaGogn) {
+  serverkefniSvaedi.innerHTML = "";
+  serverkefniSvaedi.hidden = true;
+  if (!notandi || erKennileitaYfirferd()) return;
+  const minVerkefni = verkefnaSnap.docs.filter((d) => {
+    const v = d.data();
+    return v.serverkefni && v.active && (v.leyfdirNotendur || []).includes(notandi.uid);
+  });
+  if (!minVerkefni.length) return;
+  let yfirlit = {};
+  try {
+    yfirlit = await saekjaSpurningaYfirlit();
+  } catch (villa) {
+    console.warn(villa);
+  }
+  minVerkefni.forEach((vDoc) => {
+    const verkefni = vDoc.data();
+    const alls = Object.values(yfirlit).filter((vid) => vid === vDoc.id).length || 10;
+    const svarad = Math.min(notandaGogn?.verkefnaStada?.[vDoc.id]?.svarad || 0, alls);
+    if (svarad >= alls) return;
+
+    const kort = document.createElement("div");
+    kort.className = "serverkefni-kort";
+    const merki = document.createElement("span");
+    merki.className = "serverkefni-merki";
+    merki.textContent = "📌 Sérstaklega fyrir þig";
+    const titill = document.createElement("h3");
+    titill.textContent = verkefni.title;
+    const lysing = document.createElement("p");
+    lysing.textContent = `${(verkefni.slides || []).length} glærur · ${alls} spurningar${svarad ? ` · ${svarad} af ${alls} svarað` : ""}`;
+    const hnappar = document.createElement("div");
+    hnappar.className = "serverkefni-hnappar";
+    const glaerur = document.createElement("button");
+    glaerur.type = "button";
+    glaerur.className = "smabtn";
+    glaerur.textContent = "Skoða glærurnar";
+    glaerur.addEventListener("click", () => opnaVerkefni(vDoc.id, verkefni));
+    const spurningar = document.createElement("button");
+    spurningar.type = "button";
+    spurningar.className = "aðal-hnappur";
+    spurningar.textContent = svarad ? "Halda áfram í spurningum →" : "Fara í spurningarnar →";
+    spurningar.addEventListener("click", () => opnaSpurningarBeint(vDoc.id, verkefni));
+    hnappar.append(glaerur, spurningar);
+    kort.append(merki, titill, lysing, hnappar);
+    serverkefniSvaedi.appendChild(kort);
+  });
+  serverkefniSvaedi.hidden = !serverkefniSvaedi.children.length;
+}
+
 function birtaVikuAherslu(verkefnaSnap) {
   const vDoc = verkefnaSnap.docs.find((d) => (d.data().title || "").toLowerCase().includes(VIKU_AHERSLA_LEIT));
   vikuAherslaSvaedi.innerHTML = "";
