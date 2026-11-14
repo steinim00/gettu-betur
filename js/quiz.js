@@ -2988,7 +2988,7 @@ function opnaSpurningarBeint(verkefniId, verkefni, hoppaIOsvaradar = true) {
 const VIKU_AHERSLA_LEIT = "hraðaspurningar";
 // Sérverkefni: glærur og 10 spurningar sem þjálfarinn hefur valið sérstaklega fyrir nemandann
 // (verkefni með serverkefni: true, takmörkuð við hann - sjá scripts/serverkefni.js). Birtist á Heim undir
-// könnuninni og hverfur þegar öllum spurningunum hefur verið svarað.
+// könnuninni og helst þar þar til þjálfarinn tekur það út (active: false eða serverkefni tekið af).
 const serverkefniSvaedi = document.getElementById("serverkefniSvaedi");
 async function birtaServerkefni(verkefnaSnap, notandaGogn) {
   serverkefniSvaedi.innerHTML = "";
@@ -3009,8 +3009,6 @@ async function birtaServerkefni(verkefnaSnap, notandaGogn) {
     const verkefni = vDoc.data();
     const alls = Object.values(yfirlit).filter((vid) => vid === vDoc.id).length || 10;
     const svarad = Math.min(notandaGogn?.verkefnaStada?.[vDoc.id]?.svarad || 0, alls);
-    if (svarad >= alls) return;
-
     const kort = document.createElement("div");
     kort.className = "serverkefni-kort";
     const merki = document.createElement("span");
@@ -3019,7 +3017,8 @@ async function birtaServerkefni(verkefnaSnap, notandaGogn) {
     const titill = document.createElement("h3");
     titill.textContent = verkefni.title;
     const lysing = document.createElement("p");
-    lysing.textContent = `${(verkefni.slides || []).length} glærur · ${alls} spurningar${svarad ? ` · ${svarad} af ${alls} svarað` : ""}`;
+    const buid = svarad >= alls;
+    lysing.textContent = `${(verkefni.slides || []).length} glærur · ${alls} spurningar${buid ? " · Allar svaraðar ✓" : svarad ? ` · ${svarad} af ${alls} svarað` : ""}`;
     const hnappar = document.createElement("div");
     hnappar.className = "serverkefni-hnappar";
     const glaerur = document.createElement("button");
@@ -3030,7 +3029,7 @@ async function birtaServerkefni(verkefnaSnap, notandaGogn) {
     const spurningar = document.createElement("button");
     spurningar.type = "button";
     spurningar.className = "aðal-hnappur";
-    spurningar.textContent = svarad ? "Halda áfram í spurningum →" : "Fara í spurningarnar →";
+    spurningar.textContent = buid ? "Skoða spurningarnar →" : svarad ? "Halda áfram í spurningum →" : "Fara í spurningarnar →";
     spurningar.addEventListener("click", () => opnaSpurningarBeint(vDoc.id, verkefni));
     hnappar.append(glaerur, spurningar);
     kort.append(merki, titill, lysing, hnappar);
