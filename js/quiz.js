@@ -2978,8 +2978,8 @@ function opnaSpurningarBeint(verkefniId, verkefni, hoppaIOsvaradar = true) {
   spurningaBunkastaerd = spurningaBunkastaerdFyrir(verkefni);
   spurningaTitill.textContent = verkefni.title;
   synaSvaedi("spurningar");
-  hladaSpurningum(hoppaIOsvaradar);
   hladaMinumStodum();
+  return hladaSpurningum(hoppaIOsvaradar);
 }
 
 // Áberandi borði efst á "Mín staða" sem bendir beint á verkefni vikunnar -
@@ -3029,8 +3029,12 @@ async function birtaServerkefni(verkefnaSnap, notandaGogn) {
     const spurningar = document.createElement("button");
     spurningar.type = "button";
     spurningar.className = "aðal-hnappur";
-    spurningar.textContent = buid ? "Skoða spurningarnar →" : svarad ? "Halda áfram í spurningum →" : "Fara í spurningarnar →";
-    spurningar.addEventListener("click", () => opnaSpurningarBeint(vDoc.id, verkefni));
+    spurningar.textContent = buid ? "↺ Gera aftur" : svarad ? "Halda áfram í spurningum →" : "Fara í spurningarnar →";
+    // Búið: "Gera aftur" opnar spurningarnar og byrjar verkefnið aftur (eins og "Byrja aftur" í öðrum verkefnum).
+    spurningar.addEventListener("click", async () => {
+      await opnaSpurningarBeint(vDoc.id, verkefni);
+      if (buid) byrjaVerkefniAftur();
+    });
     hnappar.append(glaerur, spurningar);
     kort.append(merki, titill, lysing, hnappar);
     serverkefniSvaedi.appendChild(kort);
