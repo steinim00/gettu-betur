@@ -4472,6 +4472,15 @@ function synaUppfaersluBorda() {
 
 athugaUtgafu();
 setInterval(athugaUtgafu, 15 * 60 * 1000);
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && Date.now() - utgafaSidastAthugud > 5 * 60 * 1000) athugaUtgafu();
+// Þegar síminn/flipinn er opnaður aftur eftir hlé og ný útgáfa er komin er síðan endurhlaðin sjálfkrafa
+// (glósur og stokkar vistast fyrst) - annars bara borðinn.
+let utgafaFaliðSidan = 0;
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState === "hidden") {
+    utgafaFaliðSidan = Date.now();
+    return;
+  }
+  const hle = utgafaFaliðSidan ? Date.now() - utgafaFaliðSidan : 0;
+  if (Date.now() - utgafaSidastAthugud > 60 * 1000) await athugaUtgafu();
+  if (hle > 60 * 1000 && document.getElementById("uppfaerslaBordi")) document.querySelector("#uppfaerslaBordi button").click();
 });
