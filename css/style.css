@@ -4667,3 +4667,13 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
 .serverkefni-hnappar .aðal-hnappur {
   margin: 0;
 }
+
+/* Standandi glærumyndir (plaköt): öll myndin sést */
+.glaera-kort img.glaera-standandi {
+  width: auto;
+  max-width: 100%;
+  max-height: 420px;
+  margin-left: auto;
+  margin-right: auto;
+  object-fit: contain;
+}

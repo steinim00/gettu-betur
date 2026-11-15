@@ -3276,20 +3276,25 @@ function opnaVerkefni(verkefniId, verkefni) {
     (verkefni.slides || []).forEach((glaera) => {
       const kafli = document.createElement("article");
       kafli.className = "glaera-kort";
+      // Titillinn kemur á undan myndinni svo strax sjáist um hvað glæran er (t.d. hvaða kvikmynd plakatið er af).
+      const h = document.createElement("h3");
+      h.textContent = glaera.title;
+      kafli.appendChild(h);
 
       if (glaera.image) {
         const mynd = document.createElement("img");
         mynd.src = glaera.image;
         mynd.alt = glaera.title;
         mynd.loading = "lazy";
+        // Standandi myndir (t.d. kvikmyndaplaköt) eru sýndar í heild í stað þess að vera skornar.
+        mynd.addEventListener("load", () => {
+          if (mynd.naturalHeight > mynd.naturalWidth) mynd.classList.add("glaera-standandi");
+        });
         kafli.appendChild(mynd);
       }
 
-      const h = document.createElement("h3");
-      h.textContent = glaera.title;
       const p = document.createElement("p");
       p.textContent = glaera.body;
-      kafli.appendChild(h);
       kafli.appendChild(p);
       glaerurInnihald.appendChild(kafli);
     });
