@@ -4427,3 +4427,51 @@ async function hladaMinumStodum() {
   stodurNiðurstada.textContent =
     `Þú hefur svarað ${fjoldiSvarad} spurningum í þessu verkefni${sleppTexti}, ${fjoldiRett} réttum (${nakvaemni}% nákvæmni).`;
 }
+
+// --- Ný útgáfa: ef síðan hefur verið uppfærð síðan flipinn var opnaður birtist borði með "Endurhlaða". ---
+// Án þessa getur flipi sem stendur opinn dögum saman keyrt gamla útgáfu af síðunni (hash-leiðir hlaða ekki síðuna aftur).
+// Ber saman ETag/Last-Modified á js/quiz.js (HEAD-beiðni, ekkert Firebase) við það sem var þegar síðan opnaðist.
+let utgafaMerki = null;
+let utgafaSidastAthugud = 0;
+async function athugaUtgafu() {
+  utgafaSidastAthugud = Date.now();
+  try {
+    const svar = await fetch("js/quiz.js", { method: "HEAD", cache: "no-store" });
+    const merki = svar.headers.get("etag") || svar.headers.get("last-modified");
+    if (!svar.ok || !merki) return;
+    if (utgafaMerki === null) utgafaMerki = merki;
+    else if (merki !== utgafaMerki) synaUppfaersluBorda();
+  } catch (villa) {
+    // ekkert net - reynt aftur seinna
+  }
+}
+
+function synaUppfaersluBorda() {
+  if (document.getElementById("uppfaerslaBordi")) return;
+  const bordi = document.createElement("div");
+  bordi.id = "uppfaerslaBordi";
+  bordi.className = "uppfaersla-bordi";
+  bordi.setAttribute("role", "status");
+  const texti = document.createElement("span");
+  texti.textContent = "Ný útgáfa af síðunni er komin.";
+  const takki = document.createElement("button");
+  takki.type = "button";
+  takki.textContent = "Endurhlaða";
+  takki.addEventListener("click", async () => {
+    try {
+      if (typeof vistaNotepad === "function") await vistaNotepad();
+      if (typeof vistaStokka === "function") await vistaStokka();
+    } catch (villa) {
+      console.warn(villa);
+    }
+    location.reload();
+  });
+  bordi.append(texti, takki);
+  document.body.appendChild(bordi);
+}
+
+athugaUtgafu();
+setInterval(athugaUtgafu, 15 * 60 * 1000);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && Date.now() - utgafaSidastAthugud > 5 * 60 * 1000) athugaUtgafu();
+});
