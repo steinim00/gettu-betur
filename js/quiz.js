@@ -554,12 +554,9 @@ window.addEventListener("beforeunload", () => {
 
 setInterval(vistaSkjatima, 120000);
 
-// TÍMABUNDIÐ meðan á þróun/grunnvinnu stendur: requireAuth er false svo hægt sé
-// að skoða verkefni/glærur án innskráningar. Innskráning er samt áskilin til að
-// svara spurningum (sjá byggjaSpurningaKort). Fyrir alvöru notkun: settu
-// requireAuth aftur í true hér, og "if true" aftur í "if innskradur()" fyrir
-// verkefni/questions í firestore.rules.
-vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
+// Óinnskráðir eru sendir á innskráningarsíðuna - gestur sá aðeins Hraðaspurningar (verkefni sem eru takmörkuð
+// við ákveðna nemendur sjást ekki) og hélt að eitthvað væri bilað.
+vaktaInnskraningu({ requireAuth: true }, (user, gogn) => {
   notandi = user;
   erAdminNotandi = gogn?.role === "admin";
   biolistiSed = gogn?.biolistiSed || {};
