@@ -1,4 +1,4 @@
-// Sérverkefni (nóv. 2026): glærur og 10 spurningar fyrir hvern nemanda - sjá scripts/serverkefni.js.
+// Sérverkefni (nóv. 2026): glærur og 30 spurningar fyrir hvern nemanda - sjá scripts/serverkefni.js.
 // Glærur stjórnmálasögunnar eru úr "STJÓRNMÁLASAGA ÍSLAND.pptx" (FG 2017) á Drive.
 
 const STJORNMALASAGA = [
@@ -54,7 +54,27 @@ const SPURNINGAR = {
     ["Úr hverju voru prentstafir Gutenbergs, ólíkt prentstöfum Kínverja sem voru úr leir?", ["málmi", "málmur", "málm"]],
     ["Hvaða sprengiefni er frægasta uppfinning Alfreds Nobels?", ["dýnamít", "dínamít", "dynamít"]],
     ["Hvað hét búktalsdúkkan sem varð fyrsta „sjónvarpsstjarnan“ hjá John Logie Baird?", ["stooky bill"]],
-    ["Hvaða gerviefni fann Wallace Carothers upp hjá DuPont?", ["nælon", "nylon", "nælonefni"]]
+    ["Hvaða gerviefni fann Wallace Carothers upp hjá DuPont?", ["nælon", "nylon", "nælonefni"]],
+    ["Hvaða rússneski efnafræðingur lagði grunninn að lotukerfinu sem notað er í dag?", ["dmitri mendeljev", "mendeljev", "mendelejev", "mendeleev", "mendelejeff"]],
+    ["Hvaða ár setti Mendeljev fram lotukerfið sitt?", ["1869"]],
+    ["Hvað kallast geislarnir sem Wilhelm Röntgen uppgötvaði árið 1895?", ["röntgengeislar", "röntgengeislun", "x-geislar", "röntgen geislar"]],
+    ["Í hvaða landi fæddist Ernest Rutherford, sem stundum er kallaður faðir kjarnorkuvísinda?", ["nýja-sjálandi", "nýja-sjáland", "nýja sjáland", "nýja sjálandi"]],
+    ["Hvaða sænski náttúrufræðingur sneri hitakvarða Celsiusar við, þannig að 0° varð frostmark?", ["carl von linné", "linné", "linnaeus", "carl linnaeus"]],
+    ["Í hvaða borg fæddist Daniel Gabriel Fahrenheit?", ["gdansk", "gdańsk", "danzig"]],
+    ["Hvaða ítalski vísindamaður setti fram kenningu um „dýrarafmagn“ eftir tilraunir á dauðum froski, kenningu sem Volta hrakti?", ["luigi galvani", "galvani"]],
+    ["Hvaða þýski eðlisfræðingur uppgötvaði útvarpsbylgjur árið 1888?", ["heinrich hertz", "hertz"]],
+    ["Hvaða ár setti Peter Higgs fram kenningu sína um Higgs-bóseindina?", ["1964"]],
+    ["Hvaða frumefni nefndi Marie Curie eftir heimalandi sínu, Póllandi?", ["pólon", "pólóníum", "polonium", "pólonín"]],
+    ["Hver þróaði fyrstu öryggislyftuna árið 1851?", ["elisha otis", "otis"]],
+    ["Hvaða bandaríski uppfinningamaður endurbætti saumavélina svo hún varð sú vinsælasta í heimi?", ["isaac singer", "singer"]],
+    ["Á hvaða tæki fékk Samuel Morse einkaleyfi í Bandaríkjunum árið 1837?", ["ritsímanum", "ritsími", "ritsíma", "ritsíminn", "telegraph"]],
+    ["Hvaða þýski greifi og hershöfðingi var brautryðjandi í smíði loftskipa?", ["ferdinand von zeppelin", "zeppelin", "von zeppelin"]],
+    ["Hvaða uppfinningamaður þróaði riðstraumsmótorinn eftir að Edison hafði svikið hann um greiðslu?", ["nikola tesla", "tesla"]],
+    ["Hvaða franskir bræður stóðu fyrir fyrstu opinberu kvikmyndasýningu sögunnar árið 1895?", ["lumière-bræður", "lumière", "lumiere", "lumiére", "lumière bræður", "lumiere bræður"]],
+    ["Hvaða ítalski uppfinningamaður þróaði loftskeytasendingar?", ["guglielmo marconi", "marconi"]],
+    ["Hvaða danski verkfræðingur lagði grunninn að segulhljóðritun árið 1898 með stálvírs-hljóðritanum?", ["valdemar poulsen", "poulsen"]],
+    ["Hvaða ungverski uppfinningamaður fann upp kúlupennann?", ["lászló bíró", "bíró", "biro", "laszlo biro"]],
+    ["Hvaða tækni tókst Robert Watson-Watt að gera nothæfa fyrstur árið 1935?", ["ratsjá", "ratsjána", "ratsjártækni", "radar"]]
   ],
   hekla: [
     ["Hvaða kvikmynd frá 1927 var fyrsta talmyndin í fullri lengd?", ["the jazz singer", "jazz singer"]],
@@ -66,7 +86,27 @@ const SPURNINGAR = {
     ["Við hvern teflir riddarinn skák í Sjöunda innsiglinu eftir Ingmar Bergman?", ["dauðann", "dauðinn", "dauða", "dauðanum"]],
     ["Hvað hét fyrsta James Bond kvikmyndin, frá 1962?", ["dr. no", "dr no", "doctor no"]],
     ["Hvað heitir tölvan sem stýrir geimfarinu í 2001: A Space Odyssey?", ["hal 9000", "hal-9000", "hal", "hal9000"]],
-    ["Hvaða kvikmynd frá 1934 varð fyrst til að vinna „alslemmu“ á Óskarsverðlaununum?", ["it happened one night"]]
+    ["Hvaða kvikmynd frá 1934 varð fyrst til að vinna „alslemmu“ á Óskarsverðlaununum?", ["it happened one night"]],
+    ["Hver leikstýrði Beitiskipinu Potemkin (1925)?", ["sergei eisenstein", "eisenstein", "sergej eisenstein"]],
+    ["Hvað heitir þögla myndin frá 1926 þar sem Buster Keaton er í aðalhlutverki?", ["the general", "general"]],
+    ["Hver leikstýrði Metropolis (1927)?", ["fritz lang", "lang"]],
+    ["Hver leikstýrði og lék aðalhlutverkið í Borgarljósum (City Lights, 1931)?", ["charlie chaplin", "chaplin"]],
+    ["Hver leikstýrði bæði It Happened One Night (1934) og Mr. Smith Goes to Washington (1939)?", ["frank capra", "capra"]],
+    ["Hvað heitir fyrsta teiknimynd Walts Disney í fullri lengd, frá 1937?", ["mjallhvít og dvergarnir sjö", "mjallhvít", "snow white and the seven dwarfs", "snow white"]],
+    ["Hvaða leikkona lék aðalhlutverkið í Galdrakarlinum í Oz (1939)?", ["judy garland", "garland"]],
+    ["Hvaða kvikmynd frá 1939 heitir á íslensku Á hverfanda hveli?", ["gone with the wind"]],
+    ["Í hvaða kvikmynd frá 1940 gerði Charlie Chaplin grín að Hitler?", ["the great dictator", "great dictator", "einræðisherrann"]],
+    ["Hvaða leikari lék á móti Ingrid Bergman í Casablanca (1942)?", ["humphrey bogart", "bogart"]],
+    ["Hver leikstýrði Sjö samúræjum (1954)?", ["akira kurosawa", "kurosawa"]],
+    ["Hvaða leikari lék aðalhlutverkið í Rebel Without a Cause (1955)?", ["james dean", "dean"]],
+    ["Hvaða leikari lék aðalhlutverkin í Boðorðunum tíu (1956) og Ben-Húr (1959)?", ["charlton heston", "heston"]],
+    ["Hver leikstýrði Rear Window, Vertigo og Psycho?", ["alfred hitchcock", "hitchcock"]],
+    ["Hvað heitir mótelið þar sem Psycho gerist að mestu?", ["bates mótelið", "bates", "bates motel", "bates mótel"]],
+    ["Hver leikstýrði Hinu ljúfa lífi (La dolce vita, 1960)?", ["federico fellini", "fellini"]],
+    ["Hvaða leikari lék James Bond í fyrstu myndinni, Dr. No (1962)?", ["sean connery", "connery"]],
+    ["Hver leikstýrði Dr. Strangelove, 2001: A Space Odyssey, A Clockwork Orange og The Shining?", ["stanley kubrick", "kubrick"]],
+    ["Hver samdi tónlistina við Jaws (1975), m.a. hið þekkta hákarlastef?", ["john williams", "williams"]],
+    ["Hvaða leikstjóri gerði Jaws, E.T., Jurassic Park og Schindler's List?", ["steven spielberg", "spielberg"]]
   ],
   hinrik: [
     ["Hver varð fyrsti Ráðherra Íslands þegar heimastjórnin tók gildi 1. febrúar 1904?", ["hannes hafstein", "hafstein"]],
@@ -78,7 +118,27 @@ const SPURNINGAR = {
     ["Hver varð fyrst kvenna til að verða ráðherra á Íslandi, árið 1970?", ["auður auðuns"]],
     ["Hvaða flokkur bauð fram 1971 með það markmið að fá engin atkvæði?", ["framboðsflokkurinn", "framboðsflokkur"]],
     ["Hvaða flokk stofnaði Albert Guðmundsson 1987, studdur af „Hulduhernum“?", ["borgaraflokkurinn", "borgaraflokkur"]],
-    ["Hver var forsætisráðherra lengst allra, frá 1991 til 2004?", ["davíð oddsson", "davíð", "dabbi kóngur"]]
+    ["Hver var forsætisráðherra lengst allra, frá 1991 til 2004?", ["davíð oddsson", "davíð", "dabbi kóngur"]],
+    ["Hvað kallaðist fylkingin sem stóð gegn Heimastjórnarmönnum um aldamótin 1900 og vildi að ráðherra Íslands sæti í Danmörku?", ["valtýingar", "valtýingarnir", "valtýskan"]],
+    ["Hver varð fyrsti forsætisráðherra Íslands árið 1917?", ["jón magnússon"]],
+    ["Hvaða flokkur var stofnaður 1916 af bændum, Ungmennafélögunum og SÍS, og gaf lengi út Tímann?", ["framsóknarflokkurinn", "framsóknarflokkur", "framsókn"]],
+    ["Hvað hét málgagn Alþýðuflokksins?", ["alþýðublaðið", "alþýðublaðið"]],
+    ["Hvað voru óeirðirnar í Reykjavík árið 1921, þegar vísa átti drengnum Natan Friedman úr landi, kallaðar?", ["hvíta stríðið", "drengsmálið", "hvíta stríð"]],
+    ["Hver var formaður Sjálfstæðisflokksins frá 1934 til 1961?", ["ólafur thors", "thors"]],
+    ["Hver var valinn leiðtogi Kommúnistaflokks Íslands þegar hann var stofnaður árið 1930?", ["brynjólfur bjarnason"]],
+    ["Hvað nefndist málið þar sem Hermann Jónasson var sakaður um að hafa skotið æðarfugl?", ["kollumálið", "kollumál"]],
+    ["Hvað nefndist deilan árið 1942 þegar Hermann Jónasson taldi Ólaf Thors hafa svikið drengskaparheit um kjördæmamálið?", ["eiðrofsmálið", "eiðrofsmál"]],
+    ["Hver var kosinn ríkisstjóri árið 1941, til að fara með konungsvaldið?", ["sveinn björnsson"]],
+    ["Hvað var ríkisstjórn Ólafs Thors 1944-1946, sem fjárfesti í togurum og frystihúsum, kölluð?", ["nýsköpunarstjórnin", "nýsköpunarstjórn"]],
+    ["Hvaða kvenmannsnafn fékk ríkisstjórn Stefáns Jóhanns Stefánssonar (1947-1949)?", ["stefanía"]],
+    ["Hvað var bandalag Alþýðuflokks og Framsóknarflokks í kosningunum 1956 uppnefnt?", ["hræðslubandalagið", "hræðslubandalag"]],
+    ["Hvað var ríkisstjórn Sjálfstæðisflokks og Alþýðuflokks 1959-1971 kölluð?", ["viðreisnarstjórnin", "viðreisnarstjórn", "viðreisn"]],
+    ["Hvaða forsætisráðherra brann inni á Þingvöllum árið 1970?", ["bjarni benediktsson"]],
+    ["Hver stofnaði Samtök frjálslyndra og vinstri manna árið 1968?", ["hannibal valdimarsson", "hannibal"]],
+    ["Hver sagði um dagblaðið Vísi á Alþingi: „Mafía er hún, og mafía skal hún heita“?", ["ólafur jóhannesson", "óli jó"]],
+    ["Hver myndaði óvænta ríkisstjórn í febrúar 1980, í andstöðu við eigin flokk?", ["gunnar thoroddsen", "thoroddsen"]],
+    ["Hver stofnaði Bandalag jafnaðarmanna fyrir kosningarnar 1983?", ["vilmundur gylfason", "vilmundur"]],
+    ["Hver varð fyrst kvenna til að verða forsætisráðherra á Íslandi?", ["jóhanna sigurðardóttir", "jóhanna"]]
   ]
 };
 

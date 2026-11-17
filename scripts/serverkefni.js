@@ -1,4 +1,4 @@
-// Sérverkefni (nóv. 2026): glærur + 10 spurningar fyrir hvern nemanda, birt á Heim hjá viðkomandi (sjá
+// Sérverkefni (nóv. 2026): glærur + spurningar (30) fyrir hvern nemanda, birt á Heim hjá viðkomandi (sjá
 // birtaServerkefni í js/quiz.js). Verkefnin eru takmörkuð við nemandann (leyfdirNotendur) og merkt serverkefni: true,
 // svo spurningarnar blandist ekki inn í Hraðaspurningar. Keyra má aftur (sama skjal-ID = uppfærsla).
 // Notkun: NODE_PATH=... node serverkefni.js  (keyrðu svo samstilla-spurningayfirlit.js)
