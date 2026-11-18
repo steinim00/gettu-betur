@@ -454,14 +454,26 @@
         <label>Hverjir mættu</label>
         <div id="maettirGatlisti" class="gatlisti-net"></div>
 
-        <label for="aefingSpurningaLeit">Leita að spurningu úr Grænadeildinni</label>
+        <label for="aefingFjoldi">Draga hraðaspurningar af handahófi</label>
+        <div class="aefing-draga-rod">
+          <input type="number" id="aefingFjoldi" min="1" max="500" value="50" aria-label="Fjöldi spurninga">
+          <button type="button" class="smabtn" id="aefingDragaBtn">🎲 Draga spurningar</button>
+          <button type="button" class="smabtn" id="aefingNadustEkkiBtn">↺ Bæta við þeim sem náðust ekki áður</button>
+          <button type="button" class="smabtn" id="aefingHreinsaBtn">Hreinsa</button>
+        </div>
+        <p class="undirtitill-vinstri" id="aefingDragaStada" style="margin:4px 0 0;">Spurningar sem hafa ekki komið á æfingu áður ganga fyrir.</p>
+
+        <label for="aefingSpurningaLeit">Eða leita að ákveðinni spurningu</label>
         <input type="text" id="aefingSpurningaLeit" placeholder="Skrifaðu hluta af spurningunni…" autocomplete="off">
         <div id="aefingLeitarNidurstodur" class="leitar-nidurstodur"></div>
 
         <label>Spurningar í þessari æfingu</label>
         <div id="aefingValdarSpurningar"></div>
 
-        <button type="button" class="aðal-hnappur" id="vistaAefinguBtn">Vista æfingu</button>
+        <div class="aefing-hnappar">
+          <button type="button" class="aðal-hnappur" id="byrjaAefinguBtn">▶ Byrja æfingu (lesa upp)</button>
+          <button type="button" class="aðal-hnappur" id="vistaAefinguBtn">Vista æfingu</button>
+        </div>
       </div>
       <p id="aefingStada"></p>
 
@@ -470,6 +482,28 @@
         <thead><tr><th>Dagsetning</th><th>Mættir</th><th>Spurningar</th><th>Réttar</th><th>Hlutfall</th><th>Aðgerð</th></tr></thead>
         <tbody></tbody>
       </table>
+    </div>
+
+    <div class="upplestur" id="upplestur" hidden>
+      <div class="upplestur-haus">
+        <span id="upplesturStada">Umferð 1 · 1/25</span>
+        <span class="upplestur-timi" id="upplesturTimi">1:30</span>
+        <button type="button" class="upplestur-loka" id="upplesturLoka" aria-label="Loka">✕</button>
+      </div>
+      <div class="upplestur-kort" id="upplesturKort">
+        <p class="upplestur-spurning" id="upplesturSpurning"></p>
+        <p class="upplestur-svar" id="upplesturSvar"></p>
+      </div>
+      <div class="upplestur-lok" id="upplesturLok" hidden></div>
+      <div class="upplestur-takkar" id="upplesturTakkar">
+        <button type="button" class="upplestur-rangt" id="upplesturRangt">✗ Náðist ekki</button>
+        <button type="button" class="upplestur-rett" id="upplesturRett">✓ Rétt</button>
+      </div>
+      <div class="upplestur-fotur">
+        <button type="button" class="smabtn" id="upplesturTilBaka">← Til baka</button>
+        <span class="upplestur-hjalp">Lyklaborð: → / bil = rétt · ← / X = náðist ekki · Backspace = til baka</span>
+        <button type="button" class="smabtn" id="upplesturHaetta">Ljúka umferð</button>
+      </div>
     </div>
   </div>
 </div>

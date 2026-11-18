@@ -98,6 +98,9 @@ const aefingValdarSpurningar = document.getElementById("aefingValdarSpurningar")
 const vistaAefinguBtn = document.getElementById("vistaAefinguBtn");
 const aefingStada = document.getElementById("aefingStada");
 const aefingaTafla = document.getElementById("aefingaTafla").querySelector("tbody");
+const aefingFjoldi = document.getElementById("aefingFjoldi");
+const aefingDragaStada = document.getElementById("aefingDragaStada");
+const byrjaAefinguBtn = document.getElementById("byrjaAefinguBtn");
 
 const embaettismadurForm = document.getElementById("embaettismadurForm");
 const embNafn = document.getElementById("embNafn");
@@ -311,7 +314,7 @@ async function finnaGraenadeildarVerkefni() {
 
   const spurningarSnap = await lesaSafn("questions");
   graenadeildarSpurningar = spurningarSnap.docs
-    .filter((d) => d.data().verkefniId === graenadeildarVerkefniId)
+    .filter((d) => d.data().verkefniId === graenadeildarVerkefniId && d.data().active !== false)
     .map((d) => ({ id: d.id, text: d.data().text }));
 }
 
@@ -427,6 +430,7 @@ aefingSpurningaLeit.addEventListener("input", () => {
       aefingSpurningaLeit.value = "";
       aefingLeitarNidurstodur.innerHTML = "";
       renderValdarAefingSpurningar();
+      saekjaAefingaSvor();
     });
     aefingLeitarNidurstodur.appendChild(btn);
   });
@@ -447,7 +451,14 @@ function renderValdarAefingSpurningar() {
 
     const texti = document.createElement("span");
     texti.className = "texti";
-    texti.textContent = s.texti;
+    texti.textContent = `${index + 1}. ${s.texti}`;
+    const svar = aefingaSvar.get(s.questionId);
+    if (svar) {
+      const svarEl = document.createElement("span");
+      svarEl.className = "aefing-svar";
+      svarEl.textContent = svar;
+      texti.appendChild(svarEl);
+    }
     rad.appendChild(texti);
 
     const togglar = document.createElement("div");
@@ -464,7 +475,7 @@ function renderValdarAefingSpurningar() {
 
     const rangtBtn = document.createElement("button");
     rangtBtn.type = "button";
-    rangtBtn.textContent = "Rangt";
+    rangtBtn.textContent = "Náðist ekki";
     rangtBtn.className = "rangt" + (s.rett === false ? " virkur" : "");
     rangtBtn.addEventListener("click", () => {
       s.rett = s.rett === false ? null : false;
@@ -492,6 +503,287 @@ function renderValdarAefingSpurningar() {
 
 renderValdarAefingSpurningar();
 
+// --- Hraðaspurninga-æfing: draga spurningar af handahófi og lesa þær upp ---
+// Rétt svör (answers/{id}) eru sótt aðeins fyrir valdar spurningar (30 í hverju "in"-kalli).
+const aefingaSvar = new Map(); // spurningaID -> svar til að sýna upplesara
+let notadarAefingaSpurningar = new Set(); // hafa komið á fyrri æfingu
+let nadustEkkiAdur = []; // [{ questionId, texti }] sem náðust ekki á fyrri æfingum (nýjasta fyrst)
+
+function synilegtSvar(svor) {
+  const s = (svor || [])[0] || "";
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+}
+
+async function saekjaAefingaSvor() {
+  const vantar = [...new Set(valdarAefingSpurningar.map((s) => s.questionId))].filter((id) => !aefingaSvar.has(id));
+  if (vantar.length === 0) return;
+  try {
+    for (let i = 0; i < vantar.length; i += 30) {
+      const hluti = vantar.slice(i, i + 30);
+      const snap = await getDocs(query(collection(db, "answers"), where(documentId(), "in", hluti)));
+      snap.forEach((d) => aefingaSvar.set(d.id, synilegtSvar(d.data().correctAnswers)));
+      hluti.forEach((id) => { if (!aefingaSvar.has(id)) aefingaSvar.set(id, ""); });
+    }
+  } catch (villa) {
+    console.error("Tókst ekki að sækja svör", villa);
+  }
+  renderValdarAefingSpurningar();
+}
+
+function stokka(fylki) {
+  for (let i = fylki.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [fylki[i], fylki[j]] = [fylki[j], fylki[i]];
+  }
+  return fylki;
+}
+
+document.getElementById("aefingDragaBtn").addEventListener("click", async () => {
+  await finnaGraenadeildarVerkefni();
+  const fjoldi = Math.max(1, Math.min(500, parseInt(aefingFjoldi.value, 10) || 50));
+  const valdir = new Set(valdarAefingSpurningar.map((s) => s.questionId));
+  const lausar = graenadeildarSpurningar.filter((s) => !valdir.has(s.id));
+  const nyjar = stokka(lausar.filter((s) => !notadarAefingaSpurningar.has(s.id)));
+  const notadar = stokka(lausar.filter((s) => notadarAefingaSpurningar.has(s.id)));
+  const dregnar = [...nyjar, ...notadar].slice(0, fjoldi);
+  dregnar.forEach((s) => valdarAefingSpurningar.push({ questionId: s.id, texti: s.text, rett: null }));
+  aefingDragaStada.textContent = `${dregnar.length} spurningar dregnar (${Math.min(dregnar.length, nyjar.length)} nýjar). ${nyjar.length - Math.min(dregnar.length, nyjar.length)} ónotaðar eftir af ${graenadeildarSpurningar.length}.`;
+  renderValdarAefingSpurningar();
+  saekjaAefingaSvor();
+});
+
+document.getElementById("aefingNadustEkkiBtn").addEventListener("click", () => {
+  const valdir = new Set(valdarAefingSpurningar.map((s) => s.questionId));
+  const baeta = nadustEkkiAdur.filter((s) => !valdir.has(s.questionId));
+  if (baeta.length === 0) {
+    aefingDragaStada.textContent = "Engar spurningar sem náðust ekki á fyrri æfingum (eða þær eru þegar á listanum).";
+    return;
+  }
+  baeta.forEach((s) => valdarAefingSpurningar.push({ questionId: s.questionId, texti: s.texti, rett: null }));
+  aefingDragaStada.textContent = `${baeta.length} spurningum bætt við sem náðust ekki áður.`;
+  renderValdarAefingSpurningar();
+  saekjaAefingaSvor();
+});
+
+document.getElementById("aefingHreinsaBtn").addEventListener("click", () => {
+  if (valdarAefingSpurningar.length && !confirm("Fjarlægja allar spurningarnar af listanum?")) return;
+  valdarAefingSpurningar = [];
+  aefingDragaStada.textContent = "Spurningar sem hafa ekki komið á æfingu áður ganga fyrir.";
+  renderValdarAefingSpurningar();
+});
+
+if (!aefingDagsetning.value) {
+  const i = new Date();
+  aefingDagsetning.value = `${i.getFullYear()}-${String(i.getMonth() + 1).padStart(2, "0")}-${String(i.getDate()).padStart(2, "0")}`;
+}
+
+// Upplestur: ein spurning í einu, umferðir á 25 spurningum og 90 sek klukka.
+const UMFERD_STAERD = 25;
+const UMFERD_SEK = 90;
+const upplestur = {
+  el: document.getElementById("upplestur"),
+  stada: document.getElementById("upplesturStada"),
+  timi: document.getElementById("upplesturTimi"),
+  kort: document.getElementById("upplesturKort"),
+  spurning: document.getElementById("upplesturSpurning"),
+  svar: document.getElementById("upplesturSvar"),
+  lok: document.getElementById("upplesturLok"),
+  takkar: document.getElementById("upplesturTakkar"),
+  haetta: document.getElementById("upplesturHaetta"),
+  nr: 0, // staða í valdarAefingSpurningar
+  umferdByrjun: 0,
+  umferdEnd: 0, // fyrsta nr sem tilheyrir ekki umferðinni
+  umferd: 1,
+  timiByrjadi: 0,
+  klukka: null,
+  sagaUmferdar: [] // nr spurninga sem voru merktar í þessari umferð (fyrir "til baka")
+};
+
+function byrjaUmferd(byrjun, umferd) {
+  upplestur.umferdByrjun = byrjun;
+  upplestur.umferdEnd = Math.min(byrjun + UMFERD_STAERD, valdarAefingSpurningar.length);
+  upplestur.umferd = umferd;
+  upplestur.nr = byrjun;
+  upplestur.timiByrjadi = 0;
+  upplestur.sagaUmferdar = [];
+}
+
+function umferdLok() {
+  return upplestur.umferdEnd;
+}
+
+function birtaKlukku() {
+  if (!upplestur.timiByrjadi) {
+    upplestur.timi.textContent = `${Math.floor(UMFERD_SEK / 60)}:${String(UMFERD_SEK % 60).padStart(2, "0")}`;
+    upplestur.timi.classList.remove("buinn");
+    return;
+  }
+  const eftir = Math.ceil(UMFERD_SEK - (Date.now() - upplestur.timiByrjadi) / 1000);
+  const a = Math.abs(eftir);
+  upplestur.timi.textContent = `${eftir < 0 ? "+" : ""}${Math.floor(a / 60)}:${String(a % 60).padStart(2, "0")}`;
+  upplestur.timi.classList.toggle("buinn", eftir <= 0);
+  upplestur.timi.classList.toggle("lagur", eftir > 0 && eftir <= 10);
+}
+
+function stodvaKlukku() {
+  clearInterval(upplestur.klukka);
+  upplestur.klukka = null;
+}
+
+function byrjaKlukku() {
+  if (upplestur.timiByrjadi) return;
+  upplestur.timiByrjadi = Date.now();
+  stodvaKlukku();
+  upplestur.klukka = setInterval(birtaKlukku, 250);
+  birtaKlukku();
+}
+
+function birtaUpplestur() {
+  const fjoldi = valdarAefingSpurningar.length;
+  const lok = umferdLok();
+  const umferd = upplestur.umferd;
+  const fjoldiUmferda = umferd + Math.ceil((fjoldi - lok) / UMFERD_STAERD);
+  if (upplestur.nr >= lok) {
+    // Umferð búin
+    stodvaKlukku();
+    const umf = valdarAefingSpurningar.slice(upplestur.umferdByrjun, lok);
+    const rett = umf.filter((s) => s.rett === true).length;
+    const timiNotadur = upplestur.timiByrjadi ? Math.round((Date.now() - upplestur.timiByrjadi) / 1000) : 0;
+    upplestur.kort.hidden = true;
+    upplestur.takkar.hidden = true;
+    upplestur.haetta.hidden = true;
+    upplestur.lok.hidden = false;
+    upplestur.lok.innerHTML = "";
+    const h = document.createElement("h2");
+    h.textContent = `Umferð ${umferd}: ${rett}/${umf.length} rétt`;
+    const p = document.createElement("p");
+    p.textContent = timiNotadur ? `Tími: ${Math.floor(timiNotadur / 60)}:${String(timiNotadur % 60).padStart(2, "0")}` : "";
+    upplestur.lok.append(h, p);
+    const missti = umf.filter((s) => s.rett === false);
+    if (missti.length) {
+      const ul = document.createElement("ul");
+      missti.forEach((s) => {
+        const li = document.createElement("li");
+        li.textContent = `${s.texti} — ${aefingaSvar.get(s.questionId) || "?"}`;
+        ul.appendChild(li);
+      });
+      upplestur.lok.appendChild(ul);
+    }
+    const takki = document.createElement("button");
+    takki.type = "button";
+    takki.className = "aðal-hnappur";
+    if (lok < fjoldi) {
+      takki.textContent = `Næsta umferð (${umferd + 1} af ${fjoldiUmferda}) →`;
+      takki.addEventListener("click", () => {
+        byrjaUmferd(lok, umferd + 1);
+        birtaUpplestur();
+      });
+    } else {
+      const allt = valdarAefingSpurningar.filter((s) => s.rett === true).length;
+      h.textContent += ` · Samtals ${allt}/${fjoldi}`;
+      takki.textContent = "Klára og fara yfir";
+      takki.addEventListener("click", lokaUpplestri);
+    }
+    upplestur.lok.appendChild(takki);
+    takki.focus();
+    return;
+  }
+  const s = valdarAefingSpurningar[upplestur.nr];
+  upplestur.kort.hidden = false;
+  upplestur.takkar.hidden = false;
+  upplestur.haetta.hidden = false;
+  upplestur.lok.hidden = true;
+  upplestur.stada.textContent = `Umferð ${umferd}/${fjoldiUmferda} · ${upplestur.nr - upplestur.umferdByrjun + 1}/${lok - upplestur.umferdByrjun}`;
+  upplestur.spurning.textContent = s.texti;
+  const svar = aefingaSvar.get(s.questionId);
+  upplestur.svar.textContent = svar === undefined ? "Sæki svar…" : svar || "(ekkert svar skráð)";
+  birtaKlukku();
+}
+
+function merkjaUpplestur(rett) {
+  if (upplestur.lok.hidden === false) return;
+  byrjaKlukku();
+  valdarAefingSpurningar[upplestur.nr].rett = rett;
+  upplestur.sagaUmferdar.push(upplestur.nr);
+  upplestur.nr++;
+  birtaUpplestur();
+}
+
+function tilBakaUpplestur() {
+  if (!upplestur.sagaUmferdar.length) return;
+  upplestur.nr = upplestur.sagaUmferdar.pop();
+  valdarAefingSpurningar[upplestur.nr].rett = null;
+  if (upplestur.lok.hidden === false && upplestur.timiByrjadi) {
+    upplestur.klukka = setInterval(birtaKlukku, 250);
+  }
+  birtaUpplestur();
+}
+
+function opnaUpplestur() {
+  if (valdarAefingSpurningar.length === 0) {
+    aefingStada.textContent = "Dragðu fyrst spurningar (eða bættu þeim við).";
+    return;
+  }
+  aefingStada.textContent = "";
+  // Byrjar á fyrstu ómerktu spurningunni, í byrjun hennar umferðar.
+  const fyrstaOmerkt = valdarAefingSpurningar.findIndex((s) => s.rett === null);
+  const nr = fyrstaOmerkt === -1 ? 0 : fyrstaOmerkt;
+  byrjaUmferd(nr, Math.floor(nr / UMFERD_STAERD) + 1);
+  upplestur.el.hidden = false;
+  document.body.classList.add("upplestur-opinn");
+  saekjaAefingaSvor().then(() => { if (!upplestur.el.hidden) birtaUpplestur(); });
+  birtaUpplestur();
+}
+
+function lokaUpplestri() {
+  stodvaKlukku();
+  upplestur.el.hidden = true;
+  document.body.classList.remove("upplestur-opinn");
+  renderValdarAefingSpurningar();
+  const omerktar = valdarAefingSpurningar.filter((s) => s.rett === null).length;
+  aefingStada.textContent = omerktar
+    ? `${omerktar} spurningar eru ólesnar - ýttu á "Byrja æfingu" til að halda áfram, eða "Vista æfingu" til að vista án þeirra.`
+    : "Farðu yfir listann og ýttu á \"Vista æfingu\".";
+  vistaAefinguBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+byrjaAefinguBtn.addEventListener("click", opnaUpplestur);
+// Klukkan fer af stað við fyrstu merkingu - eða strax ef ýtt er á hana.
+upplestur.timi.title = "Ýttu til að ræsa klukkuna";
+upplestur.timi.addEventListener("click", () => {
+  if (upplestur.lok.hidden) byrjaKlukku();
+});
+document.getElementById("upplesturRett").addEventListener("click", () => merkjaUpplestur(true));
+document.getElementById("upplesturRangt").addEventListener("click", () => merkjaUpplestur(false));
+document.getElementById("upplesturTilBaka").addEventListener("click", tilBakaUpplestur);
+document.getElementById("upplesturLoka").addEventListener("click", lokaUpplestri);
+// "Ljúka umferð" (t.d. tíminn búinn): ólesnu spurningarnar færast í næstu umferð.
+upplestur.haetta.addEventListener("click", () => {
+  upplestur.umferdEnd = upplestur.nr;
+  if (upplestur.umferdEnd <= upplestur.umferdByrjun) {
+    lokaUpplestri();
+    return;
+  }
+  birtaUpplestur();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (upplestur.el.hidden) return;
+  if (e.target.closest && e.target.closest("input, textarea")) return;
+  if (e.key === "Escape") { lokaUpplestri(); return; }
+  if (!upplestur.lok.hidden) return;
+  if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {
+    e.preventDefault();
+    merkjaUpplestur(true);
+  } else if (e.key === "ArrowLeft" || e.key === "x" || e.key === "X") {
+    e.preventDefault();
+    merkjaUpplestur(false);
+  } else if (e.key === "Backspace") {
+    e.preventDefault();
+    tilBakaUpplestur();
+  }
+});
+
 vistaAefinguBtn.addEventListener("click", async () => {
   const dagsetning = aefingDagsetning.value;
   if (!dagsetning) {
@@ -504,9 +796,14 @@ vistaAefinguBtn.addEventListener("click", async () => {
     return;
   }
 
-  if (valdarAefingSpurningar.some((s) => s.rett === null)) {
-    aefingStada.textContent = "Merktu allar spurningar réttar eða rangar áður en þú vistar.";
+  const olesnar = valdarAefingSpurningar.filter((s) => s.rett === null).length;
+  if (olesnar === valdarAefingSpurningar.length) {
+    aefingStada.textContent = "Engin spurning er merkt ennþá - ýttu á \"Byrja æfingu\".";
     return;
+  }
+  if (olesnar > 0) {
+    if (!confirm(`${olesnar} spurningar eru ómerktar (ólesnar). Vista æfinguna án þeirra?`)) return;
+    valdarAefingSpurningar = valdarAefingSpurningar.filter((s) => s.rett !== null);
   }
 
   const maettir = [...maettirGatlisti.querySelectorAll("input:checked")].map((i) => i.value);
@@ -521,6 +818,7 @@ vistaAefinguBtn.addEventListener("click", async () => {
       spurningar: valdarAefingSpurningar.map((s) => ({
         questionId: s.questionId,
         texti: s.texti,
+        svar: aefingaSvar.get(s.questionId) || "",
         rett: s.rett
       })),
       createdAt: serverTimestamp()
@@ -529,7 +827,7 @@ vistaAefinguBtn.addEventListener("click", async () => {
     aefingStada.textContent = "Æfing vistuð.";
     valdarAefingSpurningar = [];
     renderValdarAefingSpurningar();
-    aefingDagsetning.value = "";
+    aefingDragaStada.textContent = "Spurningar sem hafa ekki komið á æfingu áður ganga fyrir.";
     renderMaettirGatlisti();
     hladaAefingasogu();
   } catch (villa) {
@@ -554,6 +852,16 @@ async function hladaAefingasogu() {
   const aefingar = snap.docs
     .map((d) => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (a.dagsetning || "").localeCompare(b.dagsetning || ""));
+
+  // Fyrir "Draga spurningar" (ónotaðar ganga fyrir) og "Bæta við þeim sem náðust ekki áður".
+  // Spurning sem náðist seinna telst ekki lengur "náðist ekki".
+  notadarAefingaSpurningar = new Set();
+  const sidastaStada = new Map();
+  aefingar.forEach((a) => (a.spurningar || []).forEach((sp) => {
+    notadarAefingaSpurningar.add(sp.questionId);
+    sidastaStada.set(sp.questionId, sp);
+  }));
+  nadustEkkiAdur = [...sidastaStada.values()].filter((sp) => sp.rett === false).reverse();
 
   aefingaTafla.innerHTML = "";
   aefingar.forEach((aefing) => {
@@ -581,6 +889,35 @@ async function hladaAefingasogu() {
     hlutfallTd.textContent = `${hlutfall}%`;
 
     const adgerdTd = document.createElement("td");
+    const missti = spurningar.filter((sp) => sp.rett === false);
+    let nanarTr = null;
+    if (missti.length) {
+      const sjaBtn = document.createElement("button");
+      sjaBtn.type = "button";
+      sjaBtn.className = "smabtn";
+      sjaBtn.textContent = `Náðust ekki (${missti.length})`;
+      sjaBtn.addEventListener("click", () => {
+        if (nanarTr) {
+          nanarTr.remove();
+          nanarTr = null;
+          return;
+        }
+        nanarTr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 6;
+        const ol = document.createElement("ol");
+        ol.className = "aefing-missti";
+        missti.forEach((sp) => {
+          const li = document.createElement("li");
+          li.textContent = sp.svar ? `${sp.texti} — ${sp.svar}` : sp.texti;
+          ol.appendChild(li);
+        });
+        td.appendChild(ol);
+        nanarTr.appendChild(td);
+        tr.after(nanarTr);
+      });
+      adgerdTd.appendChild(sjaBtn);
+    }
     const eydaBtn = document.createElement("button");
     eydaBtn.type = "button";
     eydaBtn.className = "smabtn";
