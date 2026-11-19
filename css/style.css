@@ -4929,3 +4929,23 @@ body.upplestur-opinn {
 .upplestur-haus .upplestur-timi {
   margin-left: 0;
 }
+.merking-takkar button.rett {
+  border: 2px solid var(--litur-rett);
+  background: #eef6e3;
+  color: var(--litur-rett);
+  font-weight: 700;
+}
+.merking-takkar button.rangt {
+  border: 2px solid var(--litur-rangt);
+  background: #fdecef;
+  color: var(--litur-rangt);
+  font-weight: 700;
+}
+.merking-takkar button.rett.virkur {
+  background: var(--litur-rett);
+  color: #ffffff;
+}
+.merking-takkar button.rangt.virkur {
+  background: var(--litur-rangt);
+  color: #ffffff;
+}

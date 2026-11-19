@@ -750,7 +750,7 @@ function birtaMerkingu() {
     texti.append(sp, sv);
     const takkar = document.createElement("span");
     takkar.className = "merking-takkar";
-    [["✗", false, "rangt", "Náðist ekki"], ["✓", true, "rett", "Kom"]].forEach(([t, gildi, kl, titill]) => {
+    [["✓", true, "rett", "Kom"], ["✗", false, "rangt", "Náðist ekki"]].forEach(([t, gildi, kl, titill]) => {
       const b = nyrTakki(t, kl + (s.rett === gildi ? " virkur" : ""), () => {
         s.rett = s.rett === gildi ? null : gildi;
         birtaMerkingu();
