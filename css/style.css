@@ -4746,269 +4746,186 @@ body.upplestur-opinn {
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-  background: #15171a;
-  color: #f3f3ee;
+  background: #ffffff;
+  color: #161616;
 }
-.upplestur[hidden] {
+.upplestur[hidden],
+.upplestur [hidden] {
   display: none;
 }
 .upplestur-haus {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 1rem;
-  color: #c9c9c2;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e6e6e0;
+  background: #f7f7f3;
+  font-weight: 600;
 }
 .upplestur-timi {
   margin-left: auto;
-  font-size: 1.8rem;
-  font-weight: 700;
+  font: 700 1.5rem/1 var(--leturgerd);
   font-variant-numeric: tabular-nums;
-  color: #f3f3ee;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid #d9d9d2;
+  background: #ffffff;
+  color: #161616;
+  cursor: pointer;
 }
-.upplestur-timi.lagur {
-  color: #ffcf3e;
-}
-.upplestur-timi.buinn {
-  color: #ff5c7f;
-}
+.upplestur-timi.gangi { background: #161616; color: #ffffff; border-color: #161616; }
+.upplestur-timi.lagur { background: #f2b300; border-color: #f2b300; color: #161616; }
+.upplestur-timi.buinn { background: var(--litur-rangt); border-color: var(--litur-rangt); color: #ffffff; }
 .upplestur-loka {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #f3f3ee;
+  border: 1px solid #d9d9d2;
+  color: #161616;
   border-radius: 999px;
   width: 40px;
   height: 40px;
   font-size: 1.1rem;
   cursor: pointer;
 }
-.upplestur-kort,
-.upplestur-lok {
+.upplestur-efni {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 16px max(24px, env(safe-area-inset-bottom));
 }
-.upplestur-kort[hidden],
-.upplestur-lok[hidden],
-.upplestur-takkar[hidden],
-.upplestur [hidden] {
-  display: none;
+.upplestur-skjal {
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 820px;
 }
-.upplestur-spurning {
-  font-size: clamp(1.4rem, 4.5vw, 2.6rem);
-  font-weight: 600;
-  line-height: 1.3;
-  max-width: 900px;
-  margin: 0 0 20px;
-}
-.upplestur-svar {
-  font-size: clamp(1.1rem, 3.2vw, 1.8rem);
-  color: var(--litur-lime);
-  font-weight: 700;
-  margin: 0;
-}
-.upplestur-lok h2 {
-  color: #f3f3ee;
-  margin: 0 0 6px;
-}
-.upplestur-lok p {
-  color: #c9c9c2;
-  margin: 0 0 12px;
-}
-.upplestur-lok ul {
-  text-align: left;
-  max-width: 700px;
-  margin: 0 0 18px;
-  padding-left: 20px;
-  line-height: 1.5;
-}
-.upplestur-takkar {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.upplestur-skjal li {
+  display: flex;
+  align-items: flex-start;
   gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #ececE6;
 }
-.upplestur-takkar button {
-  min-height: 96px;
-  border: none;
-  border-radius: 18px;
-  font-size: 1.4rem;
+.skjal-nr {
+  flex: 0 0 2.2em;
   font-weight: 700;
+  color: #8d8d86;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+.skjal-texti {
+  flex: 1;
+  min-width: 0;
+}
+.skjal-spurning {
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+.skjal-svar {
+  margin-top: 2px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--litur-rett);
+}
+.skjal-sidasta {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #d9d9d2;
+  background: #ffffff;
+  color: #6e6e68;
+  font: 600 0.85rem var(--leturgerd);
   cursor: pointer;
   touch-action: manipulation;
 }
-.upplestur-rett {
-  background: var(--litur-lime);
-  color: #202b0a;
-}
-.upplestur-rangt {
-  background: var(--litur-rangt);
+.skjal-sidasta:hover,
+.skjal-sidasta:active {
+  background: #161616;
+  border-color: #161616;
   color: #ffffff;
 }
-.upplestur-fotur {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.upplestur-fotur .smabtn {
-  color: #f3f3ee;
-  border-color: rgba(255, 255, 255, 0.25);
-}
-.upplestur-fotur #upplesturHaetta {
-  margin-left: auto;
-}
-.upplestur-hjalp {
+.upplestur-skjal li.skjal-skil {
+  display: block;
+  text-align: center;
   font-size: 0.8rem;
+  font-weight: 600;
   color: #8d8d86;
+  padding: 6px 0;
+  border-bottom: 2px dashed #d9d9d2;
 }
-@media (max-width: 700px) {
-  .upplestur-hjalp {
-    display: none;
-  }
-  .upplestur-takkar button {
-    min-height: 110px;
-  }
+.upplestur-yfirhaus {
+  max-width: 820px;
+  margin: 8px auto 4px;
+  text-align: center;
 }
-.upplestur-lok .aðal-hnappur {
-  background: var(--litur-lime);
-  color: #202b0a;
-  width: auto;
-  min-width: 260px;
-  padding: 16px 28px;
-  font-size: 1.15rem;
+.upplestur-yfirhaus h2 {
+  margin: 6px 0 4px;
 }
-.upplestur-timi {
-  cursor: pointer;
-}
-.upplestur-takkar {
-  grid-template-columns: 1fr 0.8fr 1fr;
-}
-.upplestur-naesta {
-  background: #2c2f34;
-  color: #f3f3ee;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-.upplestur-naesta small {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #a8a8a1;
-}
-.upplestur-lok.merking {
-  justify-content: flex-start;
+.upplestur-yfirhaus p {
+  margin: 0 0 10px;
+  color: #6e6e68;
 }
 .merking-flyti {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
-  margin-bottom: 12px;
 }
-.upplestur-lok .smabtn {
-  color: #f3f3ee;
-  border-color: rgba(255, 255, 255, 0.25);
-  background: transparent;
-}
-.upplestur-lok .smabtn:disabled,
-.upplestur-lok .aðal-hnappur:disabled {
-  opacity: 0.4;
-}
-.merking-listi {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 16px;
-  width: 100%;
-  max-width: 820px;
-  text-align: left;
-}
-.merking-listi li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-.merking-listi li.sidasta {
-  border-bottom: 2px solid var(--litur-lime);
-}
-.merking-listi li.olesin {
-  opacity: 0.4;
-}
-.merking-texti {
-  flex: 1;
-  font-size: 0.95rem;
-  line-height: 1.35;
-}
-.merking-svar {
-  display: block;
-  color: var(--litur-lime);
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-.merking-listi li.olesin .merking-svar {
-  color: #a8a8a1;
-  font-weight: 400;
-}
+.upplestur-skjal.merking li.er-rett { background: #f3f9e9; }
+.upplestur-skjal.merking li.er-rangt { background: #fdecef; }
+.upplestur-skjal.merking .skjal-spurning { font-size: 1.05rem; }
+.upplestur-skjal.merking .skjal-svar { font-size: 0.95rem; }
 .merking-takkar {
   display: flex;
   gap: 6px;
   flex-shrink: 0;
+  align-self: center;
+  padding-right: 4px;
 }
 .merking-takkar button {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
-  color: #f3f3ee;
-  font-size: 1.1rem;
+  border: 1px solid #d9d9d2;
+  background: #ffffff;
+  color: #161616;
+  font-size: 1.15rem;
   cursor: pointer;
   touch-action: manipulation;
 }
 .merking-takkar button.rett.virkur {
-  background: var(--litur-lime);
-  border-color: var(--litur-lime);
-  color: #202b0a;
+  background: var(--litur-rett);
+  border-color: var(--litur-rett);
+  color: #ffffff;
 }
 .merking-takkar button.rangt.virkur {
   background: var(--litur-rangt);
   border-color: var(--litur-rangt);
+  color: #ffffff;
 }
-.merking-takkar .sidasta-btn {
-  font-size: 0.95rem;
-  color: #8d8d86;
+.upplestur-yfirfotur {
+  max-width: 820px;
+  margin: 16px auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
 }
-.merking-takkar .sidasta-btn.virkur {
-  color: var(--litur-lime);
-  border-color: var(--litur-lime);
+.upplestur-yfirfotur .aðal-hnappur {
+  width: auto;
+  flex: 1 1 260px;
 }
-@media (max-width: 700px) {
-  .upplestur-takkar button {
-    font-size: 1.15rem;
-  }
-  .merking-takkar button {
-    width: 40px;
-    height: 40px;
-  }
+.upplestur-yfirfotur .aðal-hnappur:disabled {
+  opacity: 0.45;
 }
-.upplestur-takkar {
-  grid-template-columns: 1fr;
+@media (max-width: 600px) {
+  .skjal-spurning { font-size: 1.1rem; }
+  .merking-takkar button { width: 42px; height: 42px; }
 }
-.upplestur-takkar .upplestur-naesta {
-  background: var(--litur-lime);
-  color: #202b0a;
-  font-size: 1.5rem;
+#upplesturStada {
+  margin-right: auto;
 }
-.upplestur-kort {
-  cursor: pointer;
-  user-select: none;
+.upplestur-haus .upplestur-timi {
+  margin-left: 0;
 }
