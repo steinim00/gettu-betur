@@ -859,8 +859,8 @@ upplestur.timi.title = "Ýttu til að ræsa klukkuna";
 upplestur.timi.addEventListener("click", () => {
   if (upplestur.lok.hidden) byrjaKlukku();
 });
-document.getElementById("upplesturRett").addEventListener("click", () => merkjaUpplestur(true));
-document.getElementById("upplesturRangt").addEventListener("click", () => merkjaUpplestur(false));
+// Ýtt á spurninguna sjálfa = næsta (þægilegt í síma)
+upplestur.kort.addEventListener("click", () => merkjaUpplestur(null));
 document.getElementById("upplesturTilBaka").addEventListener("click", tilBakaUpplestur);
 document.getElementById("upplesturLoka").addEventListener("click", lokaUpplestri);
 // "Þetta var síðasta spurningin" (t.d. tíminn búinn): spurningin á skjánum er sú síðasta sem var lesin,
@@ -878,16 +878,10 @@ document.addEventListener("keydown", (e) => {
   if (e.target.closest && e.target.closest("input, textarea")) return;
   if (e.key === "Escape") { lokaUpplestri(); return; }
   if (!upplestur.lok.hidden) return;
-  if (e.key === " " || e.key === "ArrowDown" || e.key === "n" || e.key === "N") {
+  if (e.key === " " || e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === "Enter") {
     e.preventDefault();
     merkjaUpplestur(null);
-  } else if (e.key === "ArrowRight" || e.key === "Enter") {
-    e.preventDefault();
-    merkjaUpplestur(true);
-  } else if (e.key === "ArrowLeft" || e.key === "x" || e.key === "X") {
-    e.preventDefault();
-    merkjaUpplestur(false);
-  } else if (e.key === "Backspace") {
+  } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "Backspace") {
     e.preventDefault();
     tilBakaUpplestur();
   }

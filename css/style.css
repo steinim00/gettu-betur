@@ -5000,3 +5000,15 @@ body.upplestur-opinn {
     height: 40px;
   }
 }
+.upplestur-takkar {
+  grid-template-columns: 1fr;
+}
+.upplestur-takkar .upplestur-naesta {
+  background: var(--litur-lime);
+  color: #202b0a;
+  font-size: 1.5rem;
+}
+.upplestur-kort {
+  cursor: pointer;
+  user-select: none;
+}
