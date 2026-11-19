@@ -315,7 +315,7 @@ async function finnaGraenadeildarVerkefni() {
   const spurningarSnap = await lesaSafn("questions");
   graenadeildarSpurningar = spurningarSnap.docs
     .filter((d) => d.data().verkefniId === graenadeildarVerkefniId && d.data().active !== false)
-    .map((d) => ({ id: d.id, text: d.data().text }));
+    .map((d) => ({ id: d.id, text: d.data().text, grNr: d.data().grNr || null }));
 }
 
 async function hladaLidsmenn() {
@@ -426,7 +426,7 @@ aefingSpurningaLeit.addEventListener("input", () => {
     btn.type = "button";
     btn.textContent = s.text;
     btn.addEventListener("click", () => {
-      valdarAefingSpurningar.push({ questionId: s.id, texti: s.text, rett: null });
+      valdarAefingSpurningar.push({ questionId: s.id, texti: s.text, grNr: s.grNr, rett: null });
       aefingSpurningaLeit.value = "";
       aefingLeitarNidurstodur.innerHTML = "";
       renderValdarAefingSpurningar();
@@ -451,7 +451,7 @@ function renderValdarAefingSpurningar() {
 
     const texti = document.createElement("span");
     texti.className = "texti";
-    texti.textContent = `${index + 1}. ${s.texti}`;
+    texti.textContent = `${index + 1}. ${s.grNr ? `[nr. ${s.grNr}] ` : ""}${s.texti}`;
     const svar = aefingaSvar.get(s.questionId);
     if (svar) {
       const svarEl = document.createElement("span");
@@ -546,7 +546,7 @@ document.getElementById("aefingDragaBtn").addEventListener("click", async () => 
   const nyjar = stokka(lausar.filter((s) => !notadarAefingaSpurningar.has(s.id)));
   const notadar = stokka(lausar.filter((s) => notadarAefingaSpurningar.has(s.id)));
   const dregnar = [...nyjar, ...notadar].slice(0, fjoldi);
-  dregnar.forEach((s) => valdarAefingSpurningar.push({ questionId: s.id, texti: s.text, rett: null }));
+  dregnar.forEach((s) => valdarAefingSpurningar.push({ questionId: s.id, texti: s.text, grNr: s.grNr, rett: null }));
   aefingDragaStada.textContent = `${dregnar.length} spurningar dregnar (${Math.min(dregnar.length, nyjar.length)} nýjar). ${nyjar.length - Math.min(dregnar.length, nyjar.length)} ónotaðar eftir af ${graenadeildarSpurningar.length}.`;
   renderValdarAefingSpurningar();
   saekjaAefingaSvor();
@@ -559,8 +559,27 @@ document.getElementById("aefingNadustEkkiBtn").addEventListener("click", () => {
     aefingDragaStada.textContent = "Engar spurningar sem náðust ekki á fyrri æfingum (eða þær eru þegar á listanum).";
     return;
   }
-  baeta.forEach((s) => valdarAefingSpurningar.push({ questionId: s.questionId, texti: s.texti, rett: null }));
+  baeta.forEach((s) => valdarAefingSpurningar.push({ questionId: s.questionId, texti: s.texti, grNr: s.grNr || null, rett: null }));
   aefingDragaStada.textContent = `${baeta.length} spurningum bætt við sem náðust ekki áður.`;
+  renderValdarAefingSpurningar();
+  saekjaAefingaSvor();
+});
+
+// Í röð eftir númerunum úr "Grænadeildin (3)" skjalinu (reiturinn grNr, sjá scripts/numera-graenadeildina.js).
+const aefingFraNr = document.getElementById("aefingFraNr");
+document.getElementById("aefingIRodBtn").addEventListener("click", async () => {
+  await finnaGraenadeildarVerkefni();
+  const fra = parseInt(aefingFraNr.value, 10) || 1;
+  const valdir = new Set(valdarAefingSpurningar.map((s) => s.questionId));
+  const iRod = graenadeildarSpurningar
+    .filter((s) => s.grNr && s.grNr >= fra && !valdir.has(s.id))
+    .sort((a, b) => a.grNr - b.grNr);
+  if (iRod.length === 0) {
+    aefingDragaStada.textContent = `Engar spurningar frá nr. ${fra}.`;
+    return;
+  }
+  iRod.forEach((s) => valdarAefingSpurningar.push({ questionId: s.id, texti: s.text, grNr: s.grNr, rett: null }));
+  aefingDragaStada.textContent = `${iRod.length} spurningum bætt við í röð (nr. ${iRod[0].grNr}–${iRod[iRod.length - 1].grNr}).`;
   renderValdarAefingSpurningar();
   saekjaAefingaSvor();
 });
@@ -672,6 +691,11 @@ function birtaLestur() {
     const nrEl = document.createElement("span");
     nrEl.className = "skjal-nr";
     nrEl.textContent = `${nr}.`;
+    if (s.grNr) {
+      const g = document.createElement("small");
+      g.textContent = `#${s.grNr}`;
+      nrEl.appendChild(g);
+    }
     const texti = document.createElement("div");
     texti.className = "skjal-texti";
     const sp = document.createElement("div");
@@ -739,6 +763,11 @@ function birtaMerkingu() {
     const nrEl = document.createElement("span");
     nrEl.className = "skjal-nr";
     nrEl.textContent = `${k + 1}.`;
+    if (s.grNr) {
+      const g = document.createElement("small");
+      g.textContent = `#${s.grNr}`;
+      nrEl.appendChild(g);
+    }
     const texti = document.createElement("div");
     texti.className = "skjal-texti";
     const sp = document.createElement("div");
@@ -868,6 +897,7 @@ vistaAefinguBtn.addEventListener("click", async () => {
         questionId: s.questionId,
         texti: s.texti,
         svar: aefingaSvar.get(s.questionId) || "",
+        grNr: s.grNr || null,
         rett: s.rett
       })),
       createdAt: serverTimestamp()
@@ -911,6 +941,11 @@ async function hladaAefingasogu() {
     sidastaStada.set(sp.questionId, sp);
   }));
   nadustEkkiAdur = [...sidastaStada.values()].filter((sp) => sp.rett === false).reverse();
+  const haestaNr = Math.max(0, ...[...sidastaStada.values()].map((sp) => sp.grNr || 0));
+  if (haestaNr) {
+    aefingFraNr.value = haestaNr + 1;
+    aefingFraNr.title = `Síðast lesið á æfingu: nr. ${haestaNr}`;
+  }
 
   aefingaTafla.innerHTML = "";
   aefingar.forEach((aefing) => {

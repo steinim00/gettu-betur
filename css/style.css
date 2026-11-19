@@ -4949,3 +4949,12 @@ body.upplestur-opinn {
   background: var(--litur-rangt);
   color: #ffffff;
 }
+.skjal-nr small {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #a8a8a1;
+}
+.skjal-nr {
+  flex-basis: 2.8em;
+}
