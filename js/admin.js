@@ -643,6 +643,11 @@ function birtaUpplestur() {
   const lok = umferdLok();
   const umferd = upplestur.umferd;
   const fjoldiUmferda = umferd + Math.ceil((fjoldi - lok) / UMFERD_STAERD);
+  if (upplestur.nr >= lok && valdarAefingSpurningar.slice(upplestur.umferdByrjun, lok).some((s) => s.rett === null)) {
+    stodvaKlukku();
+    birtaMerkingu();
+    return;
+  }
   if (upplestur.nr >= lok) {
     // Umferð búin
     stodvaKlukku();
@@ -653,6 +658,7 @@ function birtaUpplestur() {
     upplestur.takkar.hidden = true;
     upplestur.haetta.hidden = true;
     upplestur.lok.hidden = false;
+    upplestur.lok.classList.remove("merking");
     upplestur.lok.innerHTML = "";
     const h = document.createElement("h2");
     h.textContent = `Umferð ${umferd}: ${rett}/${umf.length} rétt`;
@@ -700,6 +706,104 @@ function birtaUpplestur() {
   birtaKlukku();
 }
 
+// Merkingaskjár: eftir umferð (eða "Þetta var síðasta spurningin") eru ómerktu spurningarnar
+// í umferðinni merktar hér. Hægt er að færa "síðustu spurningu" til - spurningar á eftir henni
+// teljast ólesnar og færast í næstu umferð.
+function birtaMerkingu() {
+  const byrjun = upplestur.umferdByrjun;
+  const lok = umferdLok();
+  const haemark = Math.min(byrjun + UMFERD_STAERD, valdarAefingSpurningar.length);
+  upplestur.kort.hidden = true;
+  upplestur.takkar.hidden = true;
+  upplestur.haetta.hidden = true;
+  upplestur.lok.hidden = false;
+  upplestur.lok.innerHTML = "";
+  upplestur.lok.classList.add("merking");
+  const omerktar = valdarAefingSpurningar.slice(byrjun, lok).filter((s) => s.rett === null).length;
+  upplestur.stada.textContent = `Umferð ${upplestur.umferd} · merkja`;
+
+  const h = document.createElement("h2");
+  h.textContent = omerktar ? `Merktu ${omerktar} ${omerktar === 1 ? "spurningu" : "spurningar"}` : "Allt merkt";
+  const p = document.createElement("p");
+  p.textContent = `Síðasta lesna spurningin var nr. ${lok - byrjun}. Ýttu á "⏹" við aðra ef umferðin endaði annars staðar.`;
+  const flyti = document.createElement("div");
+  flyti.className = "merking-flyti";
+  [["✓ Allar ómerktar rétt", true], ["✗ Allar ómerktar náðust ekki", false]].forEach(([texti, gildi]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "smabtn";
+    b.textContent = texti;
+    b.disabled = omerktar === 0;
+    b.addEventListener("click", () => {
+      valdarAefingSpurningar.slice(byrjun, lok).forEach((s) => { if (s.rett === null) s.rett = gildi; });
+      birtaMerkingu();
+    });
+    flyti.appendChild(b);
+  });
+  upplestur.lok.append(h, p, flyti);
+
+  const listi = document.createElement("ol");
+  listi.className = "merking-listi";
+  for (let i = byrjun; i < haemark; i++) {
+    const s = valdarAefingSpurningar[i];
+    const lesin = i < lok;
+    const li = document.createElement("li");
+    li.className = (lesin ? "" : "olesin") + (i === lok - 1 ? " sidasta" : "");
+    const texti = document.createElement("span");
+    texti.className = "merking-texti";
+    texti.textContent = `${i - byrjun + 1}. ${s.texti}`;
+    const svar = document.createElement("span");
+    svar.className = "merking-svar";
+    svar.textContent = lesin ? aefingaSvar.get(s.questionId) || "" : "ólesin - fer í næstu umferð";
+    texti.appendChild(svar);
+    li.appendChild(texti);
+    const takkar = document.createElement("span");
+    takkar.className = "merking-takkar";
+    if (lesin) {
+      [["✗", false, "rangt"], ["✓", true, "rett"]].forEach(([t, gildi, kl]) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = kl + (s.rett === gildi ? " virkur" : "");
+        b.textContent = t;
+        b.title = gildi ? "Rétt" : "Náðist ekki";
+        b.addEventListener("click", () => {
+          s.rett = s.rett === gildi ? null : gildi;
+          birtaMerkingu();
+        });
+        takkar.appendChild(b);
+      });
+    }
+    const sidastaBtn = document.createElement("button");
+    sidastaBtn.type = "button";
+    sidastaBtn.className = "sidasta-btn" + (i === lok - 1 ? " virkur" : "");
+    sidastaBtn.textContent = "⏹";
+    sidastaBtn.title = "Þetta var síðasta spurningin";
+    sidastaBtn.addEventListener("click", () => {
+      upplestur.umferdEnd = i + 1;
+      // Spurningar á eftir síðustu teljast ólesnar
+      for (let j = i + 1; j < haemark; j++) valdarAefingSpurningar[j].rett = null;
+      upplestur.sagaUmferdar = upplestur.sagaUmferdar.filter((n) => n <= i);
+      birtaMerkingu();
+    });
+    takkar.appendChild(sidastaBtn);
+    li.appendChild(takkar);
+    listi.appendChild(li);
+  }
+  upplestur.lok.appendChild(listi);
+
+  const afram = document.createElement("button");
+  afram.type = "button";
+  afram.className = "aðal-hnappur";
+  afram.textContent = omerktar ? `Merktu ${omerktar} í viðbót` : "Áfram →";
+  afram.disabled = omerktar > 0;
+  afram.addEventListener("click", () => {
+    upplestur.lok.classList.remove("merking");
+    upplestur.nr = umferdLok();
+    birtaUpplestur();
+  });
+  upplestur.lok.appendChild(afram);
+}
+
 function merkjaUpplestur(rett) {
   if (upplestur.lok.hidden === false) return;
   byrjaKlukku();
@@ -713,6 +817,8 @@ function tilBakaUpplestur() {
   if (!upplestur.sagaUmferdar.length) return;
   upplestur.nr = upplestur.sagaUmferdar.pop();
   valdarAefingSpurningar[upplestur.nr].rett = null;
+  upplestur.umferdEnd = Math.max(upplestur.umferdEnd, Math.min(upplestur.umferdByrjun + UMFERD_STAERD, valdarAefingSpurningar.length));
+  upplestur.lok.classList.remove("merking");
   if (upplestur.lok.hidden === false && upplestur.timiByrjadi) {
     upplestur.klukka = setInterval(birtaKlukku, 250);
   }
@@ -757,22 +863,25 @@ document.getElementById("upplesturRett").addEventListener("click", () => merkjaU
 document.getElementById("upplesturRangt").addEventListener("click", () => merkjaUpplestur(false));
 document.getElementById("upplesturTilBaka").addEventListener("click", tilBakaUpplestur);
 document.getElementById("upplesturLoka").addEventListener("click", lokaUpplestri);
-// "Ljúka umferð" (t.d. tíminn búinn): ólesnu spurningarnar færast í næstu umferð.
+// "Þetta var síðasta spurningin" (t.d. tíminn búinn): spurningin á skjánum er sú síðasta sem var lesin,
+// ólesnu spurningarnar færast í næstu umferð og þær ómerktu eru merktar á merkingaskjánum.
 upplestur.haetta.addEventListener("click", () => {
-  upplestur.umferdEnd = upplestur.nr;
-  if (upplestur.umferdEnd <= upplestur.umferdByrjun) {
-    lokaUpplestri();
-    return;
-  }
+  upplestur.umferdEnd = upplestur.nr + 1;
+  upplestur.sagaUmferdar.push(upplestur.nr);
+  upplestur.nr = upplestur.umferdEnd;
   birtaUpplestur();
 });
+document.getElementById("upplesturNaesta").addEventListener("click", () => merkjaUpplestur(null));
 
 document.addEventListener("keydown", (e) => {
   if (upplestur.el.hidden) return;
   if (e.target.closest && e.target.closest("input, textarea")) return;
   if (e.key === "Escape") { lokaUpplestri(); return; }
   if (!upplestur.lok.hidden) return;
-  if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {
+  if (e.key === " " || e.key === "ArrowDown" || e.key === "n" || e.key === "N") {
+    e.preventDefault();
+    merkjaUpplestur(null);
+  } else if (e.key === "ArrowRight" || e.key === "Enter") {
     e.preventDefault();
     merkjaUpplestur(true);
   } else if (e.key === "ArrowLeft" || e.key === "x" || e.key === "X") {
