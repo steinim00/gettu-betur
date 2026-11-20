@@ -1,5 +1,6 @@
 // Býr til / uppfærir meta/virkarSpurningar (spurningaID -> verkefniID fyrir virkar spurningar).
 // Admin-síðan gerir þetta sjálfkrafa þegar hún er opnuð; þetta skripta er fyrir handvirka keyrslu.
+// Keyrið ALLTAF eftir skriftur sem breyta spurningum - setur líka alltFra í meta/spurningaBreytingar.
 const path = require("path");
 const admin = require("firebase-admin");
 admin.initializeApp({ credential: admin.credential.cert(require(path.join(__dirname, "serviceAccountKey.json"))) });
@@ -13,4 +14,9 @@ const db = admin.firestore();
   });
   await db.collection("meta").doc("virkarSpurningar").set({ spurningar, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
   console.log(`Yfirlit skráð: ${Object.keys(spurningar).length} virkar spurningar.`);
+  // Skriftur geta breytt mörgum spurningum framhjá breytingaskránni - vafrar admin sækja þá allt upp á nýtt
+  // (sjá js/spurningaGeymsla.js).
+  const nu = admin.firestore.FieldValue.serverTimestamp();
+  await db.collection("meta").doc("spurningaBreytingar").set({ alltFra: nu, uppfaert: nu }, { merge: true });
+  console.log("Spurningasafn admin-vafra ógilt (alltFra).");
 })();

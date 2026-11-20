@@ -1,5 +1,6 @@
 import { db } from "./firebase-config.js";
 import { vaktaInnskraningu, skraUt } from "./auth.js";
+import { samstillaSpurningasafn, spurningaSnap, merkjaBreyttar } from "./spurningaGeymsla.js";
 import {
   collection,
   query,
@@ -1525,7 +1526,9 @@ async function hladaHverEr() {
     return;
   }
   const [spurningarSnap, svaradIds] = await Promise.all([
-    getDocs(query(collection(db, "questions"), where("verkefniId", "==", verkefniId), where("active", "==", true))),
+    erAdminNotandi
+      ? samstillaSpurningasafn().then((c) => spurningaSnap(c, (g) => g.verkefniId === verkefniId && g.active === true))
+      : getDocs(query(collection(db, "questions"), where("verkefniId", "==", verkefniId), where("active", "==", true))),
     notandi
       ? getDocs(collection(db, "users", notandi.uid, "attempts")).then((s) => new Set(s.docs.map((d) => d.id)))
       : Promise.resolve(new Set())
@@ -1606,6 +1609,7 @@ function byggjaKennileitaYfirferd(korti, questionId, spurning) {
           : { nyMyndMerkt: deleteField(), nyMyndMerktAt: deleteField() }
       );
       nyMyndStada.set(questionId, nyttGildi);
+      merkjaBreyttar([questionId]);
     } catch (villa) {
       console.error(villa);
       alert("Tókst ekki að vista merkið: " + villa.message);
@@ -1630,11 +1634,7 @@ function byggjaKennileitaYfirferd(korti, questionId, spurning) {
     try {
       await updateDoc(doc(db, "questions", questionId), { active: nyttGildi });
       virkStada.set(questionId, nyttGildi);
-      try {
-        localStorage.removeItem("gb_admin_spurningar_v1"); // geymsla stjórnborðsins (js/admin.js) er þá úrelt
-      } catch (villa) {
-        console.warn(villa);
-      }
+      merkjaBreyttar([questionId]); // aðrir vafrar admin sækja þessa spurningu aftur
     } catch (villa) {
       console.error(villa);
       alert("Tókst ekki að breyta stöðunni: " + villa.message);
@@ -3512,7 +3512,8 @@ async function saekjaVirkarVerkefnis(verkefniId) {
 // óvirkar) beint úr gagnagrunninum fyrir admin.
 async function saekjaSpurningarVerkefnis(verkefniId) {
   if (erAdminNotandi) {
-    return (await getDocs(query(collection(db, "questions"), where("verkefniId", "==", verkefniId)))).docs;
+    // Úr spurningasafninu í vafranum - aðeins breyttar spurningar sóttar (sjá js/spurningaGeymsla.js).
+    return spurningaSnap(await samstillaSpurningasafn(), (g) => g.verkefniId === verkefniId).docs;
   }
   return saekjaVirkarVerkefnis(verkefniId);
 }

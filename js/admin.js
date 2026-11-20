@@ -1,5 +1,6 @@
 import { db } from "./firebase-config.js";
 import { vaktaInnskraningu, skraUt } from "./auth.js";
+import { samstillaSpurningasafn, spurningaSnap, svaraSnap, merkjaBreyttar, spurningaIdUrSlod, hreinsaSpurningasafn } from "./spurningaGeymsla.js";
 import {
   collection,
   doc,
@@ -24,52 +25,51 @@ import {
   writeBatch as _writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-// --- Spurningasafnið geymt í vafranum (sparar ~2.400 lestra í hverri opnun stjórnborðsins) ---
-// Aðeins lágmarksreitir (verkefni, virk, texti, grNr) - nóg fyrir yfirlit, tölukort og Grænadeildina.
-// Verkefni-flipinn (breytingar á spurningum) les alltaf ferskt. Hver skrifaðgerð admin hreinsar
-// geymsluna (sjá hjúpana hér að neðan), og hún rennur út eftir 6 klst.
-const SPURNINGA_GEYMSLA = "gb_admin_spurningar_v1";
-const SPURNINGA_GEYMSLA_MS = 6 * 3600 * 1000;
-function ogildaSpurningaGeymslu() {
-  try {
-    localStorage.removeItem(SPURNINGA_GEYMSLA);
-  } catch (villa) {
-    console.warn(villa);
-  }
+// --- Spurningasafnið geymt í vafranum: aðeins breyttar spurningar sóttar (sjá js/spurningaGeymsla.js) ---
+// Skrifhjúpar: hver skrifaðgerð á questions/ID eða answers/ID er skráð í meta/spurningaBreytingar svo
+// allir vafrar admin (líka á öðrum tækjum) sæki þá spurningu aftur - og ekkert annað.
+function merkjaEf(ref) {
+  const id = spurningaIdUrSlod(ref?.path);
+  return id ? merkjaBreyttar([id]) : undefined;
 }
-function vistaSpurningaGeymslu(snap) {
-  try {
-    const d = snap.docs.map((x) => {
-      const g = x.data();
-      return [x.id, g.verkefniId || "", g.active === true ? 1 : 0, g.text || "", g.grNr || 0];
-    });
-    localStorage.setItem(SPURNINGA_GEYMSLA, JSON.stringify({ t: Date.now(), d }));
-  } catch (villa) {
-    console.warn(villa);
-  }
-}
-function lesaSpurningaGeymslu() {
-  try {
-    const c = JSON.parse(localStorage.getItem(SPURNINGA_GEYMSLA) || "null");
-    if (!c || Date.now() - c.t > SPURNINGA_GEYMSLA_MS) return null;
-    const docs = c.d.map(([id, verkefniId, active, text, grNr]) => {
-      const gogn = { verkefniId, active: active === 1, text, grNr: grNr || null };
-      return { id, data: () => gogn };
-    });
-    return { docs, size: docs.length, empty: docs.length === 0, forEach: (f) => docs.forEach(f), fraGeymslu: true };
-  } catch (villa) {
-    console.warn(villa);
-    return null;
-  }
-}
-const setDoc = (...a) => (ogildaSpurningaGeymslu(), _setDoc(...a));
-const addDoc = (...a) => (ogildaSpurningaGeymslu(), _addDoc(...a));
-const deleteDoc = (...a) => (ogildaSpurningaGeymslu(), _deleteDoc(...a));
-const updateDoc = (...a) => (ogildaSpurningaGeymslu(), _updateDoc(...a));
+const setDoc = async (ref, ...r) => {
+  const x = await _setDoc(ref, ...r);
+  await merkjaEf(ref);
+  return x;
+};
+const updateDoc = async (ref, ...r) => {
+  const x = await _updateDoc(ref, ...r);
+  await merkjaEf(ref);
+  return x;
+};
+const deleteDoc = async (ref, ...r) => {
+  const x = await _deleteDoc(ref, ...r);
+  await merkjaEf(ref);
+  return x;
+};
+const addDoc = async (safn, ...r) => {
+  const ref = await _addDoc(safn, ...r);
+  await merkjaEf(ref);
+  return ref;
+};
 function writeBatch(...a) {
   const b = _writeBatch(...a);
+  const ids = [];
+  ["set", "update", "delete"].forEach((adferd) => {
+    const upphafleg = b[adferd].bind(b);
+    b[adferd] = (ref, ...r) => {
+      const id = spurningaIdUrSlod(ref?.path);
+      if (id) ids.push(id);
+      upphafleg(ref, ...r);
+      return b;
+    };
+  });
   const commit = b.commit.bind(b);
-  b.commit = () => (ogildaSpurningaGeymslu(), commit());
+  b.commit = async () => {
+    const x = await commit();
+    await merkjaBreyttar(ids);
+    return x;
+  };
   return b;
 }
 
@@ -234,7 +234,15 @@ vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
 });
 
 utskraBtn.addEventListener("click", () => skraUt());
-endurhladaBtn.addEventListener("click", () => hladaAllt(false, { ferskt: true }));
+endurhladaBtn.addEventListener("click", () => hladaAllt());
+document.getElementById("saekjaAlltBtn").addEventListener("click", async () => {
+  const stada = document.getElementById("saekjaAlltStada");
+  stada.textContent = "Sæki…";
+  hreinsaSpurningasafn();
+  await samstillaSpurningasafn({ alltFerskt: true, medSvorum: spurningayfirlitHladid });
+  await hladaAllt();
+  stada.textContent = "Allt sótt upp á nýtt.";
+});
 
 // Fullt yfirlit sækir sömu söfnin (notendur, verkefni, spurningar) í mörgum
 // föllum - þau deila hér einni lesningu hvert á meðan hladaAllt er í gangi
@@ -243,40 +251,23 @@ endurhladaBtn.addEventListener("click", () => hladaAllt(false, { ferskt: true })
 let deiltLestur = null;
 // Spurningasafnið er stærsta safnið (þúsundir skjala) - sjálfvirka endurhleðslan notar síðasta lestur
 // í stað þess að sækja það allt aftur. Allir ferskir lestrar (hnappurinn "Endurhlaða", breytingar) uppfæra hann.
-let spurningaMinni = null;
-let sjalfvirktLestur = false;
-let notaSpurningaGeymslu = false; // aðeins við venjulega opnun síðunnar, ekki "Endurhlaða"
-function lesaSafn(nafn, { ferskt = false } = {}) {
-  if (nafn === "questions" && sjalfvirktLestur && spurningaMinni) return spurningaMinni;
-  if (nafn === "questions" && !ferskt && notaSpurningaGeymslu) {
-    const geymt = lesaSpurningaGeymslu();
-    if (geymt) {
-      spurningaMinni = Promise.resolve(geymt);
-      return spurningaMinni;
-    }
-  }
-  let lofordi;
-  if (!deiltLestur) {
-    lofordi = getDocs(collection(db, nafn));
-  } else {
-    if (!deiltLestur[nafn]) deiltLestur[nafn] = getDocs(collection(db, nafn));
-    lofordi = deiltLestur[nafn];
-  }
+function lesaSafn(nafn) {
+  // Spurningar: úr geymslunni í vafranum, aðeins breyttar sóttar (~4 lestrar í stað ~2.400).
   if (nafn === "questions") {
-    spurningaMinni = lofordi;
-    lofordi.then(vistaSpurningaGeymslu, () => {
-      if (spurningaMinni === lofordi) spurningaMinni = null;
-    });
+    if (deiltLestur && deiltLestur.questions) return deiltLestur.questions;
+    const lofordi = samstillaSpurningasafn().then((c) => spurningaSnap(c));
+    if (deiltLestur) deiltLestur.questions = lofordi;
+    return lofordi;
   }
-  return lofordi;
+  if (!deiltLestur) return getDocs(collection(db, nafn));
+  if (!deiltLestur[nafn]) deiltLestur[nafn] = getDocs(collection(db, nafn));
+  return deiltLestur[nafn];
 }
 
 // Sjálfvirk endurhleðsla (sjalfvirkt = true) sækir aðeins notendur (stöðu og "online") -
 // spurningar og rétt svör breytast bara þegar admin breytir þeim sjálfur.
-async function hladaAllt(sjalfvirkt = false, { ferskt = false } = {}) {
+async function hladaAllt(sjalfvirkt = false) {
   deiltLestur = {};
-  sjalfvirktLestur = sjalfvirkt;
-  notaSpurningaGeymslu = !ferskt;
   try {
     if (sjalfvirkt) {
       await hladaNotendayfirlit();
@@ -293,8 +284,6 @@ async function hladaAllt(sjalfvirkt = false, { ferskt = false } = {}) {
     ]);
   } finally {
     deiltLestur = null;
-    sjalfvirktLestur = false;
-    notaSpurningaGeymslu = false;
   }
 }
 
@@ -315,8 +304,6 @@ document.querySelectorAll(".tolu-kort[data-malsvaedi]").forEach((k) => k.addEven
 async function samstillaSpurningayfirlit() {
   try {
     const snap = await lesaSafn("questions");
-    // Samstillir aðeins út frá ferskum gögnum - aldrei úr geymslunni (gæti verið eldri).
-    if (snap.fraGeymslu) return;
     const spurningar = {};
     snap.docs
       .filter((d) => d.data().active === true && d.data().verkefniId)
@@ -2862,11 +2849,9 @@ bokForm.addEventListener("submit", async (e) => {
 
 async function hladaSpurningayfirlit() {
   spurningayfirlitHladid = true;
-  const [spurningarSnap, svorSnap, verkefnaSnap] = await Promise.all([
-    lesaSafn("questions", { ferskt: true }),
-    getDocs(collection(db, "answers")),
-    lesaSafn("verkefni")
-  ]);
+  const [safn, verkefnaSnap] = await Promise.all([samstillaSpurningasafn({ medSvorum: true }), lesaSafn("verkefni")]);
+  const spurningarSnap = spurningaSnap(safn);
+  const svorSnap = svaraSnap(safn);
   const rettSvor = new Map(svorSnap.docs.map((d) => [d.id, d.data().correctAnswers || []]));
   const verkefnaTitlar = new Map(verkefnaSnap.docs.map((d) => [d.id, d.data().title]));
 
