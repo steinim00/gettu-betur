@@ -3,26 +3,75 @@ import { vaktaInnskraningu, skraUt } from "./auth.js";
 import {
   collection,
   doc,
-  addDoc,
-  deleteDoc,
+  addDoc as _addDoc,
+  deleteDoc as _deleteDoc,
   getDoc,
   getDocs,
-  setDoc,
+  setDoc as _setDoc,
   query,
   where,
   documentId,
   orderBy,
   limit,
   startAfter,
-  updateDoc,
+  updateDoc as _updateDoc,
   arrayUnion,
   arrayRemove,
   deleteField,
   increment,
   serverTimestamp,
   Timestamp,
-  writeBatch
+  writeBatch as _writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+// --- Spurningasafnið geymt í vafranum (sparar ~2.400 lestra í hverri opnun stjórnborðsins) ---
+// Aðeins lágmarksreitir (verkefni, virk, texti, grNr) - nóg fyrir yfirlit, tölukort og Grænadeildina.
+// Verkefni-flipinn (breytingar á spurningum) les alltaf ferskt. Hver skrifaðgerð admin hreinsar
+// geymsluna (sjá hjúpana hér að neðan), og hún rennur út eftir 6 klst.
+const SPURNINGA_GEYMSLA = "gb_admin_spurningar_v1";
+const SPURNINGA_GEYMSLA_MS = 6 * 3600 * 1000;
+function ogildaSpurningaGeymslu() {
+  try {
+    localStorage.removeItem(SPURNINGA_GEYMSLA);
+  } catch (villa) {
+    console.warn(villa);
+  }
+}
+function vistaSpurningaGeymslu(snap) {
+  try {
+    const d = snap.docs.map((x) => {
+      const g = x.data();
+      return [x.id, g.verkefniId || "", g.active === true ? 1 : 0, g.text || "", g.grNr || 0];
+    });
+    localStorage.setItem(SPURNINGA_GEYMSLA, JSON.stringify({ t: Date.now(), d }));
+  } catch (villa) {
+    console.warn(villa);
+  }
+}
+function lesaSpurningaGeymslu() {
+  try {
+    const c = JSON.parse(localStorage.getItem(SPURNINGA_GEYMSLA) || "null");
+    if (!c || Date.now() - c.t > SPURNINGA_GEYMSLA_MS) return null;
+    const docs = c.d.map(([id, verkefniId, active, text, grNr]) => {
+      const gogn = { verkefniId, active: active === 1, text, grNr: grNr || null };
+      return { id, data: () => gogn };
+    });
+    return { docs, size: docs.length, empty: docs.length === 0, forEach: (f) => docs.forEach(f), fraGeymslu: true };
+  } catch (villa) {
+    console.warn(villa);
+    return null;
+  }
+}
+const setDoc = (...a) => (ogildaSpurningaGeymslu(), _setDoc(...a));
+const addDoc = (...a) => (ogildaSpurningaGeymslu(), _addDoc(...a));
+const deleteDoc = (...a) => (ogildaSpurningaGeymslu(), _deleteDoc(...a));
+const updateDoc = (...a) => (ogildaSpurningaGeymslu(), _updateDoc(...a));
+function writeBatch(...a) {
+  const b = _writeBatch(...a);
+  const commit = b.commit.bind(b);
+  b.commit = () => (ogildaSpurningaGeymslu(), commit());
+  return b;
+}
 
 import {
   hladaAminningar,
@@ -185,7 +234,7 @@ vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
 });
 
 utskraBtn.addEventListener("click", () => skraUt());
-endurhladaBtn.addEventListener("click", () => hladaAllt());
+endurhladaBtn.addEventListener("click", () => hladaAllt(false, { ferskt: true }));
 
 // Fullt yfirlit sækir sömu söfnin (notendur, verkefni, spurningar) í mörgum
 // föllum - þau deila hér einni lesningu hvert á meðan hladaAllt er í gangi
@@ -196,8 +245,16 @@ let deiltLestur = null;
 // í stað þess að sækja það allt aftur. Allir ferskir lestrar (hnappurinn "Endurhlaða", breytingar) uppfæra hann.
 let spurningaMinni = null;
 let sjalfvirktLestur = false;
-function lesaSafn(nafn) {
+let notaSpurningaGeymslu = false; // aðeins við venjulega opnun síðunnar, ekki "Endurhlaða"
+function lesaSafn(nafn, { ferskt = false } = {}) {
   if (nafn === "questions" && sjalfvirktLestur && spurningaMinni) return spurningaMinni;
+  if (nafn === "questions" && !ferskt && notaSpurningaGeymslu) {
+    const geymt = lesaSpurningaGeymslu();
+    if (geymt) {
+      spurningaMinni = Promise.resolve(geymt);
+      return spurningaMinni;
+    }
+  }
   let lofordi;
   if (!deiltLestur) {
     lofordi = getDocs(collection(db, nafn));
@@ -207,7 +264,7 @@ function lesaSafn(nafn) {
   }
   if (nafn === "questions") {
     spurningaMinni = lofordi;
-    lofordi.catch(() => {
+    lofordi.then(vistaSpurningaGeymslu, () => {
       if (spurningaMinni === lofordi) spurningaMinni = null;
     });
   }
@@ -216,9 +273,10 @@ function lesaSafn(nafn) {
 
 // Sjálfvirk endurhleðsla (sjalfvirkt = true) sækir aðeins notendur (stöðu og "online") -
 // spurningar og rétt svör breytast bara þegar admin breytir þeim sjálfur.
-async function hladaAllt(sjalfvirkt = false) {
+async function hladaAllt(sjalfvirkt = false, { ferskt = false } = {}) {
   deiltLestur = {};
   sjalfvirktLestur = sjalfvirkt;
+  notaSpurningaGeymslu = !ferskt;
   try {
     if (sjalfvirkt) {
       await hladaNotendayfirlit();
@@ -236,6 +294,7 @@ async function hladaAllt(sjalfvirkt = false) {
   } finally {
     deiltLestur = null;
     sjalfvirktLestur = false;
+    notaSpurningaGeymslu = false;
   }
 }
 
@@ -256,6 +315,8 @@ document.querySelectorAll(".tolu-kort[data-malsvaedi]").forEach((k) => k.addEven
 async function samstillaSpurningayfirlit() {
   try {
     const snap = await lesaSafn("questions");
+    // Samstillir aðeins út frá ferskum gögnum - aldrei úr geymslunni (gæti verið eldri).
+    if (snap.fraGeymslu) return;
     const spurningar = {};
     snap.docs
       .filter((d) => d.data().active === true && d.data().verkefniId)
@@ -269,7 +330,7 @@ async function samstillaSpurningayfirlit() {
       console.warn(villa);
     }
     if (sidast === innihald) return;
-    await setDoc(doc(db, "meta", "virkarSpurningar"), { spurningar, updatedAt: serverTimestamp() });
+    await _setDoc(doc(db, "meta", "virkarSpurningar"), { spurningar, updatedAt: serverTimestamp() }); // breytir engum spurningum
     try {
       localStorage.setItem("gb_spurningayfirlit_samstillt", innihald);
     } catch (villa) {
@@ -2802,7 +2863,7 @@ bokForm.addEventListener("submit", async (e) => {
 async function hladaSpurningayfirlit() {
   spurningayfirlitHladid = true;
   const [spurningarSnap, svorSnap, verkefnaSnap] = await Promise.all([
-    lesaSafn("questions"),
+    lesaSafn("questions", { ferskt: true }),
     getDocs(collection(db, "answers")),
     lesaSafn("verkefni")
   ]);

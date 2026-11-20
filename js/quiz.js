@@ -1630,6 +1630,11 @@ function byggjaKennileitaYfirferd(korti, questionId, spurning) {
     try {
       await updateDoc(doc(db, "questions", questionId), { active: nyttGildi });
       virkStada.set(questionId, nyttGildi);
+      try {
+        localStorage.removeItem("gb_admin_spurningar_v1"); // geymsla stjórnborðsins (js/admin.js) er þá úrelt
+      } catch (villa) {
+        console.warn(villa);
+      }
     } catch (villa) {
       console.error(villa);
       alert("Tókst ekki að breyta stöðunni: " + villa.message);
@@ -2840,16 +2845,13 @@ async function hladaRangarSpurningar() {
   stodurNiðurstada.textContent = "";
   byrjaAfturBtn.hidden = true;
 
-  const attemptsSnap = await getDocs(collection(db, "users", notandi.uid, "attempts"));
+  const svorNotanda = await saekjaSvorNotanda();
+  const rettSvorMap = await saekjaRettSvor([...svorNotanda].filter(([, svar]) => svar !== SLEPPT_MERKI).map(([id]) => id));
   const rangarIds = [];
-
-  for (const a of attemptsSnap.docs) {
-    const svar = a.data().svar;
-    if (svar === SLEPPT_MERKI) continue;
-    const svarSnap = await getDoc(doc(db, "answers", a.id));
-    const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
-    if (!erSvarRett(svar, rettSvor)) rangarIds.push(a.id);
-  }
+  svorNotanda.forEach((svar, id) => {
+    if (svar === SLEPPT_MERKI) return;
+    if (!erSvarRett(svar, rettSvorMap.get(id) || [])) rangarIds.push(id);
+  });
 
   if (rangarIds.length === 0) {
     allarSpurningaskjol = [];
@@ -3182,7 +3184,9 @@ async function hladaVerkefnaListi() {
   // allra spurninganna (sjá saekjaSpurningaYfirlit) - mun ódýrara og fljótara.
   const [snap, yfirlit, svaradIds] = await Promise.all([
     getDocs(erAdminNotandi ? collection(db, "verkefni") : query(collection(db, "verkefni"), where("active", "==", true))),
-    erAdminNotandi ? getDocs(collection(db, "questions")).then((s) => s.docs.map((d) => [d.id, d.data().verkefniId])) : saekjaSpurningaYfirlit().then(Object.entries),
+    // Admin líka: yfirlitið (meta/virkarSpurningar, 1 lestur) í stað allra ~2.400 spurninganna.
+    // Óvirkar spurningar teljast þá ekki í fjölda á kortunum, en sjást þegar verkefnið er opnað.
+    saekjaSpurningaYfirlit().then(Object.entries),
     saekjaSvaradIds()
   ]);
 
@@ -3540,6 +3544,10 @@ async function saekjaSvaradIds() {
   }
   let ids;
   let sidast = 0;
+  // fravik = (fjöldi vistaðra svara) - (teljarinn) við síðustu fullu lesningu. Teljarinn getur verið
+  // varanlega einu frá (t.d. Júlía: 445 svör en teljari 444) - áður las þá hver hleðsla ÖLL svörin
+  // aftur (~450 lestrar í hvert sinn). Nú er full lesning aðeins gerð þegar frávikið breytist.
+  let fravik = 0;
   if (geymt && Array.isArray(geymt.ids)) {
     ids = new Set(geymt.ids);
     sidast = geymt.sidast || 0;
@@ -3551,19 +3559,110 @@ async function saekjaSvaradIds() {
       sidast = Math.max(sidast, d.data().answeredAt?.toMillis?.() ?? 0);
     });
     // Fjöldinn stemmir ekki við teljarann (t.d. "byrja aftur" á öðru tæki) - sækja allt.
-    if (ids.size !== vantar) ids = null;
+    fravik = geymt.fravik || 0;
+    if (ids.size - vantar !== fravik) ids = null;
   }
   if (!ids) {
     const allt = await getDocs(collection(db, "users", notandi.uid, "attempts"));
     ids = new Set(allt.docs.map((d) => d.id));
     sidast = allt.docs.reduce((m, d) => Math.max(m, d.data().answeredAt?.toMillis?.() ?? 0), 0);
+    fravik = ids.size - vantar;
   }
   try {
-    localStorage.setItem(lykill, JSON.stringify({ ids: [...ids], sidast }));
+    localStorage.setItem(lykill, JSON.stringify({ ids: [...ids], sidast, fravik }));
   } catch (villa) {
     console.warn(villa);
   }
   return ids;
+}
+
+// Eftir "Gera aftur": fjarlægir eydd svör úr staðbundna afritinu svo næsta hleðsla þurfi ekki að lesa öll svörin.
+function fjarlaegjaUrSvorudGeymslu(eyddIds, fjoldiEytt) {
+  if (!notandi) return;
+  const lykill = `gb_svorud_${notandi.uid}`;
+  try {
+    const geymt = JSON.parse(localStorage.getItem(lykill) || "null");
+    if (!geymt || !Array.isArray(geymt.ids)) return;
+    const eydd = new Set(eyddIds);
+    const ids = geymt.ids.filter((id) => !eydd.has(id));
+    // Teljarinn lækkar um fjoldiEytt og svörin um (geymt.ids.length - ids.length) - frávikið leiðréttist eftir því.
+    const fravik = (geymt.fravik || 0) - (geymt.ids.length - ids.length) + fjoldiEytt;
+    localStorage.setItem(lykill, JSON.stringify({ ids, sidast: geymt.sidast, fravik }));
+  } catch (villa) {
+    console.warn(villa);
+  }
+}
+
+// Svör notandans (spurningaID -> svar) geymd í vafranum; aðeins ný svör eru sótt (answeredAt > síðast).
+// Svör sem hafa verið tekin út ("Gera aftur") eru síuð burt með saekjaSvaradIds (sem er alltaf rétt).
+async function saekjaSvorNotanda() {
+  const lykill = `gb_svoratexti_${notandi.uid}`;
+  let geymt = null;
+  try {
+    geymt = JSON.parse(localStorage.getItem(lykill) || "null");
+  } catch (villa) {
+    console.warn(villa);
+  }
+  const svor = new Map(Object.entries(geymt?.svor || {}));
+  let sidast = geymt?.sidast || 0;
+  const [nytt, gildIds] = await Promise.all([
+    getDocs(query(collection(db, "users", notandi.uid, "attempts"), where("answeredAt", ">", Timestamp.fromMillis(sidast)))),
+    saekjaSvaradIds()
+  ]);
+  nytt.forEach((d) => {
+    svor.set(d.id, d.data().svar);
+    sidast = Math.max(sidast, d.data().answeredAt?.toMillis?.() ?? 0);
+  });
+  [...svor.keys()].forEach((id) => { if (!gildIds.has(id)) svor.delete(id); });
+  // Svar sem vantar (t.d. eldra en afritið en ekki í því) - sækja þau sérstaklega.
+  const vantar = [...gildIds].filter((id) => !svor.has(id));
+  for (let i = 0; i < vantar.length; i += 30) {
+    const snap = await getDocs(query(collection(db, "users", notandi.uid, "attempts"), where(documentId(), "in", vantar.slice(i, i + 30))));
+    snap.forEach((d) => svor.set(d.id, d.data().svar));
+  }
+  try {
+    localStorage.setItem(lykill, JSON.stringify({ sidast, svor: Object.fromEntries(svor) }));
+  } catch (villa) {
+    console.warn(villa);
+  }
+  return svor;
+}
+
+// Rétt svör (answers/{id}) geymd í vafranum í sólarhring - þau breytast sjaldan (ný samþykkt svör frá
+// admin skila sér innan sólarhrings). Aðeins þau sem vantar eru sótt. Eitt sameiginlegt minni svo
+// samhliða köll (mörg spurningakort í einu) skrifi ekki yfir hvert annað.
+const RETT_SVOR_LYKILL = "gb_rett_svor_v2";
+const RETT_SVOR_MS = 24 * 3600 * 1000;
+let rettSvorMinni = null;
+function rettSvorGeymsla() {
+  if (rettSvorMinni && Date.now() - rettSvorMinni.t < RETT_SVOR_MS) return rettSvorMinni;
+  try {
+    const c = JSON.parse(localStorage.getItem(RETT_SVOR_LYKILL) || "null");
+    if (c && Date.now() - c.t < RETT_SVOR_MS) return (rettSvorMinni = c);
+  } catch (villa) {
+    console.warn(villa);
+  }
+  return (rettSvorMinni = { t: Date.now(), s: {} });
+}
+async function saekjaRettSvor(ids) {
+  const geymt = rettSvorGeymsla();
+  const vantar = [...new Set(ids)].filter((id) => !(id in geymt.s));
+  for (let i = 0; i < vantar.length; i += 30) {
+    // Stakar getDoc-beiðnir: reglurnar fyrir answers athuga hvert skjal fyrir sig (exists á attempts).
+    const biti = vantar.slice(i, i + 30);
+    const snaps = await Promise.all(biti.map((id) => getDoc(doc(db, "answers", id)).catch(() => null)));
+    snaps.forEach((sn, k) => {
+      if (sn && sn.exists()) geymt.s[biti[k]] = sn.data().correctAnswers || [];
+    });
+  }
+  if (vantar.length) {
+    try {
+      localStorage.setItem(RETT_SVOR_LYKILL, JSON.stringify(geymt));
+    } catch (villa) {
+      console.warn(villa);
+    }
+  }
+  return new Map(ids.map((id) => [id, geymt.s[id] || []]));
 }
 
 const HEIMSALFUR = ["Evrópa", "Asía", "Afríka", "Norður-Ameríka", "Suður-Ameríka", "Eyjaálfa"];
@@ -3781,9 +3880,15 @@ async function byrjaVerkefniAftur() {
 
 async function keyraByrjaVerkefniAftur() {
 
-  const spurningaIdSett = new Set(allarSpurningaskjol.map((d) => d.id));
-  const attemptsSnap = await getDocs(collection(db, "users", notandi.uid, "attempts"));
-  const tilEydingar = attemptsSnap.docs.filter((a) => spurningaIdSett.has(a.id));
+  // Les aðeins svör við spurningum þessa verkefnis (30 í hverri "in"-fyrirspurn - skjöl sem eru ekki til
+  // kosta ekkert) í stað allra svara notandans.
+  const spurningaIds = [...new Set(allarSpurningaskjol.map((d) => d.id))];
+  const tilEydingar = [];
+  for (let i = 0; i < spurningaIds.length; i += 30) {
+    const biti = spurningaIds.slice(i, i + 30);
+    const snap = await getDocs(query(collection(db, "users", notandi.uid, "attempts"), where(documentId(), "in", biti)));
+    snap.forEach((d) => tilEydingar.push(d));
+  }
   if (tilEydingar.length === 0) return;
 
   // Svör teljast á verkefnið sem spurningin tilheyrir (í Hraðaspurningum geta
@@ -3798,6 +3903,7 @@ async function keyraByrjaVerkefniAftur() {
   let passBreyting = 0;
   let rettBreyting = 0;
 
+  const rettSvorMap = await saekjaRettSvor(tilEydingar.filter((a) => a.data().svar !== SLEPPT_MERKI).map((a) => a.id));
   const batch = writeBatch(db);
   const endurtokuBreytingar = {};
   for (const attemptDoc of tilEydingar) {
@@ -3809,8 +3915,7 @@ async function keyraByrjaVerkefniAftur() {
       passBreyting--;
       stada.pass--;
     } else {
-      const svarSnap = await getDoc(doc(db, "answers", attemptDoc.id));
-      const rettSvor = svarSnap.exists() ? svarSnap.data().correctAnswers || [] : [];
+      const rettSvor = rettSvorMap.get(attemptDoc.id) || [];
       if (erSvarRett(svar, rettSvor)) {
         rettBreyting--;
         stada.rett--;
@@ -3839,6 +3944,7 @@ async function keyraByrjaVerkefniAftur() {
   batch.update(doc(db, "users", notandi.uid), breytingar);
 
   await batch.commit();
+  fjarlaegjaUrSvorudGeymslu(tilEydingar.map((d) => d.id), tilEydingar.length);
   sidastiNotandaGogn = null; // teljararnir breyttust mikið - lesa notendaskjalið ferskt næst
 
   svaradIdSett.clear();
@@ -4361,18 +4467,15 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaS
 
   if (mittSvar === SLEPPT_MERKI) {
     // Pass sýnir rétta svarið svo nemandinn læri það.
-    const passSvarSnap = await getDoc(doc(db, "answers", questionId));
-    const passRettSvar = passSvarSnap.exists() ? (passSvarSnap.data().correctAnswers || [])[0] : null;
+    const passRettSvar = (await saekjaRettSvor([questionId])).get(questionId)[0] || null;
     nidurstada.textContent = passRettSvar ? `Pass ⏭ Rétt svar: ${passRettSvar}` : "Pass ⏭";
     nidurstada.classList.add("sleppt");
     birtaSpurningamynd(korti, spurning);
     return { pass: true, rett: false };
   }
 
-  const svarSnap = await getDoc(doc(db, "answers", questionId));
-  if (!svarSnap.exists()) return { pass: false, rett: false };
-
-  const rettSvor = svarSnap.data().correctAnswers || [];
+  const rettSvor = (await saekjaRettSvor([questionId])).get(questionId);
+  if (rettSvor.length === 0) return { pass: false, rett: false };
   const rett = erSvarRett(mittSvar, rettSvor);
 
   if (rett) {
