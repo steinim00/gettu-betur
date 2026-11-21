@@ -114,25 +114,9 @@ export function samstillaSpurningasafn({ medSvorum = false, alltFerskt = false }
     const vatnsbord = meta.uppfaert?.toMillis?.() || 0;
     const c = alltFerskt ? null : lesaGeymslu();
     const fjoldi = talning.data().count;
-    const allt =
-      !c ||
-      Date.now() - c.hladid > HAMARKSALDUR_MS ||
-      (meta.alltFra?.toMillis?.() || 0) > c.t ||
-      c.q.size !== fjoldi;
+    let allt = !c || Date.now() - c.hladid > HAMARKSALDUR_MS || (meta.alltFra?.toMillis?.() || 0) > c.t;
 
-    if (allt) {
-      const [qs, as] = await Promise.all([
-        getDocs(collection(db, "questions")),
-        medSvorum ? getDocs(collection(db, "answers")) : Promise.resolve(null)
-      ]);
-      minni = {
-        t: vatnsbord,
-        hladid: Date.now(),
-        q: new Map(qs.docs.map((d) => [d.id, d.data()])),
-        a: as ? new Map(as.docs.map((d) => [d.id, d.data().correctAnswers || []])) : null
-      };
-      ohreint.clear();
-    } else {
+    if (!allt) {
       const breytt = new Set(ohreint);
       Object.entries(meta.breytt || {}).forEach(([id, t]) => {
         if ((t?.toMillis?.() || 0) > c.t) breytt.add(id);
@@ -156,6 +140,22 @@ export function samstillaSpurningasafn({ medSvorum = false, alltFerskt = false }
       if (allarA) c.a = new Map(allarA.docs.map((d) => [d.id, d.data().correctAnswers || []]));
       c.t = Math.max(c.t, vatnsbord);
       minni = c;
+      // Fjöldinn stemmir ekki eftir breytingarnar (t.d. skrifta sem skráði ekki breytingar) - sækja allt.
+      if (c.q.size !== fjoldi) allt = true;
+    }
+
+    if (allt) {
+      const [qs, as] = await Promise.all([
+        getDocs(collection(db, "questions")),
+        medSvorum ? getDocs(collection(db, "answers")) : Promise.resolve(null)
+      ]);
+      minni = {
+        t: vatnsbord,
+        hladid: Date.now(),
+        q: new Map(qs.docs.map((d) => [d.id, d.data()])),
+        a: as ? new Map(as.docs.map((d) => [d.id, d.data().correctAnswers || []])) : null
+      };
+      ohreint.clear();
     }
     vistaGeymslu();
     return minni;
