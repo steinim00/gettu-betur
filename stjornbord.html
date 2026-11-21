@@ -28,7 +28,7 @@
       <button type="button" data-malsvaedi="serflokkar"><span class="takn">🏛️</span><span class="texti">Sérflokkar</span></button>
       <button type="button" data-malsvaedi="notendur"><span class="takn">👥</span><span class="texti">Notendur</span></button>
       <button type="button" data-malsvaedi="tolfraedi"><span class="takn">📈</span><span class="texti">Tölfræði</span></button>
-      <button type="button" data-malsvaedi="graenadeildin"><span class="takn">🏃</span><span class="texti">Grænadeildin</span></button>
+      <button type="button" data-malsvaedi="graenadeildin"><span class="takn">🏃</span><span class="texti">Æfing</span></button>
       <button type="button" data-malsvaedi="ahugavert"><span class="takn">💡</span><span class="texti">Áhugavert efni</span></button>
       <button type="button" data-malsvaedi="konnun"><span class="takn">📋</span><span class="texti">Könnun</span></button>
       <button type="button" data-malsvaedi="stillingar"><span class="takn">⚙️</span><span class="texti">Stillingar</span></button>
@@ -441,16 +441,8 @@
     <div class="stjorn-sida" id="sida-graenadeildin">
       <p class="undirtitill-vinstri">Skráðu æfingar: dagsetningu, hverjir mættu og hvað liðið svaraði rétt eða rangt.</p>
 
-      <h3>Liðsmenn</h3>
-      <table id="lidsmannaTafla">
-        <thead><tr><th>Nafn</th><th>Aðgerð</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <div class="innflutnings-form">
-        <input type="text" id="nyttLidsmadurInnsl" placeholder="Nafn nýs liðsmanns">
-        <button type="button" class="smabtn" id="bataLidsmadurBtn">Bæta við</button>
-      </div>
-
+      <div class="aefing-grind">
+      <div class="aefing-vinstri">
       <h3>Skrá nýja æfingu</h3>
       <div class="ny-spurning-form">
         <label for="aefingDagsetning">Dagsetning</label>
@@ -486,6 +478,33 @@
         </div>
       </div>
       <p id="aefingStada"></p>
+      </div>
+
+      <aside class="aefing-minnisblad" aria-labelledby="minnisbladTitill">
+        <h3 id="minnisbladTitill">📝 Minnisblað</h3>
+        <p class="minnisblad-dags" id="minnisbladDags"></p>
+        <form id="minnisbladForm" class="minnisblad-form">
+          <input type="text" id="minnisbladInnsl" placeholder="T.d. taka 50 hraðaspurningar…" autocomplete="off" aria-label="Nýtt atriði">
+          <button type="submit" class="smabtn">Bæta við</button>
+        </form>
+        <ul id="minnisbladListi" class="minnisblad-listi"></ul>
+        <p class="minnisblad-fotur">
+          <button type="button" class="smabtn" id="minnisbladHreinsaBtn" hidden>Hreinsa kláruð</button>
+          <span id="minnisbladStada"></span>
+        </p>
+        <p class="minnisblad-hjalp">Vistast sjálfkrafa. Þegar æfingin er vistuð fylgir minnisblaðið henni og ókláruð atriði haldast fyrir næstu æfingu.</p>
+      </aside>
+      </div>
+
+      <h3>Liðsmenn</h3>
+      <table id="lidsmannaTafla">
+        <thead><tr><th>Nafn</th><th>Aðgerð</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="innflutnings-form">
+        <input type="text" id="nyttLidsmadurInnsl" placeholder="Nafn nýs liðsmanns">
+        <button type="button" class="smabtn" id="bataLidsmadurBtn">Bæta við</button>
+      </div>
 
       <h3>Saga æfinga</h3>
       <table id="aefingaTafla">
@@ -515,7 +534,7 @@
       serflokkar: ["Sérflokkar", ""],
       notendur: ["Notendur", ""],
       tolfraedi: ["Tölfræði", ""],
-      graenadeildin: ["Grænadeildin", ""],
+      graenadeildin: ["Æfing", ""],
       ahugavert: ["Áhugavert efni", ""],
       konnun: ["Könnun", ""],
       stillingar: ["Stillingar", ""]

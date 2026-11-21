@@ -334,10 +334,127 @@ let lidsmenn = [];
 let valdarAefingSpurningar = [];
 
 async function hladaGraenadeildarAefingar() {
+  hladaMinnisblad();
   await finnaGraenadeildarVerkefni();
   await hladaLidsmenn();
   await hladaAefingasogu();
 }
+
+// --- Minnisblað (to-do) fyrir næstu æfingu ---
+// Geymt sem graenadeildinAefingar/_minnisblad (sama admin-safn og æfingarnar - engar nýjar reglur).
+// Þegar æfing er vistuð fylgja atriðin henni og ókláruð atriði haldast fyrir næstu æfingu.
+const MINNISBLAD_ID = "_minnisblad";
+const minnisbladRef = doc(db, "graenadeildinAefingar", MINNISBLAD_ID);
+let minnisblad = { dagsetning: "", atridi: [] };
+const minnisbladListi = document.getElementById("minnisbladListi");
+const minnisbladInnsl = document.getElementById("minnisbladInnsl");
+const minnisbladDags = document.getElementById("minnisbladDags");
+const minnisbladHreinsaBtn = document.getElementById("minnisbladHreinsaBtn");
+const minnisbladStada = document.getElementById("minnisbladStada");
+const VIKUDAGAR_THF = ["sunnudaginn", "mánudaginn", "þriðjudaginn", "miðvikudaginn", "fimmtudaginn", "föstudaginn", "laugardaginn"];
+const MANUDIR_LANG = ["janúar", "febrúar", "mars", "apríl", "maí", "júní", "júlí", "ágúst", "september", "október", "nóvember", "desember"];
+
+function dagsIso(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function aefingarDagsTexti(iso) {
+  if (!iso) return "";
+  const [a, m, d] = iso.split("-").map(Number);
+  const dags = new Date(a, m - 1, d);
+  return `Fyrir æfinguna ${VIKUDAGAR_THF[dags.getDay()]} ${d}. ${MANUDIR_LANG[m - 1]}`;
+}
+
+function birtaMinnisblad() {
+  minnisbladDags.textContent = aefingarDagsTexti(aefingDagsetning.value);
+  minnisbladListi.innerHTML = "";
+  if (minnisblad.atridi.length === 0) {
+    const li = document.createElement("li");
+    li.className = "minnisblad-tomt";
+    li.textContent = "Ekkert á listanum ennþá.";
+    minnisbladListi.appendChild(li);
+  }
+  minnisblad.atridi.forEach((atridi) => {
+    const li = document.createElement("li");
+    li.classList.toggle("buid", !!atridi.buid);
+    const label = document.createElement("label");
+    const hak = document.createElement("input");
+    hak.type = "checkbox";
+    hak.checked = !!atridi.buid;
+    hak.addEventListener("change", () => {
+      atridi.buid = hak.checked;
+      birtaMinnisblad();
+      vistaMinnisblad();
+    });
+    const texti = document.createElement("span");
+    texti.textContent = atridi.texti;
+    label.append(hak, texti);
+    const eyda = document.createElement("button");
+    eyda.type = "button";
+    eyda.className = "minnisblad-eyda";
+    eyda.textContent = "✕";
+    eyda.title = "Eyða";
+    eyda.setAttribute("aria-label", `Eyða: ${atridi.texti}`);
+    eyda.addEventListener("click", () => {
+      minnisblad.atridi = minnisblad.atridi.filter((x) => x !== atridi);
+      birtaMinnisblad();
+      vistaMinnisblad();
+    });
+    li.append(label, eyda);
+    minnisbladListi.appendChild(li);
+  });
+  minnisbladHreinsaBtn.hidden = !minnisblad.atridi.some((x) => x.buid);
+}
+
+async function vistaMinnisblad() {
+  minnisblad.dagsetning = aefingDagsetning.value || "";
+  minnisbladStada.textContent = "Vista…";
+  try {
+    await setDoc(minnisbladRef, {
+      dagsetning: minnisblad.dagsetning,
+      atridi: minnisblad.atridi.map(({ id, texti, buid }) => ({ id, texti, buid: !!buid })),
+      updatedAt: serverTimestamp()
+    });
+    minnisbladStada.textContent = "Vistað ✓";
+  } catch (villa) {
+    console.error(villa);
+    minnisbladStada.textContent = `Tókst ekki að vista (${villa.code || villa.message})`;
+  }
+}
+
+async function hladaMinnisblad() {
+  try {
+    const snap = await getDoc(minnisbladRef);
+    if (snap.exists()) {
+      const g = snap.data();
+      minnisblad = { dagsetning: g.dagsetning || "", atridi: Array.isArray(g.atridi) ? g.atridi : [] };
+      // Minnisblaðið er fyrir ákveðna æfingu (t.d. á miðvikudaginn) - sú dagsetning er valin ef hún er ekki liðin.
+      if (minnisblad.dagsetning && minnisblad.dagsetning >= dagsIso(new Date())) aefingDagsetning.value = minnisblad.dagsetning;
+    }
+  } catch (villa) {
+    console.error("Tókst ekki að sækja minnisblaðið", villa);
+  }
+  birtaMinnisblad();
+}
+
+document.getElementById("minnisbladForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const texti = minnisbladInnsl.value.trim();
+  if (!texti) return;
+  minnisblad.atridi.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), texti, buid: false });
+  minnisbladInnsl.value = "";
+  birtaMinnisblad();
+  vistaMinnisblad();
+});
+minnisbladHreinsaBtn.addEventListener("click", () => {
+  minnisblad.atridi = minnisblad.atridi.filter((x) => !x.buid);
+  birtaMinnisblad();
+  vistaMinnisblad();
+});
+aefingDagsetning.addEventListener("change", () => {
+  birtaMinnisblad();
+  vistaMinnisblad();
+});
 
 // Grænadeildar-verkefnið (spurningabankinn, birtur sem "Hraðaspurningar" í
 // leiknum) er stofnað handvirkt (sjá scripts/upload-questions.js) og titillinn
@@ -948,8 +1065,15 @@ vistaAefinguBtn.addEventListener("click", async () => {
         grNr: s.grNr || null,
         rett: s.rett
       })),
+      minnisblad: minnisblad.atridi.map(({ texti, buid }) => ({ texti, buid: !!buid })),
       createdAt: serverTimestamp()
     });
+    // Kláruð atriði fylgja æfingunni; ókláruð haldast á minnisblaðinu fyrir næstu æfingu.
+    if (minnisblad.atridi.length) {
+      minnisblad.atridi = minnisblad.atridi.filter((x) => !x.buid);
+      birtaMinnisblad();
+      vistaMinnisblad();
+    }
 
     aefingStada.textContent = "Æfing vistuð.";
     valdarAefingSpurningar = [];
@@ -977,6 +1101,7 @@ async function hladaAefingasogu() {
   const lidsmannaNofn = new Map(lidsmenn.map((m) => [m.id, m.nafn]));
 
   const aefingar = snap.docs
+    .filter((d) => d.id !== MINNISBLAD_ID)
     .map((d) => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (a.dagsetning || "").localeCompare(b.dagsetning || ""));
 
@@ -1049,6 +1174,36 @@ async function hladaAefingasogu() {
         tr.after(nanarTr);
       });
       adgerdTd.appendChild(sjaBtn);
+    }
+    const minnis = aefing.minnisblad || [];
+    if (minnis.length) {
+      let minnisTr = null;
+      const minnisBtn = document.createElement("button");
+      minnisBtn.type = "button";
+      minnisBtn.className = "smabtn";
+      minnisBtn.textContent = `📝 ${minnis.length}`;
+      minnisBtn.title = "Minnisblað æfingarinnar";
+      minnisBtn.addEventListener("click", () => {
+        if (minnisTr) {
+          minnisTr.remove();
+          minnisTr = null;
+          return;
+        }
+        minnisTr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 6;
+        const ul = document.createElement("ul");
+        ul.className = "aefing-missti";
+        minnis.forEach((m) => {
+          const li = document.createElement("li");
+          li.textContent = `${m.buid ? "✓" : "○"} ${m.texti}`;
+          ul.appendChild(li);
+        });
+        td.appendChild(ul);
+        minnisTr.appendChild(td);
+        tr.after(minnisTr);
+      });
+      adgerdTd.appendChild(minnisBtn);
     }
     const eydaBtn = document.createElement("button");
     eydaBtn.type = "button";

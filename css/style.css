@@ -4958,3 +4958,113 @@ body.upplestur-opinn {
 .skjal-nr {
   flex-basis: 2.8em;
 }
+
+/* --- Æfing: minnisblað (to-do) við hliðina á "Skrá nýja æfingu" --- */
+.aefing-grind {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+.aefing-vinstri {
+  min-width: 0;
+}
+.aefing-minnisblad {
+  position: sticky;
+  top: 16px;
+  margin-top: 8px;
+  background: #fffbe8;
+  border: 1px solid #efe3a8;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--skuggi);
+}
+.aefing-minnisblad h3 {
+  margin: 0 0 2px;
+}
+.minnisblad-dags {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #7a6a1f;
+}
+.minnisblad-form {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.minnisblad-form input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  background: #ffffff;
+}
+.minnisblad-listi {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.minnisblad-listi li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #e8dca0;
+}
+.minnisblad-listi li label {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  color: var(--litur-texti);
+}
+.minnisblad-listi li input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--litur-rett);
+}
+.minnisblad-listi li.buid span {
+  text-decoration: line-through;
+  color: var(--litur-daufur);
+}
+.minnisblad-listi li.minnisblad-tomt {
+  color: var(--litur-daufur);
+  font-size: 0.9rem;
+  border-bottom: none;
+}
+.minnisblad-eyda {
+  background: transparent;
+  border: none;
+  color: var(--litur-daufur);
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 0.95rem;
+}
+.minnisblad-fotur {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: var(--litur-daufur);
+}
+.minnisblad-hjalp {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--litur-daufur);
+}
+@media (max-width: 960px) {
+  .aefing-grind {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .aefing-minnisblad {
+    position: static;
+    order: -1;
+  }
+}
