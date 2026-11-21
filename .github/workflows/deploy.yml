@@ -14,11 +14,11 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+# Tvö verk (byggja / birta) eins og í fyrirmynd GitHub: birtingarskrefið fann stundum ekki pakkann
+# þegar það keyrði strax á eftir upphleðslunni í sama verki ("No artifacts named github-pages").
+# Ef birtingin bregst samt er reynt aftur eftir smá bið.
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,6 +31,22 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment2.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Bíða og reyna aftur ef birting brást
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 20
+      - name: Deploy to GitHub Pages (önnur tilraun)
+        id: deployment2
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
