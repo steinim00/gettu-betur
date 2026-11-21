@@ -4444,13 +4444,25 @@ function uppfaeraSamtoluStodu(verkefniId, nidurstodur) {
 // er metin (rétt/rangt), aldrei fyrirfram.
 function birtaSpurningamynd(korti, spurning) {
   if (!spurning?.image || korti.querySelector(".spurning-mynd")) return;
-  const mynd = document.createElement("img");
-  mynd.className = "spurning-mynd";
-  mynd.src = spurning.image;
-  mynd.alt = spurning.imageAlt || "";
-  mynd.loading = "lazy";
   const glosa = korti.querySelector(".spurning-glosa"); // myndin kemur á undan glósuhnappnum
-  korti.insertBefore(mynd, glosa);
+  const nyMynd = (slod, alt) => {
+    const mynd = document.createElement("img");
+    mynd.className = "spurning-mynd";
+    mynd.src = slod;
+    mynd.alt = alt || "";
+    mynd.loading = "lazy";
+    return mynd;
+  };
+  // aukaMyndir: fleiri myndir hlið við hlið (t.d. kápur tveggja bóka í sömu bókaröð).
+  const aukaMyndir = Array.isArray(spurning.aukaMyndir) ? spurning.aukaMyndir.filter(Boolean) : [];
+  if (aukaMyndir.length) {
+    const hopur = document.createElement("div");
+    hopur.className = "spurning-myndir";
+    hopur.append(nyMynd(spurning.image, spurning.imageAlt), ...aukaMyndir.map((slod) => nyMynd(slod, spurning.imageAlt)));
+    korti.insertBefore(hopur, glosa);
+  } else {
+    korti.insertBefore(nyMynd(spurning.image, spurning.imageAlt), glosa);
+  }
   if (spurning.imageCredit) {
     const heimild = document.createElement("p");
     heimild.className = "heimild-tilvitnun";

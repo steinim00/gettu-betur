@@ -5080,3 +5080,16 @@ body.upplestur-opinn {
 .tolu-kort-aefing {
   background: #fffbe8;
 }
+
+/* Fleiri myndir hlið við hlið á spurningu (aukaMyndir), t.d. kápur tveggja bóka í sömu bókaröð */
+.spurning-myndir {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  grid-auto-flow: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+.spurning-myndir .spurning-mynd {
+  margin-top: 0;
+  min-width: 0;
+}
