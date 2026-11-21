@@ -48,6 +48,12 @@ export async function skraInnMedGoogle() {
   return cred.user;
 }
 
+// Upphafssíða eftir innskráningu: admin fer beint á stjórnborðið, aðrir á spurningasíðuna.
+export function upphafssida(user, notandagogn = null) {
+  const erAdmin = (notandagogn && notandagogn.role === "admin") || erAdminNetfang(user?.email);
+  return erAdmin ? "stjornbord.html" : "leikur.html";
+}
+
 export function skraUt() {
   return signOut(auth);
 }

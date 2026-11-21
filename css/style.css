@@ -5068,3 +5068,15 @@ body.upplestur-opinn {
     order: -1;
   }
 }
+.tolu-kort-gildi .tala.tala-litil {
+  font-size: 1.45rem;
+}
+.tolu-kort-undir {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--litur-daufur);
+}
+.tolu-kort-aefing {
+  background: #fffbe8;
+}

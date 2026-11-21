@@ -365,7 +365,39 @@ function aefingarDagsTexti(iso) {
   return `Fyrir æfinguna ${VIKUDAGAR_THF[dags.getDay()]} ${d}. ${MANUDIR_LANG[m - 1]}`;
 }
 
+// Æfing-kortið á Yfirliti: næsta æfing (dagsetning minnisblaðsins), staða minnisblaðs og síðasta æfing.
+let sidastaAefing = null;
+const VIKUDAGAR_STUTT = ["sun.", "mán.", "þri.", "mið.", "fim.", "fös.", "lau."];
+function stuttDags(iso) {
+  const [a, m, d] = iso.split("-").map(Number);
+  return `${VIKUDAGAR_STUTT[new Date(a, m - 1, d).getDay()]} ${d}. ${MANADARHEITI_STUTT[m - 1]}`;
+}
+function uppfaeraAefingarKort() {
+  const gildi = document.getElementById("yfirlitAefing");
+  const undir = document.getElementById("yfirlitAefingUndir");
+  if (!gildi) return;
+  const iDag = dagsIso(new Date());
+  const naest = minnisblad.dagsetning && minnisblad.dagsetning >= iDag ? minnisblad.dagsetning : "";
+  gildi.textContent = naest ? (naest === iDag ? "Í dag" : stuttDags(naest)) : "Engin skráð";
+  gildi.classList.toggle("tala-litil", !naest || naest !== iDag);
+  const linur = [];
+  const fjoldi = minnisblad.atridi.length;
+  if (fjoldi) {
+    const eftir = minnisblad.atridi.filter((x) => !x.buid).length;
+    linur.push(`📝 ${eftir} af ${fjoldi} atriðum eftir`);
+  } else {
+    linur.push("📝 Minnisblaðið er tómt");
+  }
+  if (sidastaAefing) {
+    const sp = sidastaAefing.spurningar || [];
+    const rett = sp.filter((x) => x.rett).length;
+    linur.push(`Síðast ${sidastaAefing.dagsetning ? stuttDags(sidastaAefing.dagsetning) : ""}: ${rett}/${sp.length} rétt`);
+  }
+  undir.textContent = linur.join(" · ");
+}
+
 function birtaMinnisblad() {
+  uppfaeraAefingarKort();
   minnisbladDags.textContent = aefingarDagsTexti(aefingDagsetning.value);
   minnisbladListi.innerHTML = "";
   if (minnisblad.atridi.length === 0) {
@@ -408,6 +440,7 @@ function birtaMinnisblad() {
 
 async function vistaMinnisblad() {
   minnisblad.dagsetning = aefingDagsetning.value || "";
+  uppfaeraAefingarKort();
   minnisbladStada.textContent = "Vista…";
   try {
     await setDoc(minnisbladRef, {
@@ -1107,6 +1140,12 @@ async function hladaAefingasogu() {
 
   // Fyrir "Draga spurningar" (ónotaðar ganga fyrir) og "Bæta við þeim sem náðust ekki áður".
   // Spurning sem náðist seinna telst ekki lengur "náðist ekki".
+  sidastaAefing = aefingar.length ? aefingar[aefingar.length - 1] : null;
+  uppfaeraAefingarKort();
+  if (aefingar.length === 0) {
+    aefingaTafla.innerHTML = `<tr><td colspan="6">Engar æfingar skráðar ennþá.</td></tr>`;
+    return;
+  }
   notadarAefingaSpurningar = new Set();
   const sidastaStada = new Map();
   aefingar.forEach((a) => (a.spurningar || []).forEach((sp) => {

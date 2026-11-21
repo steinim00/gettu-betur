@@ -39,7 +39,7 @@
 </main>
 
 <script type="module">
-  import { skraInn, skraInnMedGoogle, vaktaInnskraningu } from "./js/auth.js";
+  import { skraInn, skraInnMedGoogle, vaktaInnskraningu, upphafssida } from "./js/auth.js";
 
   const innskraningBox = document.getElementById("innskraningBox");
 
@@ -50,12 +50,12 @@
   // eftir "ósýnilegan" í stjórnborðinu þó hann gæti svarað spurningum eðlilega.
   let formAfgreidsla = false;
 
-  vaktaInnskraningu({ requireAuth: false }, (user) => {
+  vaktaInnskraningu({ requireAuth: false }, (user, gogn) => {
     if (user) {
       if (!formAfgreidsla) {
         // Vísa strax áfram - innskraningBox er falið fram að þessu svo
         // innskráðir notendur sjái aldrei innskráningarformið leiftra á skjánum.
-        window.location.href = "leikur.html";
+        window.location.href = upphafssida(user, gogn);
       }
     } else {
       innskraningBox.hidden = false;
@@ -70,11 +70,11 @@
     villuskilabod.textContent = "";
     formAfgreidsla = true;
     try {
-      await skraInn(
+      const user = await skraInn(
         document.getElementById("innEmail").value,
         document.getElementById("innPassword").value
       );
-      window.location.href = "leikur.html";
+      window.location.href = upphafssida(user);
     } catch (villa) {
       formAfgreidsla = false;
       villuskilabod.textContent = thydaVillu(villa.code);
@@ -85,8 +85,8 @@
     villuskilabod.textContent = "";
     formAfgreidsla = true;
     try {
-      await skraInnMedGoogle();
-      window.location.href = "leikur.html";
+      const user = await skraInnMedGoogle();
+      window.location.href = upphafssida(user);
     } catch (villa) {
       formAfgreidsla = false;
       villuskilabod.textContent = thydaVillu(villa.code);
