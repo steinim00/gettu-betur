@@ -586,6 +586,7 @@ vaktaInnskraningu({ requireAuth: true }, (user, gogn) => {
     // Nýja útlitið: farið á síðuna sem slóðin (#...) vísar á.
     if (betaVirkt) {
       if (betaUpphafsLeid !== "heim") betaFaraI(betaUpphafsLeid);
+      else skraFlipa("heim");
       betaFyrstaHledsla = false;
     }
 
@@ -697,7 +698,22 @@ function uppfaeraBetaNav(svaedi) {
   }
 }
 
+// Skráir hvaða flipa nemendur opna: users/{uid}.flipar.{leid} = { fjoldi, sidast }.
+// Í mesta lagi eitt skrif á flipa á 10 mín fresti (sami flipi opnaður oft í röð telst einu sinni).
+const FLIPA_BIL_MS = 10 * 60 * 1000;
+const flipiSidastSkrad = {};
+function skraFlipa(leid) {
+  if (!notandi || erAdminNotandi || !BETA_SIDUR.includes(leid)) return;
+  if (Date.now() - (flipiSidastSkrad[leid] || 0) < FLIPA_BIL_MS) return;
+  flipiSidastSkrad[leid] = Date.now();
+  updateDoc(doc(db, "users", notandi.uid), {
+    [`flipar.${leid}.fjoldi`]: increment(1),
+    [`flipar.${leid}.sidast`]: serverTimestamp()
+  }).catch((villa) => console.error(villa));
+}
+
 function betaFaraI(leid) {
+  skraFlipa(leid);
   if (leid === "heim") minStadaBtn.click();
   else if (leid === "verkefni") synaSvaedi("verkefni");
   else if (leid === "glosur") glosurBtn.click();
