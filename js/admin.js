@@ -1905,7 +1905,8 @@ async function hladaNotendayfirlit() {
       aaetladAminning: notandi.aaetladAminning || null,
       konnunOpnad: notandi.konnunOpnad || {},
       aminningFelld: notandi.aminningFelld || null,
-      ahugavertSmellir: notandi.ahugavertSmellir || {}
+      ahugavertSmellir: notandi.ahugavertSmellir || {},
+      glaerurOpnad: notandi.glaerurOpnad || {}
     });
   }
 
@@ -1987,6 +1988,26 @@ function byggjaSmellaYfirlit(biolistiUm, ahugavertSmellir) {
     });
     Object.entries(biolistiUm).forEach(([imdb, fjoldi]) => flis(`Um: ${bioTitlar.get(imdb) || imdb} ×${fjoldi}`));
   });
+  return kassi;
+}
+
+// Glærur sem nemandinn hefur opnað (users/{uid}.glaerurOpnad, skráð í js/quiz.js): hve oft, hvenær síðast
+// og hve langt hann komst (lengsta glæra sem sást).
+function byggjaGlaeruYfirlit(glaerurOpnad) {
+  const kassi = document.createElement("div");
+  kassi.className = "biolisti-admin";
+  kassi.innerHTML = `<h4>📽 Glærur opnaðar</h4><div class="biolisti-admin-listi"></div>`;
+  const listi = kassi.querySelector(".biolisti-admin-listi");
+  Object.entries(glaerurOpnad)
+    .sort(([, a], [, b]) => (b?.sidast?.toMillis?.() ?? 0) - (a?.sidast?.toMillis?.() ?? 0))
+    .forEach(([vid, g]) => {
+      const el = document.createElement("span");
+      el.className = "biolisti-admin-flis";
+      const titill = notendaVerkefnaTitlar?.get?.(vid) || vid;
+      const langt = g?.af ? ` · komst á glæru ${g.lengst || 0}/${g.af}` : "";
+      el.textContent = `${titill}: ×${g?.fjoldi || 0}${langt} · síðast ${formatDagsStutt(g?.sidast?.toMillis?.() ?? null)}`;
+      listi.appendChild(el);
+    });
   return kassi;
 }
 
@@ -2275,6 +2296,7 @@ function birtaNotendaRadir() {
     if (Object.keys(r.biolistiUm || {}).length > 0 || Object.keys(r.ahugavertSmellir || {}).length > 0) {
       sundurlidunTd.appendChild(byggjaSmellaYfirlit(r.biolistiUm || {}, r.ahugavertSmellir || {}));
     }
+    if (Object.keys(r.glaerurOpnad || {}).length > 0) sundurlidunTd.appendChild(byggjaGlaeruYfirlit(r.glaerurOpnad));
 
     const nyjustuSvor = byggjaNyjustuSvor(r.uid);
     sundurlidunTd.appendChild(nyjustuSvor.vefja);

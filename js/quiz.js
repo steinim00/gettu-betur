@@ -561,6 +561,7 @@ vaktaInnskraningu({ requireAuth: true }, (user, gogn) => {
   notandi = user;
   erAdminNotandi = gogn?.role === "admin";
   biolistiSed = gogn?.biolistiSed || {};
+  Object.entries(gogn?.glaerurOpnad || {}).forEach(([vid, g]) => (glaeruLengstSkrad[vid] = g?.lengst || 0));
   notandaKyn = gogn?.kyn || kynNemandaUrNafni(gogn?.nafn);
   kveikjaBeta(gogn, user);
   konnunUpphaf(gogn, user);
@@ -1425,6 +1426,7 @@ byggjaRodunarLista();
 
 function synaSvaedi(svaedi) {
   if (notepadOvistad) vistaNotepad();
+  if (svaedi !== "glaerur") ljukaGlaeruSkraningu();
   minStadaSvaedi.hidden = svaedi !== "minstada";
   glosurSvaedi.hidden = svaedi !== "glosur";
   ahugavertSvaedi.hidden = svaedi !== "ahugavert";
@@ -3302,11 +3304,56 @@ function opnaVerkefni(verkefniId, verkefni) {
   }
 
   synaSvaedi("glaerur");
+  byrjaGlaeruSkraningu(verkefniId, pptxIframe ? 0 : (verkefni.slides || []).length);
 }
+
+// --- Skráning á glæruáhorfi: users/{uid}.glaerurOpnad.{verkefniId} = { fjoldi, sidast, af, lengst } ---
+// fjoldi/sidast: 1 skrif við hverja opnun. lengst: lengsta glæra sem sást (meira en hálf á skjánum, eða á
+// heilskjá) - skrifað einu sinni þegar farið er úr glærunum, og aðeins ef viðkomandi komst lengra en áður.
+let glaeruSkraning = null; // { vid, lengst, af, athugari }
+const glaeruLengstSkrad = {}; // verkefniId -> lengst skráð
+function byrjaGlaeruSkraningu(vid, fjoldiGlaera) {
+  ljukaGlaeruSkraningu();
+  if (!notandi || erAdminNotandi || !vid) return;
+  updateDoc(doc(db, "users", notandi.uid), {
+    [`glaerurOpnad.${vid}.fjoldi`]: increment(1),
+    [`glaerurOpnad.${vid}.sidast`]: serverTimestamp(),
+    [`glaerurOpnad.${vid}.af`]: fjoldiGlaera
+  }).catch((villa) => console.error(villa));
+  glaeruSkraning = { vid, lengst: 0, af: fjoldiGlaera, athugari: null };
+  if (!fjoldiGlaera || !("IntersectionObserver" in window)) return;
+  const kort = [...glaerurInnihald.querySelectorAll(".glaera-kort")];
+  const athugari = new IntersectionObserver(
+    (faerslur) => faerslur.forEach((f) => { if (f.isIntersecting) merkjaGlaeruSed(kort.indexOf(f.target) + 1); }),
+    { threshold: 0.5 }
+  );
+  kort.forEach((k) => athugari.observe(k));
+  glaeruSkraning.athugari = athugari;
+}
+function merkjaGlaeruSed(nr) {
+  if (glaeruSkraning && nr > glaeruSkraning.lengst) glaeruSkraning.lengst = nr;
+}
+function vistaGlaeruLengst() {
+  const sk = glaeruSkraning;
+  if (!sk || !notandi || sk.lengst <= (glaeruLengstSkrad[sk.vid] || 0)) return;
+  glaeruLengstSkrad[sk.vid] = sk.lengst;
+  updateDoc(doc(db, "users", notandi.uid), { [`glaerurOpnad.${sk.vid}.lengst`]: sk.lengst }).catch((villa) => console.error(villa));
+}
+function ljukaGlaeruSkraningu() {
+  if (!glaeruSkraning) return;
+  vistaGlaeruLengst();
+  glaeruSkraning.athugari?.disconnect();
+  glaeruSkraning = null;
+}
+// Flipa lokað / farið í annað forrit: vista hve langt var komið (skráningin heldur áfram ef komið er aftur).
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") vistaGlaeruLengst();
+});
 
 function synaHeilskjaGlaeru() {
   const glaera = heilskjaGlaerur[heilskjaIndex];
   if (!glaera) return;
+  merkjaGlaeruSed(heilskjaIndex + 1);
 
   if (glaera.image) {
     heilskjaMynd.src = glaera.image;
