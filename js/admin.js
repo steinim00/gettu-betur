@@ -1907,7 +1907,8 @@ async function hladaNotendayfirlit() {
       aminningFelld: notandi.aminningFelld || null,
       ahugavertSmellir: notandi.ahugavertSmellir || {},
       glaerurOpnad: notandi.glaerurOpnad || {},
-      flipar: notandi.flipar || {}
+      flipar: notandi.flipar || {},
+      verkefniOpnud: notandi.verkefniOpnud || {}
     });
   }
 
@@ -2005,6 +2006,24 @@ function byggjaFlipaYfirlit(flipar) {
       const el = document.createElement("span");
       el.className = "biolisti-admin-flis";
       el.textContent = `${FLIPA_HEITI[leid] || leid} ×${g?.fjoldi || 0} · síðast ${formatDagsStutt(g?.sidast?.toMillis?.() ?? null)}`;
+      listi.appendChild(el);
+    });
+  return kassi;
+}
+
+// Verkefni sem nemandinn hefur opnað í spurningum (users/{uid}.verkefniOpnud, skráð í js/quiz.js).
+function byggjaVerkefnaOpnunYfirlit(verkefniOpnud) {
+  const kassi = document.createElement("div");
+  kassi.className = "biolisti-admin";
+  kassi.innerHTML = `<h4>📂 Verkefni opnuð (spurningar)</h4><div class="biolisti-admin-listi"></div>`;
+  const listi = kassi.querySelector(".biolisti-admin-listi");
+  Object.entries(verkefniOpnud)
+    .sort(([, a], [, b]) => (b?.sidast?.toMillis?.() ?? 0) - (a?.sidast?.toMillis?.() ?? 0))
+    .forEach(([vid, g]) => {
+      const el = document.createElement("span");
+      el.className = "biolisti-admin-flis";
+      const titill = vid === "_rangar" ? "Rangt svaraðar spurningar" : notendaVerkefnaTitlar?.get?.(vid) || vid;
+      el.textContent = `${titill} ×${g?.fjoldi || 0} · síðast ${formatDagsStutt(g?.sidast?.toMillis?.() ?? null)}`;
       listi.appendChild(el);
     });
   return kassi;
@@ -2316,6 +2335,7 @@ function birtaNotendaRadir() {
       sundurlidunTd.appendChild(byggjaSmellaYfirlit(r.biolistiUm || {}, r.ahugavertSmellir || {}));
     }
     if (Object.keys(r.flipar || {}).length > 0) sundurlidunTd.appendChild(byggjaFlipaYfirlit(r.flipar));
+    if (Object.keys(r.verkefniOpnud || {}).length > 0) sundurlidunTd.appendChild(byggjaVerkefnaOpnunYfirlit(r.verkefniOpnud));
     if (Object.keys(r.glaerurOpnad || {}).length > 0) sundurlidunTd.appendChild(byggjaGlaeruYfirlit(r.glaerurOpnad));
 
     const nyjustuSvor = byggjaNyjustuSvor(r.uid);

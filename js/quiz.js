@@ -2852,6 +2852,7 @@ rangarSpurningarBtn.addEventListener("click", () => {
 // og venjulegt verkefni notar - svo "Reyna aftur"-æfingasvæðið á hverju korti
 // virkar sjálfkrafa eins, án nokkurs auka kóða.
 async function hladaRangarSpurningar() {
+  skraVerkefniOpnad("_rangar");
   stillaFormTengil(null);
   valdVerkefniId = null;
   valdHverErFlokkur = null;
@@ -3772,7 +3773,21 @@ function byggjaHeimsalfuSiur(docs) {
   });
 }
 
+// Skráir hvaða verkefni nemendur opna í spurningum: users/{uid}.verkefniOpnud.{verkefniId} = { fjoldi, sidast }.
+// "_rangar" = "Rangt svaraðar spurningar". Sama verkefni telst mest einu sinni á 10 mín (1 skrif).
+const verkefniSidastSkrad = {};
+function skraVerkefniOpnad(vid) {
+  if (!notandi || erAdminNotandi || !vid) return;
+  if (Date.now() - (verkefniSidastSkrad[vid] || 0) < 10 * 60 * 1000) return;
+  verkefniSidastSkrad[vid] = Date.now();
+  updateDoc(doc(db, "users", notandi.uid), {
+    [`verkefniOpnud.${vid}.fjoldi`]: increment(1),
+    [`verkefniOpnud.${vid}.sidast`]: serverTimestamp()
+  }).catch((villa) => console.error(villa));
+}
+
 async function hladaSpurningum(hoppaIOsvaradar = false) {
+  skraVerkefniOpnad(valdVerkefniId);
   spurningaListi.innerHTML = skeletonKort(5, 1);
   siduflettingarEfri.hidden = true;
   siduflettingar.hidden = true;
