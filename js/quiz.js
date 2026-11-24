@@ -3342,9 +3342,11 @@ function byrjaGlaeruSkraningu(vid, fjoldiGlaera) {
   glaeruSkraning = { vid, lengst: 0, af: fjoldiGlaera, athugari: null, timi: setInterval(vistaGlaeruLengst, 2 * 60 * 1000) };
   if (!fjoldiGlaera || !("IntersectionObserver" in window)) return;
   const kort = [...glaerurInnihald.querySelectorAll(".glaera-kort")];
+  // Glæra telst séð þegar hún nær upp í efri 60% skjásins - óháð hæð hennar. (Áður: helmingur glærunnar
+  // sýnilegur, sem næst aldrei á síma þegar glæra með löngum texta er hærri en tveir skjáir.)
   const athugari = new IntersectionObserver(
     (faerslur) => faerslur.forEach((f) => { if (f.isIntersecting) merkjaGlaeruSed(kort.indexOf(f.target) + 1); }),
-    { threshold: 0.5 }
+    { rootMargin: "0px 0px -40% 0px", threshold: 0 }
   );
   kort.forEach((k) => athugari.observe(k));
   glaeruSkraning.athugari = athugari;
