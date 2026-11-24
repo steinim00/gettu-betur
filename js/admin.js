@@ -230,7 +230,7 @@ vaktaInnskraningu({ requireAuth: true, requireAdmin: true }, (user, gogn) => {
   });
   setInterval(() => {
     if (document.visibilityState === "visible" && Date.now() - sidastaSnertingAdmin < 15 * 60 * 1000) hladaAllt(true);
-  }, 1800000);
+  }, 5 * 60 * 1000); // á 5 mín fresti: aðeins notendalistinn (~25 lestrar), og bara ef admin er að nota síðuna
 });
 
 utskraBtn.addEventListener("click", () => skraUt());

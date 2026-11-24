@@ -3337,7 +3337,9 @@ function byrjaGlaeruSkraningu(vid, fjoldiGlaera) {
     [`glaerurOpnad.${vid}.sidast`]: serverTimestamp(),
     [`glaerurOpnad.${vid}.af`]: fjoldiGlaera
   }).catch((villa) => console.error(villa));
-  glaeruSkraning = { vid, lengst: 0, af: fjoldiGlaera, athugari: null };
+  // Hve langt er komið vistast líka jafnóðum (á 2 mín fresti, aðeins ef komið er lengra) svo það sjáist
+  // á stjórnborðinu á meðan nemandinn er enn að lesa - ekki bara þegar hann fer úr glærunum.
+  glaeruSkraning = { vid, lengst: 0, af: fjoldiGlaera, athugari: null, timi: setInterval(vistaGlaeruLengst, 2 * 60 * 1000) };
   if (!fjoldiGlaera || !("IntersectionObserver" in window)) return;
   const kort = [...glaerurInnihald.querySelectorAll(".glaera-kort")];
   const athugari = new IntersectionObserver(
@@ -3360,6 +3362,7 @@ function ljukaGlaeruSkraningu() {
   if (!glaeruSkraning) return;
   vistaGlaeruLengst();
   glaeruSkraning.athugari?.disconnect();
+  clearInterval(glaeruSkraning.timi);
   glaeruSkraning = null;
 }
 // Flipa lokað / farið í annað forrit: vista hve langt var komið (skráningin heldur áfram ef komið er aftur).
