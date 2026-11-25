@@ -4570,8 +4570,7 @@ function birtaProfForm() {
   const stada = document.createElement("p");
   stada.className = "prof-stada-nemanda";
   const uppfaeraStodu = () => {
-    const n = skjol.filter((d) => (drog[d.id] || "").trim()).length;
-    stada.textContent = skilad ? `Prófi skilað ✓ – þjálfarinn fer yfir það.` : `${n} af ${skjol.length} svarað`;
+    stada.textContent = skilad ? `Prófi skilað ✓ – þjálfarinn fer yfir það.` : "";
   };
 
   skjol.forEach((d, i) => {
@@ -4608,18 +4607,14 @@ function birtaProfForm() {
   const lok = document.createElement("div");
   lok.className = "prof-lok";
   if (!skilad) {
-    const hjalp = document.createElement("p");
-    hjalp.className = "heimild-tilvitnun";
-    hjalp.textContent = "Ekki er hægt að breyta svörum eftir að prófinu er skilað.";
     const skila = document.createElement("button");
     skila.type = "submit";
     skila.className = "aðal-hnappur";
-    skila.textContent = "Skila prófi";
-    lok.append(stada, hjalp, skila);
+    skila.textContent = "Skila";
+    lok.append(skila);
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const svarad = skjol.filter((d) => samraema(drog[d.id] || "")).length;
-      if (!confirm(`Þú hefur svarað ${svarad} af ${skjol.length} spurningum.\n\nSkila prófinu? Ekki er hægt að breyta svörum eftir það.`)) return;
+      if (!confirm("Skila prófinu?")) return;
       skila.disabled = true;
       skila.textContent = "Skila…";
       try {
@@ -4631,7 +4626,7 @@ function birtaProfForm() {
         console.error(villa);
         alert("Tókst ekki að skila prófinu - athugaðu nettenginguna og reyndu aftur.");
         skila.disabled = false;
-        skila.textContent = "Skila prófi";
+        skila.textContent = "Skila";
       }
     });
   } else {
