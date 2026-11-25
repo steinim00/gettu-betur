@@ -5093,3 +5093,51 @@ body.upplestur-opinn {
   margin-top: 0;
   min-width: 0;
 }
+
+/* Próf á Yfirliti stjórnborðs: hópur persónubundinna prófa opnaður í einu */
+.prof-hopar:empty {
+  display: none;
+}
+.prof-hopur {
+  background: var(--litur-korti);
+  border-radius: 20px;
+  box-shadow: var(--skuggi);
+  padding: 18px 22px;
+  margin-bottom: 18px;
+  border-left: 6px solid var(--litur-rangt);
+}
+.prof-hopur.opid {
+  border-left-color: var(--litur-rett);
+}
+.prof-hopur h3 {
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.prof-stada {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--litur-baksvid);
+  color: var(--litur-daufur);
+}
+.prof-hopur.opid .prof-stada {
+  background: #eef6e3;
+  color: var(--litur-rett);
+}
+.prof-listi {
+  margin: 0 0 12px;
+  color: var(--litur-daufur);
+  font-size: 0.9rem;
+}
+.prof-hopur .aðal-hnappur {
+  width: auto;
+  padding: 12px 22px;
+}
+.prof-skilabod {
+  margin-left: 12px;
+  font-size: 0.85rem;
+  color: var(--litur-daufur);
+}

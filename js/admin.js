@@ -2684,6 +2684,7 @@ async function hladaVerkefnayfirlit() {
     lesaSafn("questions"),
     lesaSafn("users")
   ]);
+  birtaProfHopa(verkefnaSnap, notendaLitaSnap);
 
   const fjoldiSpurningaPerVerkefni = new Map();
   const fjoldiVirkraSpurningaPerVerkefni = new Map();
@@ -2857,6 +2858,81 @@ async function opnaNotendaValPanell(verkefniId, verkefni) {
     label.appendChild(document.createTextNode(n.nafn || n.email || n.id));
     notendaValGatlisti.appendChild(label);
   });
+}
+
+// --- Próf: persónubundin próf í sama hópi (verkefni.profHopur) eru opnuð/lokuð öll í einu ---
+// (sjá t.d. scripts/prof-26-nov.js). Opnun: verkefnin + spurningar þeirra verða virk og fara í
+// meta/virkarSpurningar (yfirlit nemenda). Lokun: öfugt. Svör nemenda haldast óbreytt.
+function birtaProfHopa(verkefnaSnap, notendurSnap) {
+  const svaedi = document.getElementById("profHopar");
+  if (!svaedi) return;
+  const nofn = new Map(notendurSnap.docs.map((d) => [d.id, (d.data().nafn || "").split(" ")[0]]));
+  const hopar = new Map();
+  verkefnaSnap.docs.forEach((d) => {
+    const v = d.data();
+    if (!v.profHopur) return;
+    if (!hopar.has(v.profHopur)) hopar.set(v.profHopur, { heiti: v.profHopurHeiti || v.profHopur, prof: [] });
+    hopar.get(v.profHopur).prof.push({ id: d.id, ...v });
+  });
+  svaedi.innerHTML = "";
+  hopar.forEach((hopur, hopurId) => {
+    const oll = hopur.prof.every((p) => p.active);
+    const ekkert = hopur.prof.every((p) => !p.active);
+    const kort = document.createElement("div");
+    kort.className = "prof-hopur" + (oll ? " opid" : "");
+    const h = document.createElement("h3");
+    h.textContent = `📝 ${hopur.heiti}`;
+    const stada = document.createElement("span");
+    stada.className = "prof-stada";
+    stada.textContent = oll ? "Opið" : ekkert ? "Lokað" : "Opið að hluta";
+    h.appendChild(stada);
+    const listi = document.createElement("p");
+    listi.className = "prof-listi";
+    listi.textContent = hopur.prof
+      .map((p) => `${(p.leyfdirNotendur || []).map((u) => nofn.get(u) || "?").join(", ")}: ${p.title.replace(/^.*– /, "")} (${p.fjoldiSpurninga || "?"} sp.)`)
+      .join(" · ");
+    const takki = document.createElement("button");
+    takki.type = "button";
+    takki.className = oll ? "smabtn" : "aðal-hnappur";
+    takki.textContent = oll ? "Loka prófunum" : "▶ Opna fyrir öll í einu";
+    const skilabod = document.createElement("span");
+    skilabod.className = "prof-skilabod";
+    takki.addEventListener("click", async () => {
+      const opna = !oll;
+      if (!confirm(opna ? `Opna "${hopur.heiti}" fyrir alla (${hopur.prof.length}) núna?` : `Loka "${hopur.heiti}"? Svörin haldast.`)) return;
+      takki.disabled = true;
+      skilabod.textContent = opna ? "Opna…" : "Loka…";
+      try {
+        await stillaProfHop(hopur.prof, opna);
+        skilabod.textContent = opna ? "Opið ✓ - nemendur sjá prófið þegar þeir opna/endurhlaða síðuna." : "Lokað ✓";
+        hladaAllt();
+      } catch (villa) {
+        console.error(villa);
+        skilabod.textContent = `Villa: ${villa.code || villa.message}`;
+        takki.disabled = false;
+      }
+    });
+    kort.append(h, listi, takki, skilabod);
+    svaedi.appendChild(kort);
+  });
+}
+
+async function stillaProfHop(prof, opna) {
+  const ids = prof.map((p) => p.id);
+  const spurningar = [];
+  for (let i = 0; i < ids.length; i += 10) {
+    const snap = await getDocs(query(collection(db, "questions"), where("verkefniId", "in", ids.slice(i, i + 10))));
+    snap.forEach((d) => spurningar.push(d));
+  }
+  const batch = writeBatch(db);
+  prof.forEach((p) => batch.update(doc(db, "verkefni", p.id), { active: opna }));
+  const yfirlit = {};
+  spurningar.forEach((d) => {
+    batch.update(d.ref, { active: opna });
+    yfirlit[`spurningar.${d.id}`] = opna ? d.data().verkefniId : deleteField();
+  });
+  batch.update(doc(db, "meta", "virkarSpurningar"), { ...yfirlit, updatedAt: serverTimestamp() });
+  await batch.commit();
 }
 
 // Kveikir á verkefninu sjálfu og öllum óvirkum spurningum þess - nemendur sjá

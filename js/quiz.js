@@ -724,6 +724,10 @@ function betaFaraI(leid) {
     synaSvaedi("biolisti");
     hladaBiolista();
   } else if (leid === "konnun") {
+    if (konnunLokud()) {
+      betaFaraI("heim");
+      return;
+    }
     synaSvaedi("konnun");
     hladaKonnun();
   } else if (leid === "hverer") {
@@ -1760,12 +1764,23 @@ function konnunRef() {
   return doc(db, "konnun", KONNUN_ID, "svor", notandi.uid);
 }
 
+// Könnuninni lokað 25. nóv kl. 16:20 (íslenskur tími = UTC): borðinn hverfur og ekki er hægt að opna hana.
+// Svörin eru geymd áfram (konnun/{id}/svor) og sjást á stjórnborðinu.
+const KONNUN_LOKAR = Date.parse("2026-11-25T16:20:00Z");
+const konnunLokud = () => Date.now() >= KONNUN_LOKAR;
+if (!konnunLokud()) {
+  setTimeout(() => {
+    konnunBordi.hidden = true;
+    if (!konnunSvaedi.hidden) betaFaraI("heim");
+  }, KONNUN_LOKAR - Date.now());
+}
+
 // Borðinn á Heim: sést þar til nemandinn hefur svarað (admin sér hann aðeins í "Sjá eins og nemandi").
 function konnunUpphaf(gogn, user) {
   konnunSvarad = !!gogn?.konnunSvarad?.[KONNUN_ID];
   konnunNafn = gogn?.nafn || "";
   konnunBordi.innerHTML = "";
-  konnunBordi.hidden = !user || konnunSvarad || erKennileitaYfirferd();
+  konnunBordi.hidden = !user || konnunSvarad || erKennileitaYfirferd() || konnunLokud();
   if (konnunBordi.hidden) return;
   const takki = document.createElement("button");
   takki.type = "button";
@@ -3135,7 +3150,8 @@ function byggjaHradaspurningarKort(vDoc, verkefni, spurningaIds, svaradIds) {
 
   const lysing = document.createElement("p");
   lysing.className = "verkefni-lysing";
-  lysing.textContent = `${spurningaIds.length} spurningar`;
+  // fjoldiSpurninga á prófinu sjálfu ef yfirlitið í vafranum er eldra en prófið (nýopnað próf).
+  lysing.textContent = `${spurningaIds.length || verkefni.fjoldiSpurninga || 0} spurningar`;
   kort.appendChild(lysing);
 
   if (notandi && spurningaIds.length > 0) {
