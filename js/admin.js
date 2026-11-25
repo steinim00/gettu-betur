@@ -337,8 +337,88 @@ async function hladaGraenadeildarAefingar() {
   hladaMinnisblad();
   await finnaGraenadeildarVerkefni();
   await hladaLidsmenn();
+  await endurheimtaAefingarDrog();
   await hladaAefingasogu();
 }
+
+// --- Óvistuð æfing: vistast sjálfkrafa svo ekkert tapist ef farið er út úr síðunni ---
+// Í vafranum strax við hverja breytingu (gb_aefing_drog_v1) og í gagnagrunninum (graenadeildinAefingar/_drog)
+// innan 10 sek / með "💾 Vista". Endurheimt sjálfkrafa við opnun; hreinsað þegar æfingin er vistuð.
+const AEFING_DROG_LYKILL = "gb_aefing_drog_v1";
+const AEFING_DROG_ID = "_drog";
+let aefingDrogVirk = false; // ekki vista fyrr en reynt hefur verið að endurheimta (annars yfirskrifast drögin með tómum lista)
+let aefingDrogTimi = null;
+function aefingDrogGogn() {
+  return {
+    t: Date.now(),
+    dagsetning: aefingDagsetning.value || "",
+    maettir: [...maettirGatlisti.querySelectorAll("input:checked")].map((i) => i.value),
+    spurningar: valdarAefingSpurningar.map(({ questionId, texti, grNr, rett }) => ({ questionId, texti, grNr: grNr || null, rett: rett ?? null }))
+  };
+}
+function merkjaAefingBreytta() {
+  if (!aefingDrogVirk) return;
+  const g = aefingDrogGogn();
+  try {
+    if (g.spurningar.length) localStorage.setItem(AEFING_DROG_LYKILL, JSON.stringify(g));
+    else localStorage.removeItem(AEFING_DROG_LYKILL);
+  } catch (villa) {
+    console.warn(villa);
+  }
+  clearTimeout(aefingDrogTimi);
+  aefingDrogTimi = setTimeout(vistaAefingarDrogIGrunn, 10000);
+}
+async function vistaAefingarDrogIGrunn() {
+  clearTimeout(aefingDrogTimi);
+  if (!aefingDrogVirk) return;
+  const g = aefingDrogGogn();
+  const ref = doc(db, "graenadeildinAefingar", AEFING_DROG_ID);
+  if (g.spurningar.length) await setDoc(ref, g);
+  else await deleteDoc(ref).catch(() => {});
+}
+async function hreinsaAefingarDrog() {
+  clearTimeout(aefingDrogTimi);
+  try {
+    localStorage.removeItem(AEFING_DROG_LYKILL);
+  } catch (villa) {
+    console.warn(villa);
+  }
+  await deleteDoc(doc(db, "graenadeildinAefingar", AEFING_DROG_ID)).catch(() => {});
+}
+async function endurheimtaAefingarDrog() {
+  if (aefingDrogVirk) return;
+  let stadbundid = null;
+  try {
+    stadbundid = JSON.parse(localStorage.getItem(AEFING_DROG_LYKILL) || "null");
+  } catch (villa) {
+    console.warn(villa);
+  }
+  let ur = null;
+  try {
+    const snap = await getDoc(doc(db, "graenadeildinAefingar", AEFING_DROG_ID));
+    if (snap.exists()) ur = snap.data();
+  } catch (villa) {
+    console.warn(villa);
+  }
+  const drog = [stadbundid, ur].filter((x) => x && Array.isArray(x.spurningar) && x.spurningar.length).sort((a, b) => b.t - a.t)[0];
+  if (drog && valdarAefingSpurningar.length === 0) {
+    valdarAefingSpurningar = drog.spurningar.map((x) => ({ ...x }));
+    if (drog.dagsetning) aefingDagsetning.value = drog.dagsetning;
+    const maettir = new Set(drog.maettir || []);
+    maettirGatlisti.querySelectorAll("input").forEach((i) => (i.checked = maettir.has(i.value)));
+    const merktar = valdarAefingSpurningar.filter((x) => x.rett !== null).length;
+    const kl = new Date(drog.t);
+    aefingStada.textContent = `↺ Óvistuð æfing endurheimt (${valdarAefingSpurningar.length} spurningar, ${merktar} merktar, síðast breytt kl. ${String(kl.getHours()).padStart(2, "0")}:${String(kl.getMinutes()).padStart(2, "0")}).`;
+    aefingDrogVirk = true;
+    renderValdarAefingSpurningar();
+    saekjaAefingaSvor();
+  }
+  aefingDrogVirk = true;
+}
+maettirGatlisti.addEventListener("change", merkjaAefingBreytta);
+window.addEventListener("beforeunload", () => {
+  if (aefingDrogVirk && valdarAefingSpurningar.length) merkjaAefingBreytta();
+});
 
 // --- Minnisblað (to-do) fyrir næstu æfingu ---
 // Geymt sem graenadeildinAefingar/_minnisblad (sama admin-safn og æfingarnar - engar nýjar reglur).
@@ -484,6 +564,7 @@ minnisbladHreinsaBtn.addEventListener("click", () => {
   birtaMinnisblad();
   vistaMinnisblad();
 });
+aefingDagsetning.addEventListener("change", merkjaAefingBreytta);
 aefingDagsetning.addEventListener("change", () => {
   birtaMinnisblad();
   vistaMinnisblad();
@@ -635,6 +716,7 @@ aefingSpurningaLeit.addEventListener("input", () => {
 });
 
 function renderValdarAefingSpurningar() {
+  merkjaAefingBreytta();
   aefingValdarSpurningar.innerHTML = "";
 
   if (valdarAefingSpurningar.length === 0) {
@@ -787,6 +869,7 @@ document.getElementById("aefingHreinsaBtn").addEventListener("click", () => {
   valdarAefingSpurningar = [];
   aefingDragaStada.textContent = "Spurningar sem hafa ekki komið á æfingu áður ganga fyrir.";
   renderValdarAefingSpurningar();
+  hreinsaAefingarDrog();
 });
 
 if (!aefingDagsetning.value) {
@@ -922,6 +1005,7 @@ function birtaLestur() {
 
 // 2) Yfirferð: lesnu spurningarnar merktar rétt / náðist ekki.
 function birtaMerkingu() {
+  merkjaAefingBreytta();
   const byrjun = upplestur.umferdByrjun;
   const lok = upplestur.umferdEnd;
   const umf = valdarAefingSpurningar.slice(byrjun, lok);
@@ -1055,6 +1139,23 @@ function lokaUpplestri() {
 }
 
 byrjaAefinguBtn.addEventListener("click", opnaUpplestur);
+document.getElementById("upplesturVista").addEventListener("click", async (e) => {
+  const takki = e.currentTarget;
+  takki.disabled = true;
+  takki.textContent = "Vista…";
+  try {
+    merkjaAefingBreytta();
+    await vistaAefingarDrogIGrunn();
+    takki.textContent = "Vistað ✓";
+  } catch (villa) {
+    console.error(villa);
+    takki.textContent = "Villa – reyndu aftur";
+  }
+  setTimeout(() => {
+    takki.disabled = false;
+    takki.textContent = "💾 Vista";
+  }, 2000);
+});
 document.getElementById("upplesturLoka").addEventListener("click", lokaUpplestri);
 document.addEventListener("keydown", (e) => {
   if (!upplestur.el.hidden && e.key === "Escape") lokaUpplestri();
@@ -1110,6 +1211,7 @@ vistaAefinguBtn.addEventListener("click", async () => {
 
     aefingStada.textContent = "Æfing vistuð.";
     valdarAefingSpurningar = [];
+    hreinsaAefingarDrog();
     renderValdarAefingSpurningar();
     aefingDragaStada.textContent = "Spurningar sem hafa ekki komið á æfingu áður ganga fyrir.";
     renderMaettirGatlisti();
@@ -1134,7 +1236,7 @@ async function hladaAefingasogu() {
   const lidsmannaNofn = new Map(lidsmenn.map((m) => [m.id, m.nafn]));
 
   const aefingar = snap.docs
-    .filter((d) => d.id !== MINNISBLAD_ID)
+    .filter((d) => !d.id.startsWith("_")) // _minnisblad, _drog
     .map((d) => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (a.dagsetning || "").localeCompare(b.dagsetning || ""));
 
@@ -2968,9 +3070,11 @@ async function hladaProfYfirferd(prof, nofn, svaedi) {
       const qSnap = await getDocs(query(collection(db, "questions"), where("verkefniId", "==", p.id)));
       const ids = qSnap.docs.map((d) => d.id).sort();
       const [aSnap, tSnap] = await Promise.all([inn(["answers"], ids), uid ? inn(["users", uid, "attempts"], ids) : Promise.resolve({ docs: [] })]);
+      const uSnap = uid ? await getDoc(doc(db, "users", uid)) : null;
       return {
         p,
         uid,
+        fjoldiSvarad: uSnap?.data()?.fjoldiSvarad || 0,
         yfirferd: { ...(vSnap.data()?.yfirferd || {}) },
         spurningar: ids.map((id) => ({
           id,
@@ -2999,9 +3103,16 @@ async function hladaProfYfirferd(prof, nofn, svaedi) {
       h.textContent = `${nofn.get(g.uid) || "?"} – ${g.p.title.replace(/^.*– /, "")}: ${rett}/${g.spurningar.length} rétt` +
         ` · ${svarad} svarað · ${g.spurningar.length - merkt.length} ómerkt`;
     };
+    // Dómur vistast á prófinu; rangt/autt fer líka í endurtekningu nemandans (kemur aftur í hraðapakkanum
+    // eftir nokkrar spurningar þegar búið er að fara yfir allt prófið), rétt tekur það þaðan.
+    const endurtekning = (qid, gildi) =>
+      g.uid ? { [`endurtaka.${qid}`]: gildi === false ? g.fjoldiSvarad + 5 : deleteField() } : {};
     const vista = async (s, gildi) => {
       g.yfirferd[s.id] = gildi;
-      await updateDoc(doc(db, "verkefni", g.p.id), { [`yfirferd.${s.id}`]: gildi === null ? deleteField() : gildi });
+      await Promise.all([
+        updateDoc(doc(db, "verkefni", g.p.id), { [`yfirferd.${s.id}`]: gildi === null ? deleteField() : gildi }),
+        g.uid ? updateDoc(doc(db, "users", g.uid), endurtekning(s.id, gildi)) : null
+      ]);
     };
     const teikna = () => {
       listi.innerHTML = "";
@@ -3055,13 +3166,20 @@ async function hladaProfYfirferd(prof, nofn, svaedi) {
     merkjaTakkar.addEventListener("click", async () => {
       merkjaTakkar.disabled = true;
       const breytingar = {};
+      let endurt = {};
       g.spurningar.forEach((s) => {
         if (g.yfirferd[s.id] !== undefined || s.svar === undefined) return;
         const v = s.svar !== SLEPPT_MERKI && erSvarRett(s.svar, s.rett);
         g.yfirferd[s.id] = v;
         breytingar[`yfirferd.${s.id}`] = v;
+        endurt = { ...endurt, ...endurtekning(s.id, v) };
       });
-      if (Object.keys(breytingar).length) await updateDoc(doc(db, "verkefni", g.p.id), breytingar);
+      if (Object.keys(breytingar).length) {
+        await Promise.all([
+          updateDoc(doc(db, "verkefni", g.p.id), breytingar),
+          g.uid && Object.keys(endurt).length ? updateDoc(doc(db, "users", g.uid), endurt) : null
+        ]);
+      }
       merkjaTakkar.disabled = false;
       teikna();
       uppfaeraHaus();

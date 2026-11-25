@@ -171,11 +171,25 @@ function erHradaVerkefni(verkefni) {
   return (verkefni.title || "").toLowerCase().includes("hraðaspurningar");
 }
 
+// Próf (profHopur) sem þjálfarinn hefur farið yfir að fullu: yfirferd hefur dóm á hverja spurningu.
+function erProfYfirfarid(v) {
+  return !!v.profHopur && !!v.fjoldiSpurninga && Object.keys(v.yfirferd || {}).length >= v.fjoldiSpurninga;
+}
+// spurningaID -> true/false (dómur þjálfara) fyrir yfirfarin próf nemandans.
+const profDomar = new Map();
+
 function uthlutadVerkefniFyrirNotanda(verkefniDocs) {
   if (!notandi || erAdminNotandi) return [];
   return verkefniDocs.filter((d) => {
     const v = d.data();
-    return v.active && !erHradaVerkefni(v) && !v.serverkefni && (v.leyfdirNotendur || []).includes(notandi.uid);
+    if (!(v.active && !erHradaVerkefni(v) && !v.serverkefni && (v.leyfdirNotendur || []).includes(notandi.uid))) return false;
+    // Próf blandast ekki inn í Hraðaspurningar fyrr en þjálfarinn hefur farið yfir það - þá fara spurningarnar
+    // í persónulega hraðapakkann með dómi þjálfarans og réttu svari.
+    if (v.profHopur) {
+      if (!erProfYfirfarid(v)) return false;
+      Object.entries(v.yfirferd).forEach(([qid, domur]) => profDomar.set(qid, domur));
+    }
+    return true;
   });
 }
 
@@ -4606,6 +4620,7 @@ function birtaProfForm() {
 
   const lok = document.createElement("div");
   lok.className = "prof-lok";
+  if (skilad) synaProfNidurstodu(vid, skjol, drog, form, stada);
   if (!skilad) {
     const skila = document.createElement("button");
     skila.type = "submit";
@@ -4635,6 +4650,35 @@ function birtaProfForm() {
   form.appendChild(lok);
   uppfaeraStodu();
   spurningaListi.appendChild(form);
+}
+
+const storUpphafsstafur = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
+
+// Eftir skil: ef þjálfarinn hefur farið yfir allt prófið sér nemandinn niðurstöðuna og rétt svör.
+async function synaProfNidurstodu(vid, skjol, drog, form, stada) {
+  let v = null;
+  try {
+    v = (await getDoc(doc(db, "verkefni", vid))).data();
+  } catch (villa) {
+    console.warn(villa);
+  }
+  if (!v || !erProfYfirfarid(v)) return;
+  const [rettSvor, svorNemanda] = await Promise.all([saekjaRettSvor(skjol.map((d) => d.id)), saekjaSvorNotanda()]);
+  let rett = 0;
+  form.querySelectorAll(".prof-spurning").forEach((kort, i) => {
+    const d = skjol[i];
+    const domur = v.yfirferd[d.id] === true;
+    if (domur) rett++;
+    kort.classList.add(domur ? "prof-rett" : "prof-rangt");
+    const sv = svorNemanda.get(d.id);
+    const inn = kort.querySelector("input");
+    if (inn && !inn.value) inn.value = sv && sv !== SLEPPT_MERKI ? sv : "(autt)";
+    const nid = document.createElement("p");
+    nid.className = "prof-nidurstada " + (domur ? "rett" : "rangt");
+    nid.textContent = domur ? "✓ Rétt" : `✗ Rétt svar: ${storUpphafsstafur((rettSvor.get(d.id) || [])[0] || "?")}`;
+    kort.appendChild(nid);
+  });
+  stada.textContent = `Niðurstaða: ${rett} af ${skjol.length} rétt`;
 }
 
 async function skilaProfi(vid, skjol, drog) {
@@ -4733,6 +4777,15 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaS
   // engin mynd og engin endurtekning - bara staðfesting á að svarið sé skráð.
   if (spurning?.handvirk) {
     const sleppt = mittSvar === SLEPPT_MERKI;
+    if (profDomar.has(questionId)) {
+      // Yfirfarið próf (í hraðapakkanum): dómur þjálfarans og rétt svar.
+      const domur = profDomar.get(questionId);
+      const rettSvar = storUpphafsstafur((await saekjaRettSvor([questionId])).get(questionId)[0] || "");
+      nidurstada.textContent = domur ? "Rétt ✓ (þjálfarinn fór yfir)" : `${sleppt ? "Autt" : "Rangt"} ✗ – rétt svar: ${rettSvar}`;
+      nidurstada.classList.add(domur ? "rett" : "rangt");
+      birtaSpurningamynd(korti, spurning);
+      return { pass: sleppt, rett: domur, handvirk: true };
+    }
     nidurstada.textContent = sleppt ? "Sleppt ⏭ – þjálfarinn fer yfir prófið." : "Svar skráð ✓ – þjálfarinn fer yfir prófið.";
     nidurstada.classList.add("handvirk-skrad");
     return { pass: sleppt, rett: false, handvirk: true };
