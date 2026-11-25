@@ -131,6 +131,7 @@ window.addEventListener("beforeunload", (e) => {
 let erAdminNotandi = false;
 let valdVerkefniId = null;
 let valdVerkefniErHrada = false;
+let valdVerkefniErHandvirkt = false; // próf sem þjálfarinn fer yfir (spurning.handvirk)
 let valdHverErFlokkur = null;
 let valdHeimsalfa = ""; // "" = allar heimsálfur (Höfuðborgir heimsins)
 let heilskjaGlaerur = [];
@@ -3837,8 +3838,13 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
   if (valdHeimsalfa && !heimsalfaSiur.hidden) spurningaDocs = spurningaDocs.filter((d) => d.data().heimsalfa === valdHeimsalfa);
 
   // Aðeins hægt að "byrja aftur" innan eins verkefnis - ekki á rangar-spurningar
-  // yfirlitinu (valdVerkefniId er þá null) og ekki fyrir gesti.
-  byrjaAfturBtn.hidden = !notandi || valdVerkefniId === null;
+  // yfirlitinu (valdVerkefniId er þá null), ekki fyrir gesti og aldrei í prófi sem þjálfarinn fer yfir
+  // (það myndi eyða svörunum).
+  const varHandvirkt = valdVerkefniErHandvirkt;
+  valdVerkefniErHandvirkt = spurningaDocs.some((d) => d.data().handvirk);
+  byrjaAfturBtn.hidden = !notandi || valdVerkefniId === null || valdVerkefniErHandvirkt;
+  // Stöðulínan (hladaMinumStodum) gæti hafa keyrt áður en vitað var hvort þetta er próf - endurtaka hana.
+  if (varHandvirkt !== valdVerkefniErHandvirkt) hladaMinumStodum();
 
   if (spurningaDocs.length === 0) {
     allarSpurningaskjol = [];
@@ -3981,6 +3987,7 @@ async function byrjaVerkefniAftur() {
 }
 
 async function keyraByrjaVerkefniAftur() {
+  if (valdVerkefniErHandvirkt) return;
 
   // Les aðeins svör við spurningum þessa verkefnis (30 í hverri "in"-fyrirspurn - skjöl sem eru ekki til
   // kosta ekkert) í stað allra svara notandans.
@@ -4149,7 +4156,9 @@ function birtaEinaSpurningu(fokus = false) {
   if (!naest) {
     const lok = document.createElement("div");
     lok.className = "spurning-kort";
-    lok.innerHTML = "<h3>Þú hefur svarað öllum spurningunum hér 🎉</h3><p>Þú getur stokkað eða byrjað verkefnið aftur hér fyrir ofan.</p>";
+    lok.innerHTML = valdVerkefniErHandvirkt
+      ? "<h3>Prófinu er lokið 🎉</h3><p>Öll svörin eru skráð. Þjálfarinn fer yfir prófið.</p>"
+      : "<h3>Þú hefur svarað öllum spurningunum hér 🎉</h3><p>Þú getur stokkað eða byrjað verkefnið aftur hér fyrir ofan.</p>";
     spurningaListi.appendChild(lok);
     return;
   }
@@ -4370,7 +4379,8 @@ function byggjaSpurningaKort(questionId, spurning, buidSvarad, valkostir = {}) {
   const sleppaBtn = document.createElement("button");
   sleppaBtn.type = "button";
   sleppaBtn.className = "sleppa-btn";
-  sleppaBtn.textContent = "Pass";
+  // Í prófum sem þjálfarinn fer yfir er hægt að skila auðu (skráð eins og pass).
+  sleppaBtn.textContent = spurning?.handvirk ? "Skila auðu / pass" : "Pass";
   sleppaBtn.disabled = buidSvarad;
 
   form.appendChild(innslattur);
@@ -4647,6 +4657,13 @@ async function hladaMinumStodum() {
   const fjoldiMetin = fjoldiSvarad - fjoldiSleppt;
   const nakvaemni = fjoldiMetin ? Math.round((fjoldiRett / fjoldiMetin) * 100) : 0;
   const sleppTexti = fjoldiSleppt ? `, ${fjoldiSleppt} pass` : "";
+  if (valdVerkefniErHandvirkt) {
+    // Próf: ekkert rétt/rangt fyrr en þjálfarinn hefur farið yfir - bara hve mörgu er svarað.
+    const alls = allarSpurningaskjol.length;
+    stodurNiðurstada.textContent =
+      `Þú hefur svarað ${Math.min(fjoldiSvarad, alls || fjoldiSvarad)} af ${alls} spurningum${fjoldiSleppt ? ` (${fjoldiSleppt} autt)` : ""}. Þjálfarinn fer yfir prófið.`;
+    return;
+  }
   stodurNiðurstada.textContent =
     `Þú hefur svarað ${fjoldiSvarad} spurningum í þessu verkefni${sleppTexti}, ${fjoldiRett} réttum (${nakvaemni}% nákvæmni).`;
 }

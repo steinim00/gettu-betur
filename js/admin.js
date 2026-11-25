@@ -2863,10 +2863,12 @@ async function opnaNotendaValPanell(verkefniId, verkefni) {
 // --- Próf: persónubundin próf í sama hópi (verkefni.profHopur) eru opnuð/lokuð öll í einu ---
 // (sjá t.d. scripts/prof-26-nov.js). Opnun: verkefnin + spurningar þeirra verða virk og fara í
 // meta/virkarSpurningar (yfirlit nemenda). Lokun: öfugt. Svör nemenda haldast óbreytt.
+let profVoktun = null;
 function birtaProfHopa(verkefnaSnap, notendurSnap) {
   const svaedi = document.getElementById("profHopar");
   if (!svaedi) return;
   const nofn = new Map(notendurSnap.docs.map((d) => [d.id, (d.data().nafn || "").split(" ")[0]]));
+  const notendaGogn = new Map(notendurSnap.docs.map((d) => [d.id, d.data()]));
   const hopar = new Map();
   verkefnaSnap.docs.forEach((d) => {
     const v = d.data();
@@ -2875,6 +2877,15 @@ function birtaProfHopa(verkefnaSnap, notendurSnap) {
     hopar.get(v.profHopur).prof.push({ id: d.id, ...v });
   });
   svaedi.innerHTML = "";
+  // Á meðan próf er opið: uppfæra svarfjöldann á 30 sek fresti (les aðeins notendur, ~10 lestrar).
+  clearInterval(profVoktun);
+  if ([...hopar.values()].some((h) => h.prof.some((p) => p.active))) {
+    profVoktun = setInterval(async () => {
+      if (document.visibilityState !== "visible" || svaedi.querySelector(".prof-yfirferd:not([hidden])")) return;
+      const [v, u] = await Promise.all([getDocs(query(collection(db, "verkefni"), where("profHopur", "!=", ""))), getDocs(collection(db, "users"))]);
+      birtaProfHopa(v, u);
+    }, 30000);
+  }
   hopar.forEach((hopur, hopurId) => {
     const oll = hopur.prof.every((p) => p.active);
     const ekkert = hopur.prof.every((p) => !p.active);
@@ -2886,11 +2897,22 @@ function birtaProfHopa(verkefnaSnap, notendurSnap) {
     stada.className = "prof-stada";
     stada.textContent = oll ? "Opið" : ekkert ? "Lokað" : "Opið að hluta";
     h.appendChild(stada);
-    const listi = document.createElement("p");
+    // Hve mörgu hver nemandi hefur svarað (users/{uid}.verkefnaStada.{prófID}.svarad - uppfært við hvert svar).
+    const listi = document.createElement("div");
     listi.className = "prof-listi";
-    listi.textContent = hopur.prof
-      .map((p) => `${(p.leyfdirNotendur || []).map((u) => nofn.get(u) || "?").join(", ")}: ${p.title.replace(/^.*– /, "")} (${p.fjoldiSpurninga || "?"} sp.)`)
-      .join(" · ");
+    hopur.prof.forEach((p) => {
+      const uid = (p.leyfdirNotendur || [])[0];
+      const stada = (notendaGogn.get(uid) || {}).verkefnaStada?.[p.id] || {};
+      const alls = p.fjoldiSpurninga || 0;
+      const svarad = Math.min(stada.svarad || 0, alls || Infinity);
+      const rod = document.createElement("div");
+      rod.className = "prof-nemandi-rod" + (alls && svarad >= alls ? " buid" : "");
+      rod.innerHTML = `<span class="prof-nafn"></span><span class="prof-efni"></span><span class="prof-framvinda"><span style="width:${alls ? Math.round((svarad / alls) * 100) : 0}%"></span></span><span class="prof-tala"></span>`;
+      rod.querySelector(".prof-nafn").textContent = (p.leyfdirNotendur || []).map((u) => nofn.get(u) || "?").join(", ");
+      rod.querySelector(".prof-efni").textContent = p.title.replace(/^.*– /, "");
+      rod.querySelector(".prof-tala").textContent = `${svarad}/${alls} svarað` + (stada.pass ? ` (${stada.pass} autt)` : "") + (alls && svarad >= alls ? " ✓" : "");
+      listi.appendChild(rod);
+    });
     const takki = document.createElement("button");
     takki.type = "button";
     takki.className = oll ? "smabtn" : "aðal-hnappur";

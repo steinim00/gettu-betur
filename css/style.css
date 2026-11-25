@@ -5170,3 +5170,51 @@ body.upplestur-opinn {
   color: var(--litur-daufur);
   font-weight: 600;
 }
+.prof-listi {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 14px;
+}
+.prof-nemandi-rod {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr) 140px 160px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+.prof-nafn {
+  font-weight: 700;
+  color: var(--litur-texti);
+}
+.prof-efni {
+  color: var(--litur-daufur);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.prof-framvinda {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--litur-baksvid);
+  overflow: hidden;
+}
+.prof-framvinda span {
+  display: block;
+  height: 100%;
+  background: var(--litur-lime);
+}
+.prof-nemandi-rod.buid .prof-framvinda span {
+  background: var(--litur-rett);
+}
+.prof-tala {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 600px) {
+  .prof-nemandi-rod {
+    grid-template-columns: 70px minmax(0, 1fr) 90px;
+  }
+  .prof-efni {
+    display: none;
+  }
+}
