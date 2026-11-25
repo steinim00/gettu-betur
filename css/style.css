@@ -5218,3 +5218,30 @@ body.upplestur-opinn {
     display: none;
   }
 }
+
+/* Próf (handvirk yfirferð): allar spurningar með reit, einn "Skila prófi" takki neðst */
+.prof-form .prof-spurning h3 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+}
+.prof-form .prof-spurning input {
+  width: 100%;
+  margin: 0;
+}
+.prof-form .prof-spurning input:disabled {
+  background: var(--litur-baksvid);
+  color: var(--litur-texti);
+}
+.prof-lok {
+  text-align: center;
+  padding: 8px 0 30px;
+}
+.prof-stada-nemanda {
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin: 6px 0;
+}
+.prof-lok .aðal-hnappur {
+  max-width: 420px;
+  margin: 10px auto 0;
+}

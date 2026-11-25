@@ -2902,15 +2902,18 @@ function birtaProfHopa(verkefnaSnap, notendurSnap) {
     listi.className = "prof-listi";
     hopur.prof.forEach((p) => {
       const uid = (p.leyfdirNotendur || [])[0];
-      const stada = (notendaGogn.get(uid) || {}).verkefnaStada?.[p.id] || {};
+      // Ein tala: útfylltir reitir á meðan prófið er í gangi (drög); allt prófið (svör + autt) eftir skil.
+      const g = notendaGogn.get(uid) || {};
       const alls = p.fjoldiSpurninga || 0;
-      const svarad = Math.min(stada.svarad || 0, alls || Infinity);
+      const skilad = !!g.profSkilad?.[p.id];
+      const utfyllt = Object.values(g.profDrog?.[p.id] || {}).filter((v) => String(v).trim()).length;
+      const tala = skilad ? alls : Math.min(utfyllt, alls || utfyllt);
       const rod = document.createElement("div");
-      rod.className = "prof-nemandi-rod" + (alls && svarad >= alls ? " buid" : "");
-      rod.innerHTML = `<span class="prof-nafn"></span><span class="prof-efni"></span><span class="prof-framvinda"><span style="width:${alls ? Math.round((svarad / alls) * 100) : 0}%"></span></span><span class="prof-tala"></span>`;
+      rod.className = "prof-nemandi-rod" + (skilad ? " buid" : "");
+      rod.innerHTML = `<span class="prof-nafn"></span><span class="prof-efni"></span><span class="prof-framvinda"><span style="width:${alls ? Math.round((tala / alls) * 100) : 0}%"></span></span><span class="prof-tala"></span>`;
       rod.querySelector(".prof-nafn").textContent = (p.leyfdirNotendur || []).map((u) => nofn.get(u) || "?").join(", ");
       rod.querySelector(".prof-efni").textContent = p.title.replace(/^.*– /, "");
-      rod.querySelector(".prof-tala").textContent = `${svarad}/${alls} svarað` + (stada.pass ? ` (${stada.pass} autt)` : "") + (alls && svarad >= alls ? " ✓" : "");
+      rod.querySelector(".prof-tala").textContent = `${tala}/${alls}` + (skilad ? " · skilað ✓" : "");
       listi.appendChild(rod);
     });
     const takki = document.createElement("button");

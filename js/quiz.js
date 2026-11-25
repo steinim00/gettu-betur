@@ -3858,6 +3858,13 @@ async function hladaSpurningum(hoppaIOsvaradar = false) {
     return ta - tb;
   });
 
+  // Próf sem þjálfarinn fer yfir: öll spurningin á einni síðu með einum "Skila prófi" takka neðst.
+  if (valdVerkefniErHandvirkt) {
+    allarSpurningaskjol.sort((a, b) => (a.id < b.id ? -1 : 1));
+    birtaProfForm();
+    return;
+  }
+
   spurningaSida = 0;
   if (valdVerkefniErHrada) hladaMinumStodum();
 
@@ -4527,6 +4534,145 @@ async function svaraSpurningu(questionId, hraSvar, korti, form, nidurstada, aefi
   if (valkostir.eftirSvar) valkostir.eftirSvar(nidurstodur);
 }
 
+// --- Próf sem þjálfarinn fer yfir (spurning.handvirk) ---
+// Allar spurningar með reit, enginn "Svara" takki á hverri; einn "Skila prófi" neðst. Autt = skilað auðu.
+// Á meðan nemandinn skrifar vistast drög á users/{uid}.profDrog.{prófID}.{spurningaID} (svo stjórnborðið sjái
+// hve mörgu er svarað og ekkert tapist ef flipinn lokast). Við skil verða þau að svörum (attempts) - ekki hægt
+// að breyta eftir það.
+let profDrogBreytt = new Map();
+let profDrogTimi = null;
+function vistaProfDrog() {
+  clearTimeout(profDrogTimi);
+  if (!notandi || erAdminNotandi || profDrogBreytt.size === 0) return;
+  const breytingar = {};
+  profDrogBreytt.forEach((gildi, lykill) => (breytingar[`profDrog.${lykill}`] = gildi));
+  profDrogBreytt = new Map();
+  updateDoc(doc(db, "users", notandi.uid), breytingar).catch((villa) => console.error(villa));
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") vistaProfDrog();
+});
+
+function birtaProfForm() {
+  const vid = valdVerkefniId;
+  const skjol = allarSpurningaskjol;
+  const skilad = skjol.length > 0 && skjol.every((d) => svaradIdSett.has(d.id));
+  const drog = { ...(sidastiNotandaGogn?.profDrog?.[vid] || {}) };
+  stokkaSpurningarBtn.hidden = true;
+  siduflettingarEfri.hidden = true;
+  siduflettingar.hidden = true;
+  if (skilad) profIVinnslu = false;
+  spurningaListi.innerHTML = "";
+
+  const form = document.createElement("form");
+  form.className = "prof-form";
+  form.noValidate = true;
+  const stada = document.createElement("p");
+  stada.className = "prof-stada-nemanda";
+  const uppfaeraStodu = () => {
+    const n = skjol.filter((d) => (drog[d.id] || "").trim()).length;
+    stada.textContent = skilad ? `Prófi skilað ✓ – þjálfarinn fer yfir það.` : `${n} af ${skjol.length} svarað`;
+  };
+
+  skjol.forEach((d, i) => {
+    const kort = document.createElement("div");
+    kort.className = "spurning-kort prof-spurning";
+    const h = document.createElement("h3");
+    h.textContent = `${i + 1}. ${d.data().text}`;
+    const inn = document.createElement("input");
+    inn.type = "text";
+    inn.autocomplete = "off";
+    inn.placeholder = skilad ? "" : "Svar (autt = skila auðu)";
+    inn.value = drog[d.id] || "";
+    inn.disabled = skilad;
+    inn.setAttribute("aria-label", `Svar við spurningu ${i + 1}`);
+    inn.addEventListener("input", () => {
+      drog[d.id] = inn.value;
+      profDrogBreytt.set(`${vid}.${d.id}`, inn.value);
+      uppfaeraStodu();
+      clearTimeout(profDrogTimi);
+      profDrogTimi = setTimeout(vistaProfDrog, 1500);
+    });
+    inn.addEventListener("blur", vistaProfDrog);
+    inn.addEventListener("keydown", (e) => {
+      // Enter fer í næsta reit í stað þess að skila prófinu
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const allir = [...form.querySelectorAll("input")];
+      allir[allir.indexOf(inn) + 1]?.focus();
+    });
+    kort.append(h, inn);
+    form.appendChild(kort);
+  });
+
+  const lok = document.createElement("div");
+  lok.className = "prof-lok";
+  if (!skilad) {
+    const hjalp = document.createElement("p");
+    hjalp.className = "heimild-tilvitnun";
+    hjalp.textContent = "Autt svar telst skilað auðu. Ekki er hægt að breyta svörum eftir að prófinu er skilað.";
+    const skila = document.createElement("button");
+    skila.type = "submit";
+    skila.className = "aðal-hnappur";
+    skila.textContent = "Skila prófi";
+    lok.append(stada, hjalp, skila);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const svarad = skjol.filter((d) => samraema(drog[d.id] || "")).length;
+      const autt = skjol.length - svarad;
+      if (!confirm(`Þú hefur svarað ${svarad} af ${skjol.length} spurningum${autt ? ` og skilar ${autt} auðu` : ""}.\n\nSkila prófinu? Ekki er hægt að breyta svörum eftir það.`)) return;
+      skila.disabled = true;
+      skila.textContent = "Skila…";
+      try {
+        await skilaProfi(vid, skjol, drog);
+        skjol.forEach((d) => svaradIdSett.add(d.id));
+        birtaProfForm();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (villa) {
+        console.error(villa);
+        alert("Tókst ekki að skila prófinu - athugaðu nettenginguna og reyndu aftur.");
+        skila.disabled = false;
+        skila.textContent = "Skila prófi";
+      }
+    });
+  } else {
+    lok.append(stada);
+  }
+  form.appendChild(lok);
+  uppfaeraStodu();
+  spurningaListi.appendChild(form);
+}
+
+async function skilaProfi(vid, skjol, drog) {
+  const batch = writeBatch(db);
+  let fjoldi = 0;
+  let autt = 0;
+  skjol.forEach((d) => {
+    if (svaradIdSett.has(d.id)) return;
+    const svar = samraema(drog[d.id] || "").slice(0, 199) || SLEPPT_MERKI;
+    batch.set(doc(db, "users", notandi.uid, "attempts", d.id), { svar, answeredAt: serverTimestamp() });
+    fjoldi++;
+    if (svar === SLEPPT_MERKI) autt++;
+  });
+  const breytingar = {
+    fjoldiSvarad: increment(fjoldi),
+    sidastSvaradAt: serverTimestamp(),
+    [`verkefnaStada.${vid}.svarad`]: increment(fjoldi),
+    [`profSkilad.${vid}`]: serverTimestamp()
+  };
+  if (autt) {
+    breytingar.fjoldiPass = increment(autt);
+    breytingar[`verkefnaStada.${vid}.pass`] = increment(autt);
+  }
+  skjol.forEach((d) => (breytingar[`profDrog.${vid}.${d.id}`] = drog[d.id] || ""));
+  batch.update(doc(db, "users", notandi.uid), breytingar);
+  profDrogBreytt = new Map();
+  clearTimeout(profDrogTimi);
+  await batch.commit();
+  beitaStodu(vid, { svarad: fjoldi, pass: autt });
+  profIVinnslu = false;
+}
+
 // Heldur fjoldiSvarad/fjoldiRett/fjoldiPass/verkefnaStada/sidastSvaradAt á
 // users/{uid} réttum jafnóðum þegar svarað er - stjórnborðið les þessar tölur
 // beint í stað þess að endurreikna úr öllum attempts-skjölum hvers notanda í
@@ -4658,10 +4804,8 @@ async function hladaMinumStodum() {
   const nakvaemni = fjoldiMetin ? Math.round((fjoldiRett / fjoldiMetin) * 100) : 0;
   const sleppTexti = fjoldiSleppt ? `, ${fjoldiSleppt} pass` : "";
   if (valdVerkefniErHandvirkt) {
-    // Próf: ekkert rétt/rangt fyrr en þjálfarinn hefur farið yfir - bara hve mörgu er svarað.
-    const alls = allarSpurningaskjol.length;
-    stodurNiðurstada.textContent =
-      `Þú hefur svarað ${Math.min(fjoldiSvarad, alls || fjoldiSvarad)} af ${alls} spurningum${fjoldiSleppt ? ` (${fjoldiSleppt} autt)` : ""}. Þjálfarinn fer yfir prófið.`;
+    // Próf: staðan birtist í prófforminu sjálfu (birtaProfForm).
+    stodurNiðurstada.textContent = "";
     return;
   }
   stodurNiðurstada.textContent =
