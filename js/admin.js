@@ -2912,8 +2912,139 @@ function birtaProfHopa(verkefnaSnap, notendurSnap) {
         takki.disabled = false;
       }
     });
-    kort.append(h, listi, takki, skilabod);
+    const yfirBtn = document.createElement("button");
+    yfirBtn.type = "button";
+    yfirBtn.className = "smabtn";
+    yfirBtn.textContent = "✍️ Fara yfir";
+    const yfirSvaedi = document.createElement("div");
+    yfirSvaedi.className = "prof-yfirferd";
+    yfirSvaedi.hidden = true;
+    yfirBtn.addEventListener("click", () => {
+      yfirSvaedi.hidden = !yfirSvaedi.hidden;
+      if (!yfirSvaedi.hidden) hladaProfYfirferd(hopur.prof, nofn, yfirSvaedi);
+    });
+    const hnappar = document.createElement("div");
+    hnappar.className = "prof-hnappar";
+    hnappar.append(takki, yfirBtn, skilabod);
+    kort.append(h, listi, hnappar, yfirSvaedi);
     svaedi.appendChild(kort);
+  });
+}
+
+// Handvirk yfirferð: svör nemanda við hlið réttra svara; þjálfarinn merkir ✓/✗ (vistað á verkefni.yfirferd.{spurningaID}).
+// "Sjálfvirkt mat" er aðeins tillaga (sama svarathugun og í appinu).
+async function hladaProfYfirferd(prof, nofn, svaedi) {
+  svaedi.innerHTML = "<p class='undirtitill-vinstri'>Sæki svör…</p>";
+  const inn = (safn, ids) => getDocs(query(collection(db, ...safn), where(documentId(), "in", ids)));
+  const gogn = await Promise.all(
+    prof.map(async (p) => {
+      const uid = (p.leyfdirNotendur || [])[0];
+      const vSnap = await getDoc(doc(db, "verkefni", p.id));
+      const qSnap = await getDocs(query(collection(db, "questions"), where("verkefniId", "==", p.id)));
+      const ids = qSnap.docs.map((d) => d.id).sort();
+      const [aSnap, tSnap] = await Promise.all([inn(["answers"], ids), uid ? inn(["users", uid, "attempts"], ids) : Promise.resolve({ docs: [] })]);
+      return {
+        p,
+        uid,
+        yfirferd: { ...(vSnap.data()?.yfirferd || {}) },
+        spurningar: ids.map((id) => ({
+          id,
+          texti: qSnap.docs.find((d) => d.id === id).data().text,
+          rett: aSnap.docs.find((d) => d.id === id)?.data().correctAnswers || [],
+          svar: tSnap.docs.find((d) => d.id === id)?.data().svar
+        }))
+      };
+    })
+  );
+  svaedi.innerHTML = "";
+  gogn.forEach((g) => {
+    const hluti = document.createElement("section");
+    hluti.className = "prof-nemandi";
+    const h = document.createElement("h4");
+    const merkjaTakkar = document.createElement("button");
+    merkjaTakkar.type = "button";
+    merkjaTakkar.className = "smabtn";
+    merkjaTakkar.textContent = "Nota sjálfvirka matið á ómerktar";
+    const listi = document.createElement("ol");
+    listi.className = "upplestur-skjal merking prof-yfirferd-listi";
+    const uppfaeraHaus = () => {
+      const svarad = g.spurningar.filter((s) => s.svar !== undefined).length;
+      const merkt = g.spurningar.filter((s) => g.yfirferd[s.id] !== undefined);
+      const rett = merkt.filter((s) => g.yfirferd[s.id] === true).length;
+      h.textContent = `${nofn.get(g.uid) || "?"} – ${g.p.title.replace(/^.*– /, "")}: ${rett}/${g.spurningar.length} rétt` +
+        ` · ${svarad} svarað · ${g.spurningar.length - merkt.length} ómerkt`;
+    };
+    const vista = async (s, gildi) => {
+      g.yfirferd[s.id] = gildi;
+      await updateDoc(doc(db, "verkefni", g.p.id), { [`yfirferd.${s.id}`]: gildi === null ? deleteField() : gildi });
+    };
+    const teikna = () => {
+      listi.innerHTML = "";
+      g.spurningar.forEach((s, k) => {
+        const li = document.createElement("li");
+        const gildi = g.yfirferd[s.id];
+        li.className = gildi === true ? "er-rett" : gildi === false ? "er-rangt" : "";
+        const nr = document.createElement("span");
+        nr.className = "skjal-nr";
+        nr.textContent = `${k + 1}.`;
+        const texti = document.createElement("div");
+        texti.className = "skjal-texti";
+        const sp = document.createElement("div");
+        sp.className = "skjal-spurning";
+        sp.textContent = s.texti;
+        const svarEl = document.createElement("div");
+        svarEl.className = "prof-svar-nemanda";
+        svarEl.textContent = s.svar === undefined ? "Svar: — (ekki svarað)" : s.svar === SLEPPT_MERKI ? "Svar: (sleppt)" : `Svar: ${s.svar}`;
+        const rettEl = document.createElement("div");
+        rettEl.className = "skjal-svar";
+        const tillaga = s.svar !== undefined && s.svar !== SLEPPT_MERKI && erSvarRett(s.svar, s.rett);
+        rettEl.textContent = `Rétt svar: ${s.rett.join(" / ") || "?"}` + (s.svar !== undefined && s.svar !== SLEPPT_MERKI ? ` · sjálfvirkt mat: ${tillaga ? "✓" : "✗"}` : "");
+        texti.append(sp, svarEl, rettEl);
+        const takkar = document.createElement("span");
+        takkar.className = "merking-takkar";
+        [["✓", true, "rett", "Rétt"], ["✗", false, "rangt", "Rangt"]].forEach(([t, v, kl, titill]) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = kl + (gildi === v ? " virkur" : "");
+          b.textContent = t;
+          b.title = titill;
+          b.setAttribute("aria-label", titill);
+          b.addEventListener("click", async () => {
+            b.disabled = true;
+            try {
+              await vista(s, g.yfirferd[s.id] === v ? null : v);
+              if (g.yfirferd[s.id] === null) delete g.yfirferd[s.id];
+            } catch (villa) {
+              console.error(villa);
+              alert("Tókst ekki að vista: " + (villa.code || villa.message));
+            }
+            teikna();
+            uppfaeraHaus();
+          });
+          takkar.appendChild(b);
+        });
+        li.append(nr, texti, takkar);
+        listi.appendChild(li);
+      });
+    };
+    merkjaTakkar.addEventListener("click", async () => {
+      merkjaTakkar.disabled = true;
+      const breytingar = {};
+      g.spurningar.forEach((s) => {
+        if (g.yfirferd[s.id] !== undefined || s.svar === undefined) return;
+        const v = s.svar !== SLEPPT_MERKI && erSvarRett(s.svar, s.rett);
+        g.yfirferd[s.id] = v;
+        breytingar[`yfirferd.${s.id}`] = v;
+      });
+      if (Object.keys(breytingar).length) await updateDoc(doc(db, "verkefni", g.p.id), breytingar);
+      merkjaTakkar.disabled = false;
+      teikna();
+      uppfaeraHaus();
+    });
+    uppfaeraHaus();
+    teikna();
+    hluti.append(h, merkjaTakkar, listi);
+    svaedi.appendChild(hluti);
   });
 }
 

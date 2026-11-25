@@ -2901,6 +2901,8 @@ async function hladaRangarSpurningar() {
     snap.forEach((d) => skjol.push(d));
   }
 
+  // Próf sem þjálfarinn fer yfir handvirkt sjást ekki hér (annars sæist rétta svarið).
+  for (let i = skjol.length - 1; i >= 0; i--) if (skjol[i].data().handvirk) skjol.splice(i, 1);
   svaradIdSett = new Set(rangarIds);
   spurningaBunkastaerd = SPURNINGAR_A_SIDU_VENJULEGT;
   allarSpurningaskjol = skjol;
@@ -4176,7 +4178,7 @@ function birtaEinaSpurningu(fokus = false) {
       const nyttSvarad = allarSpurningaskjol.filter((d) => svaradIdSett.has(d.id)).length;
       framvindaTexti.textContent = `Svarað ${nyttSvarad} af ${heild}`;
       stikaFyllt.style.width = `${heild ? Math.round((nyttSvarad / heild) * 100) : 0}%`;
-      if (nidurstodur && !nidurstodur.pass && !nidurstodur.rett) skraEndurtekningu(qDoc.id);
+      if (nidurstodur && !nidurstodur.pass && !nidurstodur.rett && !nidurstodur.handvirk) skraEndurtekningu(qDoc.id);
       else afskraEndurtekningu(qDoc.id);
       klaradi();
     }
@@ -4575,6 +4577,15 @@ async function synaNidurstodu(questionId, korti, nidurstada, gefidSvar, aefingaS
   if (mittSvar === undefined) {
     const attemptSnap = await getDoc(doc(db, "users", notandi.uid, "attempts", questionId));
     mittSvar = attemptSnap.data()?.svar;
+  }
+
+  // Próf sem þjálfarinn fer yfir handvirkt (spurning.handvirk): ekkert rétt/rangt, ekkert rétt svar,
+  // engin mynd og engin endurtekning - bara staðfesting á að svarið sé skráð.
+  if (spurning?.handvirk) {
+    const sleppt = mittSvar === SLEPPT_MERKI;
+    nidurstada.textContent = sleppt ? "Sleppt ⏭ – þjálfarinn fer yfir prófið." : "Svar skráð ✓ – þjálfarinn fer yfir prófið.";
+    nidurstada.classList.add("handvirk-skrad");
+    return { pass: sleppt, rett: false, handvirk: true };
   }
 
   if (mittSvar === SLEPPT_MERKI) {

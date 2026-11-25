@@ -5141,3 +5141,32 @@ body.upplestur-opinn {
   font-size: 0.85rem;
   color: var(--litur-daufur);
 }
+.prof-hnappar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.prof-yfirferd {
+  margin-top: 16px;
+  border-top: 1px solid var(--litur-jadar);
+  padding-top: 12px;
+}
+.prof-nemandi {
+  margin-bottom: 22px;
+}
+.prof-nemandi h4 {
+  margin: 6px 0 8px;
+}
+.prof-yfirferd-listi {
+  margin-top: 8px;
+}
+.prof-svar-nemanda {
+  margin-top: 4px;
+  font-weight: 700;
+  color: var(--litur-texti);
+}
+.handvirk-skrad {
+  color: var(--litur-daufur);
+  font-weight: 600;
+}

@@ -2,6 +2,7 @@
 // Hvert próf er verkefni með tegund "prof", aðeins sýnilegt viðkomandi nemanda (leyfdirNotendur), og LOKAÐ
 // (active: false) þar til admin opnar þau öll í einu á stjórnborðinu (Yfirlit → Próf → "Opna fyrir öll").
 // Prófin í sama hópi deila profHopur. Svör sem vantaði í skjalið eru tekin úr glærum nemandans.
+// handvirk: true á spurningunum - nemandinn sér ekki rétt/rangt; þjálfarinn fer yfir á stjórnborðinu (✍️ Fara yfir).
 const path = require("path");
 const admin = require("firebase-admin");
 admin.initializeApp({ credential: admin.credential.cert(require(path.join(__dirname, "serviceAccountKey.json"))) });
@@ -70,7 +71,7 @@ if (require.main === module) (async () => {
     });
     p.spurningar.forEach(([texti, svor], i) => {
       const qid = `${p.id}-${String(i + 1).padStart(2, "0")}`;
-      batch.set(db.collection("questions").doc(qid), { text: texti, verkefniId: p.id, active: false, createdAt: FV.serverTimestamp() });
+      batch.set(db.collection("questions").doc(qid), { text: texti, verkefniId: p.id, active: false, handvirk: true, createdAt: FV.serverTimestamp() });
       batch.set(db.collection("answers").doc(qid), { correctAnswers: [...new Set(svor.map(samraema))] });
       breytt[qid] = FV.serverTimestamp();
     });
