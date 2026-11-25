@@ -4582,7 +4582,7 @@ function birtaProfForm() {
     const inn = document.createElement("input");
     inn.type = "text";
     inn.autocomplete = "off";
-    inn.placeholder = skilad ? "" : "Svar (autt = skila auðu)";
+    inn.placeholder = skilad ? "" : "Svar";
     inn.value = drog[d.id] || "";
     inn.disabled = skilad;
     inn.setAttribute("aria-label", `Svar við spurningu ${i + 1}`);
@@ -4610,7 +4610,7 @@ function birtaProfForm() {
   if (!skilad) {
     const hjalp = document.createElement("p");
     hjalp.className = "heimild-tilvitnun";
-    hjalp.textContent = "Autt svar telst skilað auðu. Ekki er hægt að breyta svörum eftir að prófinu er skilað.";
+    hjalp.textContent = "Ekki er hægt að breyta svörum eftir að prófinu er skilað.";
     const skila = document.createElement("button");
     skila.type = "submit";
     skila.className = "aðal-hnappur";
@@ -4619,8 +4619,7 @@ function birtaProfForm() {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const svarad = skjol.filter((d) => samraema(drog[d.id] || "")).length;
-      const autt = skjol.length - svarad;
-      if (!confirm(`Þú hefur svarað ${svarad} af ${skjol.length} spurningum${autt ? ` og skilar ${autt} auðu` : ""}.\n\nSkila prófinu? Ekki er hægt að breyta svörum eftir það.`)) return;
+      if (!confirm(`Þú hefur svarað ${svarad} af ${skjol.length} spurningum.\n\nSkila prófinu? Ekki er hægt að breyta svörum eftir það.`)) return;
       skila.disabled = true;
       skila.textContent = "Skila…";
       try {
