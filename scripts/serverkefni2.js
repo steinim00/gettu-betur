@@ -1,6 +1,6 @@
-// Sérverkefni 2 (fyrir prófið í des. 2026): ný glærusöfn + 30 spurningar fyrir Júlíu (listaverk) og Hinrik
-// (sumarólympíuleikar). Fyrri sérverkefni þeirra eru falin (active: false) en gögnin haldast - til að sýna þau
-// aftur: setja active: true á verkefni/serverkefni-julia eða -hinrik. Keyra má aftur (sama skjal-ID = uppfærsla).
+// Sérverkefni 2 (fyrir prófið í des. 2026): ný glærusöfn + 30 spurningar fyrir Júlíu (listaverk), Hinrik
+// (sumarólympíuleikar) og Heklu (erlend dægurlög 5 og 6). Fyrri sérverkefni þeirra eru falin (active: false) en gögnin haldast - til að sýna þau
+// aftur: setja active: true á verkefni/serverkefni-julia, -hinrik eða -hekla. Keyra má aftur (sama skjal-ID = uppfærsla).
 // Notkun: NODE_PATH=... node serverkefni2.js  (keyrðu svo samstilla-spurningayfirlit.js)
 const path = require("path");
 const admin = require("firebase-admin");
@@ -11,16 +11,19 @@ const GLAERUR = require("../data/serverkefni2-glaerur.json");
 
 const NEMENDUR = {
   julia: "PJmAw5RLfzdrobwL4VZRCfXn4nz2",
-  hinrik: "5TkIf8dyi7T3EoAE10na2eR2xLl1"
+  hinrik: "5TkIf8dyi7T3EoAE10na2eR2xLl1",
+  hekla: "UstjfzH6XGe53zBVhECrcAdEki63"
 };
+const ADEINS = process.argv[2]; // t.d. "hekla" - keyra bara fyrir einn nemanda
 const VERKEFNI = [
   { id: "serverkefni2-julia", nemandi: "julia", gamla: "serverkefni-julia", title: "Listaverk: 51 frægustu og 51 minna þekkt" },
-  { id: "serverkefni2-hinrik", nemandi: "hinrik", gamla: "serverkefni-hinrik", title: "Svipmyndir af sumarólympíuleikum" }
+  { id: "serverkefni2-hinrik", nemandi: "hinrik", gamla: "serverkefni-hinrik", title: "Svipmyndir af sumarólympíuleikum" },
+  { id: "serverkefni2-hekla", nemandi: "hekla", gamla: "serverkefni-hekla", title: "Erlend dægurlög 5 og 6 (1980–2000)" }
 ];
 
 (async () => {
   const grunn = Date.now();
-  for (const v of VERKEFNI) {
+  for (const v of VERKEFNI.filter((x) => !ADEINS || x.nemandi === ADEINS)) {
     const ref = db.doc(`verkefni/${v.id}`);
     const til = await ref.get();
     const slides = GLAERUR[v.nemandi];
