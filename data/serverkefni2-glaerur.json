@@ -1,0 +1,896 @@
+{
+ "julia": [
+  {
+   "title": "51 frægustu listaverk sögunnar",
+   "body": "FG Gettu Betur 2018",
+   "image": ""
+  },
+  {
+   "title": "Leonardo da Vinci – Mona Lísa",
+   "body": "Eitt þekktasta listaverk sögunnar er án efa málverk Leonardo da Vinci af Mónu Lísu. Verkið er varðveitt á Louvre safninu í París. Nafngift verksins er sótt í ævisögu da Vincis eftir Giorgino Vasari sem segir að konan sé Lisa Gherardini, eiginkona Francesco del Gioncondo. Mona sé algengt heiti yfir madonna eða konan mín, eða jafnvel frú. Annað algengt nafn á verkinu er La Gioconda sem er kvenngert nafn Giocondo. Samkvæmt Valari hóf da Vinci gerð verksins árið 1502 og á að hafa lokið því fjórum árum síðar. Verkinu var stolið árið 1911 af starfsmanni Louvre safnsins Vincenzo Peruggia. Maðurinn á bak við þjófnaðinn var hinsvegar Eduardo de Valfierno sem hafði hugsað sér að láta gera kópíur af verkinu og selja þær um allan heim í von um að menn myndu ekki geta greint á milli þeirrar upprunalegu. Verkið hefur oft vakið athygli fyrir þá staðreynd að engar augnabrýr eru sýndar á fyrirsætunni.",
+   "image": "images/listaverk/3.jpg"
+  },
+  {
+   "title": "Michelangelo – Fæðing Adams",
+   "body": "Fæðing Adams er freska eftir Michelangelo og er hluti af stærra verki sem hann gerði á loft hvelfingu Sixtínsku kapellunar í Róm, nú Vatikaninu. Verkið var gert á árunum 1508-12 og sækir innblástur í frásagnir biblíunnar. Michelangelo var aðallega myndhöggvari. Sagan segir að annar listamaður hafi sannfært Páfann um að ráða Michelangelo til verksins, á sviði sem hann var ókunnugur í von um að Michelangelo myndi klikka. Útkoman varð eitt þekktasta listsköpun endurreisnarinnar.",
+   "image": "images/listaverk/5.jpg"
+  },
+  {
+   "title": "Leonardo da Vinci – Síðasta kvöldmáltíðin",
+   "body": "Síðasta kvöldmáltíðin eftir Leonardo da Vinci er freska sem hann gerði að beiðni Ludovico Sforza hertoga af Mílanó. Verkið er gert á vegg í klaustrinu Santa Maria delle Grazie í Mílanó. Da Vinci sótti efnivið sinn í Jóhannesarguðspjall. Myndin sýnir Jesú og lærisveina hans 12. Verkið er gert á árunum 1495-96. Í raun er afar lítið eftir af upprunalega verkinu, en það hefur reglulega verið „endurnýjað“, síðast 1999.",
+   "image": "images/listaverk/7.jpg"
+  },
+  {
+   "title": "Sandro Botticelli – Fæðing Venusar",
+   "body": "Fæðing Venusar er sennilega þekktasta verk ítalska listmálarans Sandro Botticelli. Það er talið málað í kringum 1480. Það sýnir gyðjuna Venusi þar sem hún er nýfædd og stendur á skel. Til vinstri má sjá gríska guð vestanvindsins, Sephýr sem blæs vestangolunni í hár hennar. Hann er þar ásamt yngismey. Sumir hafa talið hana vera Aura, sem var tákngervingur golu í grískri goðafræði. Til hægri er sennilega gyðja vorsins, Hora. Alls eru því fjórar persónur á myndinni. Það er varðveitt á Uffizi safninu í Flórens.",
+   "image": "images/listaverk/9.jpg"
+  },
+  {
+   "title": "Alexandros frá Antíokk – Venus frá Míló",
+   "body": "Venus frá Míló er stytta, einnig þekkt sem Afródíta hin melíska. Hún er sennilega ein þekktasta stytta frá fornöld. Nú er almennt talið að gríski myndhöggvarinn Alexandros frá Antíokk hafi gert styttuna á 1. öld f. Kr, og á sennilega að sýna grísku gyðjuna Afródítu, sem Rómverjar kölluðu Venus. Hún er til sýnis á Louvre safninu í París. Hún fannst á grísku eyjunni Mílos árið 1820.",
+   "image": "images/listaverk/11.jpg"
+  },
+  {
+   "title": "Sandro Botticelli – Vorið (Primavera)",
+   "body": "Vorið eða Primavera er eitt þekktasta verk ítalska endurreisnar málarans Sandro Botticelli. Það er talið málað á tímabilinu 1470-80. Verkið sýnir persónur úr grískri goðafræði, alls níu talsins. Fyrir miðju er Venus en yfir hennar svífur Kúpid. Myndin er varðveitt á Uffizi safninu.",
+   "image": "images/listaverk/13.jpg"
+  },
+  {
+   "title": "Jan Vermeer – Stúlkan með perlueyrnalokkinn",
+   "body": "Stúlkan með perlueyrnalokkinn er sennilega þekktasta verk hollenska málarans Jan Vermeer. Það er málað á 17. öld. Það er varðveitt á safninu Mauritshuis í Haag borg í Hollandi.",
+   "image": "images/listaverk/15.jpg"
+  },
+  {
+   "title": "Rafael – Sixtínska Madonnan",
+   "body": "Sixtínska Madonnan er eitt þekktasta verk ítalska málarans Rafael Sanzio. Hann málaði hana árið 1512 að beiðni Júlíusar II páfa, fyrir kirkju í Piacenza á Ítalíu. Árið 1754 var verkið flutt til Dresden í Þýskalandi, eftir að Ágústus konungur Póllands keypti það. Sovétmenn fluttu verkið til Sovétríkjanna eftir seinni heimsstyrjöldina en því var skilað aftur til Þýskalands eftir dauða Stalíns og er á safni í Dresden í dag.",
+   "image": "images/listaverk/17.jpg"
+  },
+  {
+   "title": "Claude Monet – Hughrif við sólarupprás – (Impression, soleil levant)",
+   "body": "Claude Monet var einn áhrifamesti myndlistarmaður 19. aldar. Hann var í fararbroddi nýrrar tísku, impressjónismans en stefnan er kennd við þetta verk. Impressjónismi fólst í að fanga náttúrunnar í nýju ljósi og voru verk Monet mjög áberandi, sérsaklega í Frakklandi þar sem vagga impressjónismans var. Verkið sýnir höfnina í La Havre, fæðingabæ Monet. Það var málað 1874. Það er varðveitt á Musée Marmottan Monet í París, sem er stærsta safn Monet verka í heimi.",
+   "image": "images/listaverk/19.jpg"
+  },
+  {
+   "title": "Pablo Picasso – Jómfrúrnar frá Avignon",
+   "body": "Jómfrúrnar frá Avignon (Les Demoiselles d´Avignon) er eitt þekktasta verk spænska listamannsins Pablo Picasso. Það var gert árið 1907. Það sýnir fimm naktar vændiskonur sem störfuðu á vændishúsi í Barcelona við Avignon stræti. Tvær vændiskonurnar hafa afrískar grímur, en Picasso var á þessum tíma undir sterkum áhrifum frá afrískri alþýðulist. Verkið var nokkuð frávik frá því sem Picasso hafði áður gert, og lagði grunninn að kúbismanum sem Picasso var brautryðjandi að, auk þess að vera eitt af fyrstu nútíma listaverkunum á 20. öld. Verkið vakti gríðarlega hneysklun m.a. meðal annarra listamanna. Einn gagnrýnenda hans var George Braque sem síðar þróaði kúbisman ásamt Picasso. Heiti verksins er kominn frá skáldinu André Salmon, en Picasso var aldrei sáttur með þann titil. Segja má að verkið sé lokahnykkurinn á bleika tímabilinu á ferli Picasso.",
+   "image": "images/listaverk/21.jpg"
+  },
+  {
+   "title": "Rembrandt – Næturverðirnir",
+   "body": "Næturverðirnir er eitt þekktasta verk hollenska málarans Rembrandt van Rijn, og eitt þekktasta verk gull aldar hollenskur málaranna. Það var málað árið 1642 og er varðveitt í Amsterdam safninu. Verkið er einkum þekkt fyrir þrennt, óvenjulega stærð þess, hvernig málarinn notar ljós og skugga og að viðfangsefnið sé eins og það sé á hreyfingu, sem var óvenjulegt á þeim tíma. Í forgrunni er fyrirliði Næturvarðanna Frans Banninck Cocq, en hann var um tíma borgarstjóri Amsterdam.",
+   "image": "images/listaverk/23.jpg"
+  },
+  {
+   "title": "Vincent van Gogh – Sólblóminn Kyrralífsmynd",
+   "body": "Vincent van Gogh gerði á ferlinum tvær seríur sem sýndu sólblóm. Þá fyrri þar sem blómin eru á jörðinni en þá síðari þar sem þau eru í vasa. Einn helsti áhrifavaldur á ferill van Gogh var franski listmálarinn Paul Gaugain og voru kyrralífsmyndirnar m.a. málaðar til að ganga í augun á Gaugain. Samband þeirra einkenndist þó af togstreitu og endaði með að Gaugain forðaði sér og þeir hittust ekki að nýju, en héldu þó sambandi bréfleiðis. Í millitíðinni hafði Gogh í einhverskonar geðsýkis kasti skorið af sér hægra eyrað.",
+   "image": "images/listaverk/25.jpg"
+  },
+  {
+   "title": "Edvard Munch – Ópið (Skrik)",
+   "body": "Ópið er það heiti sem flestir þekkja fjögur keimlík verk eftir norska myndlistarmanninn Edvard Munch. Það voru máluð á árunum 1894 til 1910. Munch kallaði þau þó Óp náttúrunnar (Der Schrei der Natur á þýsku). Norska Nasjonalgalleriet á eitt þessara verka, Munch safnið í Osló á tvö og það fjórða er í einkaeigu. Árið 1994 rændu listaþjófar verki norska Nasjonalgalleriet en það komst í leitirnar. Árið 2004 stálu þjófar öðru Óp verki Munch safnsins, ásamt Madonnu eftir Munch, en þau fundust tveimur árum síðar.",
+   "image": "images/listaverk/27.jpg"
+  },
+  {
+   "title": "Michelangelo – Davíð",
+   "body": "Davíð eftir Michelangelo er ein þekktasta stytta í listasögunni. Hún var gerð á árunum 1501-04 og sýnir Davíð sem segir frá í Biblíunni, en hann sigraði risann Golíat og varð síðar konungur Ísraelsríkis. Verkið stóð lengi á Piazza della Signoria torginu í Flórens en er nú til sýnis í Galleria dell´Accademia safninu í Flórens.",
+   "image": "images/listaverk/29.jpg"
+  },
+  {
+   "title": "Hieronymus Bosch – Garður jarðneskra lystisemda",
+   "body": "Garður jarðneskra lystisemda er þekktasta verk hollenska listmálarans Hieronymus Bosch. Það er talið málað á árabilinu 1490-1510. Mynd Bosch er þrískipt, og sýnir frá vinstri til hægri lystigarðinn í Eden, nautnir mannanna og loks dómsdag. Verkið er varðveitt á spænska listasafninu Prado í Madrid.",
+   "image": "images/listaverk/31.jpg"
+  },
+  {
+   "title": "Rafael – Aþenuskólinn",
+   "body": "Aþenuskólinn er freska eftir ítalska listmálarann Rafael. Það var málað á tímabilinu 1509-1511. Það var málað sem hluti af verkum fyrir páfahöllina í Róm. Verk Rafael fjölluðu um mismunandi efni, s.s. Heimspeki og bókmenntir. Aþenuskólinn var nafn sem verkinu var gefið seinna en það sýnir gríska heimspekinga, fyrir miðju Platon og Aristóteles. Þarna má einnig finna Alexander mikla, Sókrates, Díógenes í tunnunni, Evklíð, Arkimedes, Ptólómeus og fleiri. Rafael er talinn hafa notað aðra samtíma listamenn sem fyrirmyndir grísku heimspekinganna s.s. Michaelangelo, Leonardo da Vinci og sjálfan sig.",
+   "image": "images/listaverk/33.jpg"
+  },
+  {
+   "title": "Pablo Picasso – Guernica",
+   "body": "Verkið Guernica eftir Pablo Picasso var málað árið 1937. Það var málað til að mótmæla stríði og er innblásið á loftárásum á baskneska bæinn Guernica á Spáni í spænska borgarastríðinu. Verkið komst í eigu MOMA en Picasso seldi það með því skilyrði að því yrði skilað til Spánar þegar lýðræði væri tekið þar upp aftur. Einræðisherrann Franco féll frá 1975 en MOMA var í fyrstu tregt til að skila verkinu til Spánar. MOMA lét verkið af hendi árið 1981. Það var í fyrstu í Prado listasafninu en var árið 1992 flutt í nýtt safn Museo Nacional Centro de Arte Reina Sofía, eða þjóðarlistasafn Sofíu drottningar í Madrid. Eftir að Picasso neitaði að selja Nelson Rockefeller verkið árið 1955 lét Nelson gera veggeteppi sem byggir á verkinu. Það var lánað til Sameinuðu þjóðanna árið 1985 sem áminningu um að forðast stríðsátök. Það hékk uppi til 2009 og aftur frá 2015. Það komst í fréttirnar árið 2003 þegar teppið var hulið bláu teppi að beiðni Bandaríkjastjórnar í aðdraganda innrásarinnar í Írak.",
+   "image": "images/listaverk/35.jpg"
+  },
+  {
+   "title": "Salvador Dalí – Þráhyggja minninganna",
+   "body": "Þráhyggja minninganna (La persisténcia de la memória) er þekktasta verk spænska málarans Salvador Dalí, sem hann málaði árið 1931. Það var gefið til MOMA safnsins í New York árið 1934. Spurður hvort innblástur verksins hafi verið afstæðiskenning Einsteins sagði Dalí að innblástur verksins hafi verið bráðnaður Camembert ostur.",
+   "image": "images/listaverk/37.jpg"
+  },
+  {
+   "title": "Jacques-Louis David – Dauði Marats",
+   "body": "Sennilega frægasta mynd frönsku byltingarinnar er franski byltingaforinginn og blaðamaðurinn Jean-Paul Marat þar sem hann liggur dauður í baðkari eftir að hafa verið stunginn af Charlotte Corday til bana, 1793. Jacques-Louis David málaði myndina 1793, en hann var sjálfur Jakóbíni og átti sæti í öryggisnefndinni sem framkvæmdi mörg voðaverk á tímabili ógnarstjórnarinnar. Tilgangur verksins var að gera Marat ódauðlegan. Hann þjáðist t.a.m. af húðsjúkdómi sem ekki er sýndur á mynd David. David sleppir einnig að mála Corday, sem flúði ekki af vettvangi heldur var handtekinn þar og síðar tekinn af lífi. Hún tilheyrði Gíródínum sem voru andstæðingar Jakóbína.",
+   "image": "images/listaverk/39.jpg"
+  },
+  {
+   "title": "Édouard Manet – Árbíturinn á grasbalanum",
+   "body": "Árbíturinn á grasbalanum (Le Déjeuner sur l´herbe) er eitt þekktasta verk franska málarans Edouard Manet, málað á árunum 1862-63. Verkið vakti mikla hneykslan þegar það var sýnt, enda sýndi það tvær naktar konur ásamt tveimur karlmönnum, báðum í klæðum. Almennt er talið að módelið á myndinni sé Victorine Meurent sem einnig sat fyrir á Olympíu eftir Manet. Verkið er varðveitt á d´Orsay safninu í París.",
+   "image": "images/listaverk/41.jpg"
+  },
+  {
+   "title": "Vincent van Gogh – Kartöfluæturnar",
+   "body": "Kartöfluæturnar eru eitt af þekktari verkum Vincent van Gogh. Hann málaði það árið 1885. van Gogh valdi viljandi ófríðar fyrirsætur til að sitja fyrir á verkinu, því hann vildi fanga raunveruleikan á bakvið fátæka hollenska bændur. Verkið er á van Gogh safninu í Amsterdam.",
+   "image": "images/listaverk/43.jpg"
+  },
+  {
+   "title": "Grant Wood – American Gothic",
+   "body": "American Gothic er eitt þekktasta nútíma listaverk heims og sennilega þekktasta listaverk Bandaríkjanna. Grant Wood valdi systur sína og tannlækninn sinn til að sitja fyrir á myndinni. Húsið sjálft fann hann í Iowa ríki Bandaríkjanna. I bakgrunni er hús í gotneskum stíl sem var vinsælt á síðari hluta 19. aldar í miðríkjum Bandaríkjanna. Myndin hefur verið stæld reglulega síðan.",
+   "image": "images/listaverk/45.jpg"
+  },
+  {
+   "title": "Paul Gauguin – Stúlkur á Tahiti",
+   "body": "Franski málarinn Paul Gauguin dvaldi löngum á eyjum í Pólynesíu, einkum Tahiti og málaði þar margar myndir af mannlífi, einkum af stúlkum. Myndin Stúlkur á Tahiti er mjög dæmigerð mynd eftir Gauguin. Hann hafði áður starfað sem verðbréfamiðlari í París, en þegar hann fékk nóg af því lífi flutti hann til Tahiti. Hann var lítt þekktur þegar hann dó en er talinn í hópi brautryðjenda í nútíma myndist í dag.",
+   "image": "images/listaverk/47.jpg"
+  },
+  {
+   "title": "Eugéne Delacroix – Frelsið leiðir fólkið",
+   "body": "Franski málarinn Eugéne Delacroix málaði myndina Frelsið leiðir fólkið í kjölfar Júlí byltingarinnar í Frakklandi 1830, þar sem Karl X var steypt af stóli. Myndin sýnir frelsisgyðjuna leiða fólkið til frelsis með blóðugri byltingu, en í vinstri hönd heldur hún á fána frönsku byltingarinnar – sem nú er þjóðfáni Frakklands – og í þeirri hægri byssu. Franska stjórnin keypti verkið og hafði í hyggju að hengja það í höll hins nýja konungs, Lúðvíks-Filippusar, en ekkert varð úr því. Lúðvík-Fillipus hrökklaðist sjálfur frá völdum eftir Febrúarbyltinguna 1848. Verkið er nú á Louvre safninu í París.",
+   "image": "images/listaverk/49.jpg"
+  },
+  {
+   "title": "Diego Velázquez – Hirðmeyjarnar",
+   "body": "Hirðmeyjarnar eru þekktasta verk spænska listmálarans Diego Velázquez. Það var málað árið 1656 og þykir á margan hátt einstakt í myndlistarsögunni. Það sýnir listamanninn sjálfan þar sem hann er að mála spænsku konungshjónin, en jafnframt má sjá spænska prinsessu, hirðmeyjar hennar, tvo dverga – vinsælt stef í verkum Velázquez – og hund. Í spegli fyrir aftan listamanninn má sjá konungshjónin. Velázquez var hirðmálari við spænsku hirðina þegar hann málaði verkið.",
+   "image": "images/listaverk/51.jpg"
+  },
+  {
+   "title": "Auguste Rodin – Hugsuðurinn",
+   "body": "Hugsuðurinn (Le Penseur) er lang þekktasta verk myndhöggvarans franska Auguste Rodin (Ródan). Verkið er gert úr brons. Rodin var að vinna að stærra verki, sem sótti innblástur í Guðdómlegea gleðileikinn eftir Dante.",
+   "image": "images/listaverk/53.jpg"
+  },
+  {
+   "title": "Wassily Kandinsky – Samsetning nr. 8",
+   "body": "Samsetning nr. 8 (1910) er talið tímamótaverk í myndlistarsögunni. Það er almennt talið fyrsta almenna abstraktlistaverkið. Með abstrakt er átt við myndverk sem hafa engar fígúrur, hluti eða landslag, oftast aðeins mismunandi form, sem saman mynda heild. Kandinsky var fæddur í Rússlandi en starfaði einkum í Þýskalandi.",
+   "image": "images/listaverk/55.jpg"
+  },
+  {
+   "title": "Paul Cézanne – Spilamennirnir",
+   "body": "Spilamennirnir eru hluti af röð verka eftir franska málarann Paul Cézanne. Verkið er hluti af síðari verkum hans, málað eftir 1890. Hann málaði mörg sína bestu verka á síðari hluta ferilsins og telja listfræðingar þetta tímabil vera ákveðinn vendipunkt í hans listsköpun.",
+   "image": "images/listaverk/57.jpg"
+  },
+  {
+   "title": "Francisco Goya – Nakta og klædda Maja",
+   "body": "Nakta Maja var máluð á tímabilinu 1797-1800 af spænska málaranum Francisco Goya fyrir einkasafnarann og stjórnmálamanninn Manuel de Godoy sem hafði sérstakt leyniherbergi þar sem hann hengdi upp myndir af nöktum konum. Árið 1808 komst Spænski rannsóknarrétturinn að myndunum og de Godoy, sem þá var forsætisráðherra var neyddur til að segja af sér. Goya var kallaður fyrir réttinn en slapp. Goya er talinn hafa málað Klæddu Maju á árunum 1800-05 og mun það verk hafa verið hengt fyrir framan hina til að fela þá ósiðsamlegu. Bæði verkin eru í eigu Prado listasafnsins og hanga jafnan saman.",
+   "image": "images/listaverk/59.jpg"
+  },
+  {
+   "title": "Pierre-Auguste Renoir – Dans við Gallette mylluna",
+   "body": "Dansinn við Gallette mylluna (Bal du moulin de la Galette) er sennilega þekktasta verk franska impressjónista málarans Pierre-Auguste Renoir. Hann málaði hana árið 1876. Myndin sýnir fólk á dansleik við Gallette mylluna í Montmartre hverfinu í París. Fólkið er jafnframt sýnt borða Gallette brauð sem myllan var fræg fyrir að gera á 19. öld. Verkið er varðveitt á Musée d´Orsay.",
+   "image": "images/listaverk/61.jpg"
+  },
+  {
+   "title": "Edgar Degas",
+   "body": "Edgar Degas var franskur málari sem er oft hafður með í hópi frönsku impressjónistanna á 19. öld, þó hann sjálfur hafi hafnað þeim stimpli. Degas málaði margar myndir af bellerínum, og hér sjáum við eina dæmigerða mynd frá 1873.",
+   "image": "images/listaverk/63.jpg"
+  },
+  {
+   "title": "Leonardo da Vinci – Vetrúvíumaðurinn",
+   "body": "Leonardo da Vinci teiknaði myndina í kringum 1490. Hún byggir á skrifum og hugmyndum rómverska arkitektsins Vetrúvíusar og sýnir hlutfall karlmanns.",
+   "image": "images/listaverk/65.jpg"
+  },
+  {
+   "title": "Andy Warhol – 32 Campbell Súpudósir",
+   "body": "Bandaríski listamaðurinn Andy Warhol fór ótroðnar slóðir í listsköpun sinni. Eitt hans þekktasta verk sýnir myndir af 32 Campbell súpudósum, eina af hverri tegund fyrirtækisins bandaríska.",
+   "image": "images/listaverk/67.jpg"
+  },
+  {
+   "title": "Jan van Eyck – Brúðkaup Arnolfinihjónanna",
+   "body": "Jan van Eyck var flæmskur málari á 15. öld. Myndin þykir á margan hátt brauðryðjenda verk í myndlistarsögunni. Hún er talinn sína ítalska kaupmanninn Giovanni Arnolfini og konu hans á heimili þeirra í Bruges. Van Eyck notaði olíuliti við gerð myndarinnar, sem þá þótti mikil nýlunda. Athygli vekur að hægt að sjá listamanninn í spegli sem er fyrir aftan hjónin á veggnum. Hún er í eigu National Gallery í London.",
+   "image": "images/listaverk/69.jpg"
+  },
+  {
+   "title": "Carvaggio – Tómas efast",
+   "body": "Ítalski barrokk meistarinn Carvaggio málaði ótal myndir sem byggðu á efni úr biblíunni. Ein þeirra er Tómas efast, sem var máluð í kringum 1601-02. Hún sýnir Jesú, eftir að hann steig niður af himnum, og þar sem hann sýnir sár sín Tómasi, einum lærisveinna sinna sem efaðist.",
+   "image": "images/listaverk/71.jpg"
+  },
+  {
+   "title": "Roy Lichtenstein – Whaam!",
+   "body": "Whaam! er sennilega þekktasta verk bandaríska pop-listamannsins Roy Lichtenstein. Hún er frá 1963 og er samsett úr teiknimyndablaði frá DC Comics. Hún er í eigu Tate listasafnsins og er jafnan til sýnis í Tate Modern Í Lundúnum.",
+   "image": "images/listaverk/73.jpg"
+  },
+  {
+   "title": "Henri Matisse – Dansinn (II)",
+   "body": "Dansinn er verk eftir franska málarann Henri Matisse frá 1910 og er í raun tvö mjög svipuð verk. Seinni verkið gerði Matisse fyrir rússneska safnarann Sergei Shchukin. Verkið er oft tengt við hin fræga ballett eftir Igor Stravinsky Vorblótið. Verkið er í eigu Ermitage safnsins í Sankti Pétursborg.",
+   "image": "images/listaverk/75.jpg"
+  },
+  {
+   "title": "René Magritte – Þetta er ekki pípa",
+   "body": "René Magritte var belgískur súrrealískur listamaður. Hann er þekktur fyrir verkið Þetta er ekki pípa (Ceci n´est pas un pipe). Merkingin er sú að þetta er ekki pípa, þetta er bara málverk af pípu!",
+   "image": "images/listaverk/77.jpg"
+  },
+  {
+   "title": "Édouard Manet – Bar í Folies-Bergére",
+   "body": "Verkið Bar í Folies-Bergére eftir franska listamanninn Édouard Manet sýnir konu standa bakvið barborð á Folies Bergére skemmtistaðnum (kabarett staðnum) í París.",
+   "image": "images/listaverk/79.jpg"
+  },
+  {
+   "title": "James McNeill Whistler – Móðir listamannsins",
+   "body": "James McNeill Whistler var fæddur í Bandaríkjunum en starfaði lengst af á Bretlandseyjum. Hans lang þekktasta verk er Uppsetning í gráu og svörtu nr. 1 eða Móðir listamannsins (Whistler´s Mother). Verkið málaði hann árið 1871. Það er í eigu franska safnins Musée d´Orsay í París. Það kemur mikið við sögu í kvikmyndinni Bean, um enska hrakfallabálkinn mr. Bean.",
+   "image": "images/listaverk/81.jpg"
+  },
+  {
+   "title": "Edgar Degas – Absinth",
+   "body": "Absinth er verk eftir franska málarann Edgar Degas. Hann málaði ekki bara ballerínur. Verkið var frumsýnt á sýningu í Lundúnum árið 1893. Það sýnir konu og mann sem sitja við borð og hafa bæði drukkið ótæpilega af hinum fræga listamannadrykk absinth.",
+   "image": "images/listaverk/83.jpg"
+  },
+  {
+   "title": "Henri de Toulouse-Lautrec – Mannlíf á Rauðu myllunni",
+   "body": "Mannlíf á Rauðu myllunni er þekktasta verk franska listamannsins Henri de Toulouse-Lautrec. Hann var dvergvaxinn eftir að hafa brotnað á báðum fótum sem barn. Hann dvaldi löngum stundum á hinum fræga skemmtistað í París, Rauðu myllunni (Moulin Rouge) og málaði þar margar myndir sem sýndi gesti staðarins. Verkið er í eigu listasafnsins í Chicago, Art Institute of Chicago.",
+   "image": "images/listaverk/85.jpg"
+  },
+  {
+   "title": "Jacques-Louis David – Napóleon heldur yfir alpanna",
+   "body": "Jacques-Louis David hafði verið í hópi Jakóbína í frönsku byltingunni, sem stóðu að ógnarstjórninni og var að lokum komið frá völdum. Þegar Napóleon Bónaparte hrifsaði til sín völdin, flutti David stuðning sinn yfir á hann. Hann málaði margar frægar myndir af Napóleon, m.a. Krýningu Napóleons og Napóleon heldur yfir Alpanna. Verkið var upphaflega málað sem gjöf Napóleons til Karls IV Spánarkonungs, eftir að þeir komu á vináttu sambandi milli ríkjanna. David gerði síðar nokkrar útgáfur af verkinu.",
+   "image": "images/listaverk/87.jpg"
+  },
+  {
+   "title": "Pieter Bruegel eldri – Babelsturninn",
+   "body": "Pieter Bruegel var flæmskur málari á 16. öld. Hann málaði þrjár myndir af hinum fræga Babelsturni sem segir frá í Biblíunni, en turninn var reistur af mannkyni og átti að ná til himins, en Guði líkaði illa sú ráðgerð og braut hann og sundraði jafnframt tungumálum mannkyns í refsi skyni. Verkin eru talin máluð í kringum 1563.",
+   "image": "images/listaverk/89.jpg"
+  },
+  {
+   "title": "Paul Cézanne – Ávaxtaskál, glas og epli",
+   "body": "Franski listmálarinn Paul Cézanne málaði á ferlinum fjölmargar kyrralífsmyndir. Þessi, sem sýnir Ávaxtaskál, glas og epli (Rideau, Cruchon et Compotier) er talinn dýrasta kyrralífsmynd sögunnar, þegar hún var seld árið 1999.",
+   "image": "images/listaverk/91.jpg"
+  },
+  {
+   "title": "Vincent van Gogh – Stjörnubjört nótt",
+   "body": "Vincent van Gogh málaði þessa fræga mynd, Stjörnubjört nótt, árið 1889, en hún sýnir útsýnið frá geðveikrahælinu sem hann dvaldi á í bænum Saint-Rémy-de-Provence. Verkið er í eigu MOMA í New York. Myndin sýnir sólarupprás en hægra meginn við tréð má sjá Venus, morgunstjörnunna. Bandaríski söngvarinn Don McLean gerði lag sem heitir Vincent, og fjallar um þetta verk og málarann.",
+   "image": "images/listaverk/93.jpg"
+  },
+  {
+   "title": "Francisco Goya – Þriðji maí 1808",
+   "body": "Spænski málarinn Goya lauk við verkið Þriðji maí 1808 árið 1814. Verkið á að tákna baráttu Spánverja gegn herjum Napóleons í Napóleonsstríðunum.",
+   "image": "images/listaverk/95.jpg"
+  },
+  {
+   "title": "Édouard Manet – Olympia",
+   "body": "Olympia er verk eftir franska málarann Édouard Manet, og var fyrst sýnt opinberlega árið 1865. Verkið vakti hneykslan þegar það var sýnt í París, enda töldu margir að módelið væri vændiskona, sem þó var ekki. Módelið var Victorine Meurent, sem sjálf var listakona.",
+   "image": "images/listaverk/97.jpg"
+  },
+  {
+   "title": "Salvador Dalí – Soft Construction with Boiled Beans",
+   "body": "Spænski málarinn Salvador Dalí sagði að hann hefði málað þetta verk sex mánuðum áður en spænska borgarastríðið braust út árið 1936 og taldi það hafa verið merki um skyggni hans að sjá inn í framtíðina, þó ýmsir hafa dregið það í efa.",
+   "image": "images/listaverk/99.jpg"
+  },
+  {
+   "title": "Jacques-Louis David – Krýning Napóleons",
+   "body": "Franski málarinn Jacques-Louis David var opinber málari Napóleons og árið 1807 lauk hann við þetta mikla verk (um 10 m langt og 6 m breitt) sem sýnir Napóleon krýna eiginkonu sína Jósefínu. Krýningin fór fram í Frúarkirkjunni (Notre-Dame) í París árið 1804. Verkið er varðveitt á Louvre safninu í París.",
+   "image": "images/listaverk/101.jpg"
+  },
+  {
+   "title": "Mýron – Kringlukastarinn",
+   "body": "Kringlukastarinn (Discobolus) er eitt þekktasta verk fornaldar. Það er eftir gríska myndhöggvarann Mýron. Hann er talinn hafa gert frumverkið á tímabilinu 460-450 f. Kr. Upprunalega verk Mýrons er glatað, en nokkrar eftirmyndir frá tímum Rómverja hafa fundist. Fyrsta eintakið fannst árið 1781 á Ítalíu.",
+   "image": "images/listaverk/103.jpg"
+  },
+  {
+   "title": "51 minna þekkt verk í listasögu veraldar",
+   "body": "Gettu Betur 2019",
+   "image": ""
+  },
+  {
+   "title": "Georges Seurat – Sunnudagssíðdegi á eynni La Grande Jatte",
+   "body": "Franski listamaðurinn Georges Seurat málaði myndina Sunnudagssíðdegi á eynni La Grande Jatte árið 1884. Hún er án efa hans lang þekktasta verk. Hann var brautryðjandi í nýrri tækni, sem nefndist pointillismi eða deplastíll, þar sem verkið er sett saman úr fjölda lítilla depla, sem úr fjarlægð gæti litið út eins og eitt samfellt penslastrok.",
+   "image": "images/listaverk/m1.jpg"
+  },
+  {
+   "title": "Francisco Goya – Kenjarnar",
+   "body": "Kenjarnar (Los Caprichos) eru röð 80 verka eftir spænska listmálarann Francisco Goya, sem hann gerði á árunum 1797-98. Verkin eru flest gerð með svo nefndri ætingaraðferð. Myndefnið endurspeglar gagnrýni Goya á margt í spænsku samfélagi s.s. hjátrú, firringu yfirstéttarinnar, mistök við barnauppeldi og minnkandi dómgreind. Verkin voru gefin út en fljótlega tekin úr sölu, af ótta við spænska rannsóknarréttinn.",
+   "image": "images/listaverk/m2.jpg"
+  },
+  {
+   "title": "Jackson Pollock – Nr. 5, 1948",
+   "body": "Bandaríski listamaðurinn Jackson Pollock var leiðandi í nýrri stefnu sem kom fram í myndlist eftir seinni heimsstyrjöld og nefndist abstrakt expressjónismi. Hún kristallast í verki Pollocks Nr. 5, 1948, þar sem hann bókstaflega slettir málningu á striga, allt að því handahófskennt. Verkið var selt árið 2006 og var um tíma dýrasta listaverk sögunnar, eða til 2011. Það er í einkaeigu.",
+   "image": ""
+  },
+  {
+   "title": "Jan Vermeer – Þjónustustúlkan",
+   "body": "Þjónustustúlkan eða De Melkmeid er olíumálverk eftir hollenska málarann Jan Vermeer. Það var málað á tímabilinu 1657-58 og er með þekktari verkum Vermeer. Það er varðveitt á Rijksmuseum í Amsterdam.",
+   "image": "images/listaverk/m4.jpg"
+  },
+  {
+   "title": "Claude Monet – Vatnaliljur",
+   "body": "Claude Monet er talinn hafa málað um 250 myndir af vatnaliljum á ferlinum. Fyrirmyndin mun hafa verið í garði Monet á heimili hans í Giverny í Frakklandi.",
+   "image": "images/listaverk/m5.jpg"
+  },
+  {
+   "title": "Georges Braque – Kona með gítar",
+   "body": "Kona með gítar (Femme à la guitare) er eitt verka franska málarans Georges Braque sem hann málaði í anda kúbismans. Braque og Pablo Picasso þróuðu saman hinn nýja stíl, og stundum er erfitt að greina verk þeirra í sundur. Braque er stundum gleymdur þegar kemur að kúbismanum, en á ekki minni hlut í honum heldur en Picasso.",
+   "image": ""
+  },
+  {
+   "title": "Frida Kahlo – Sjálfsmynd með þyrnahálsmen og kólibrífugl",
+   "body": "Mexíkóska listakonan Frida Kahlo málaði margar sjálfsmyndir á ferlinum. Þessa málaði hún árið 1940 eftir skilnað sinn við listmálarann Diego Rivera og viðskilnað við ástmann sinn Nickolas Muray. Muray keypti verkið og er það hluti af listaverkasafni hans sem er í Austin í Texas. Hvatinn að sjálfsmyndum Kahlo var þegar hún lenti í alvarlegu bílslysi og var mikið rúmliggjandi.",
+   "image": ""
+  },
+  {
+   "title": "Donatello – Davíð",
+   "body": "Donatello var ítalskur myndhöggvari á endurreisnartímanum. Hann gerði tvær styttur af biblíupersónunni Davíð, fyrst úr marmara en svo úr bronsi. Báðar eru þær varðveittar á Bargello-safninu í Flórens.",
+   "image": ""
+  },
+  {
+   "title": "Piet Mondrian – Samsetning nr. 10",
+   "body": "Hollenski listmálarinn Mondrian var brautryðjandi í abstrakt list á 20. öld. Hann og Theo van Doesburg stofnuðu De Stijl-listastefnuna árið 1917 og Mondrian er þekktasti listamaðurinn sem aðhylltist henni. Það sem einkennir liststefnuna eru beinar línur og ákveðin form.",
+   "image": ""
+  },
+  {
+   "title": "René Magritte – Sonur mannsins (Le fils de l'homme)",
+   "body": "René Magritte var belgískur súrrealisti sem málaði m.a. verkið Sonur mannsins (Le fils de l'homme). Það er eitt af hans þekktustu verkum. Myndin er sjálfsmynd, nema að fyrir andlitinu er epli.",
+   "image": ""
+  },
+  {
+   "title": "Joan Miró – Akurinn",
+   "body": "Joan Miró var spænskur listamaður, sem á 3. áratugnum var í hópi þeirra listamanna sem aðhylltust súrrealisma. Verkið Akurinn (1923) eða La terre labourée er mjög dæmigert verk eftir Miró á þessu tímabili.",
+   "image": "images/listaverk/m11.jpg"
+  },
+  {
+   "title": "Vincent van Gogh – Rauða vínekran",
+   "body": "Vincent van Gogh er talinn hafa selt eina mynd í lifanda lífi, og það var Rauða vínekran sem hann málaði árið 1888. Myndina keypti Anna Boch, sem sjálf var listamaður og systir vinar van Gogh. Verkið komst síðar í eigu rússneska listsafnarans Sergei Shchukin og eftir valdatöku bolsévika varð það hluti af ríkislistasafni Sovétríkjanna, Púshkín-safninu í Moskvu.",
+   "image": "images/listaverk/m12.jpg"
+  },
+  {
+   "title": "Gustav Klimt – Kossinn",
+   "body": "Kossinn er sennilega þekktasta verk austurríska listamannsins Gustav Klimt. Hann var í hópi symbólista í byrjun 20. aldar. Verkið er gert á árunum 1907-08, á hans „gyllta“ tímabili. Stílfræðilega tilheyrir það svo nefndum Jugendstíl sem var austurrískt afbrigði af hinum vinsæla franska Art Nouveau-stíl.",
+   "image": "images/listaverk/m13.jpg"
+  },
+  {
+   "title": "Caspar David Friedrich – Förumaður í þokunni",
+   "body": "Caspar David Friedrich var þýskur málari í anda rómantísku stefnunnar. Verk hans Der Wanderer über dem Nebelmeer, sem þýða mætti sem Förumaður í þokunni, er hans þekktasta verk. Það var málað árið 1818.",
+   "image": "images/listaverk/m14.jpg"
+  },
+  {
+   "title": "El Greco – Jarðarför greifans af Orgaz",
+   "body": "El Greco var fæddur á Krít en starfaði lengst af á Spáni og var þar kallaður Grikkinn eða El Greco. Verk hans Jarðarför greifans af Orgaz er með hans þekktari verkum, en hann málaði það árið 1586. Jarðarförin sem um ræðir var jarðarför Don Gonzalo Ruiz sem bjó í borginni Toledo - þar sem El Greco bjó - en var landeigandi yfir Orgaz. Verkið var pantað af prestinum í Orgaz til minningar um Ruiz.",
+   "image": "images/listaverk/m15.jpg"
+  },
+  {
+   "title": "Michelangelo – Pietà",
+   "body": "Pietà er verk eftir ítalska listamanninn Michelangelo, sem hann gerði á árunum 1498-99. Verkið sýnir Maríu mey með lík Jesú Krists í fanginu. Það er að finna í Péturskirkjunni í Vatíkaninu. Verkið er úr marmara.",
+   "image": "images/listaverk/m16.jpg"
+  },
+  {
+   "title": "Edvard Munch – Madonna",
+   "body": "Madonna er verk eftir norska expressjónistann Edvard Munch. Munch gerði margar sambærilegar myndir á árunum 1892 til 1895. Madonna er heiti á Maríu mey en óljóst er hvort verk Munch eigi að vera María mey yfir höfuð.",
+   "image": "images/listaverk/m17.jpg"
+  },
+  {
+   "title": "Paul Cézanne – Les Grandes Baigneuses (Baðfólkið)",
+   "body": "Á síðari hluta ferils síns tók Paul Cézanne upp á að mála nakið fólk, oft í tengslum við böð. Þetta verk, sem útleggja mætti sem Stóra baðfólkið, var í syrpu verka sem Cézanne málaði á tímabilinu 1898 til 1905. Verkið var enn óklárað við dauða hans 1906. Það er í eigu Listasafnsins í Philadelphiu.",
+   "image": "images/listaverk/m18.jpg"
+  },
+  {
+   "title": "Marcel Duchamp – Fountain (Hlandskálin)",
+   "body": "Fountain eða hlandskálin er tímamótaverk eftir franska listamanninn og dadaistann Marcel Duchamp. Verkið er einfaldlega hlandskál með árituninni R. Mutt. Verkið var ætlað fyrir sýningu 1917 en sýningarnefndin hafnaði því. Uppi eru sögusagnir um að verkið sé í raun ekki eftir Duchamp, heldur hafi hann fengið það sent frá kvenkyns aðdáanda og gert að sínu. Upprunalega skálin er löngu glötuð en margar eftirlíkingar voru gerðar á 7. áratugnum.",
+   "image": "images/listaverk/m19.jpg"
+  },
+  {
+   "title": "Henri Rousseau – Sofandi sígaunastúlkan",
+   "body": "Henri Rousseau var næfisti, þ.e. franskur ómenntaður listamaður sem er þekktastur fyrir verkið Sofandi sígaunastúlkuna (La Bohémienne endormie) sem hann málaði 1897. Verkið sýnir sígaunastúlku og ljón í tunglsljósi. Verkið var uppgötvað árið 1924 og var keypt af MoMA-safninu í New York.",
+   "image": "images/listaverk/m20.jpg"
+  },
+  {
+   "title": "Anthony van Dyck – Karl I í þremur stellingum",
+   "body": "Anthony van Dyck var flæmskur málari sem starfaði um tíma á Englandi og málaði þá m.a. þessa frægu mynd af Karli I Englandskonungi á árunum 1635-36. Tilgangur myndarinnar var að gefa ítölskum listamanni sýn á Karl fyrir væntanlega brjóstmynd. Karl I var tekinn af lífi 1649 eftir borgarastyrjöld á Englandi. Verkið er nú í eigu konunglega listasafnsins á Englandi.",
+   "image": "images/listaverk/m21.jpg"
+  },
+  {
+   "title": "Peter Paul Rubens – Krossinn reistur",
+   "body": "Krossinn reistur er verk eftir flæmska málarann Peter Paul Rubens, sem hann málaði 1610-11. Verkið er undir miklum áhrifum frá ítölsku endurreisnarmálurunum. Það er í Frúarkirkjunni í Antwerpen í Belgíu.",
+   "image": "images/listaverk/m22.jpg"
+  },
+  {
+   "title": "Canaletto – Feneyjar",
+   "body": "Canaletto (Giovanni Antonio Canal) var ítalskur málari sem er einkum þekktur fyrir að mála myndir sem sýna Feneyjar. Myndir hans voru vinsælar á Englandi og Georg III Englandskonungur keypti margar; stærsta safn Canaletto er í eigu bresku konungsfjölskyldunnar í dag.",
+   "image": ""
+  },
+  {
+   "title": "Rembrandt – Klæðskerarnir",
+   "body": "Klæðskerarnir er eitt af þekktari verkum hollenska listmálarans Rembrandts. Hann málaði það árið 1662. Það er í eigu Rijksmuseum í Amsterdam.",
+   "image": "images/listaverk/m24.jpg"
+  },
+  {
+   "title": "Marc Chagall – Fiðlarinn á þakinu",
+   "body": "Marc Chagall málaði verkið Fiðlarinn árið 1912. Löngu síðar var gerður söngleikurinn Fiðlarinn á þakinu, og kvikmynd byggð á honum. Chagall var af gyðingaættum, fæddur í Rússlandi (nú Hvíta-Rússlandi), en bjó og starfaði lengst af í Frakklandi.",
+   "image": ""
+  },
+  {
+   "title": "Thomas Gainsborough – Andrews-hjónin",
+   "body": "Andrews-hjónin er með þekktustu verkum enska málarans Thomas Gainsborough, sem hann málaði árið 1750. Verkið var í eigu Andrews-fjölskyldunnar til 1960 og vakti ekki athygli fyrr en það kom fyrst fyrir almenningssjónir árið 1927. Það er í eigu National Gallery í dag.",
+   "image": "images/listaverk/m26.jpg"
+  },
+  {
+   "title": "El Greco – Óveður yfir Toledo",
+   "body": "El Greco bjó og starfaði í spænska bænum Toledo, og er Óveður yfir Toledo annað af tveimur landslagsverkum sem varðveist hafa eftir hann. Verkið er að mörgu leyti einstakt í listasögunni fyrir notkun lita og dökkra óveðursskýja. Það er talið málað á árunum 1596-1600.",
+   "image": "images/listaverk/m27.jpg"
+  },
+  {
+   "title": "Cassius Coolidge – Hundar að spila póker",
+   "body": "Coolidge er þekktastur fyrir 16 mynda röð um hunda sem spila póker. Verkin voru máluð fyrir Brown & Bigelow til að auglýsa vindla. Þau eru með þekktari listaverkum í bandarískri listasögu og voru gerð á árunum 1903-1910.",
+   "image": "images/listaverk/m28.jpg"
+  },
+  {
+   "title": "Rembrandt – Kennslustund í líffærafræði hjá dr. Tulp",
+   "body": "Verkið Kennslustund í líffærafræði hjá dr. Tulp var málað 1632 og er í eigu Mauritshuis-safnsins í Haag. Meðal áhorfenda voru raunverulegir læknar sem greiddu fyrir að fá að sitja fyrir á myndinni.",
+   "image": "images/listaverk/m29.jpg"
+  },
+  {
+   "title": "Andy Warhol – 50 myndir af Marilyn Monroe",
+   "body": "Andy Warhol gerði þessi frægu silkiþrykk af Marilyn Monroe árið 1962, nokkrum vikum eftir að Monroe dó í kjölfar þess að hafa tekið of stóran lyfjaskammt.",
+   "image": ""
+  },
+  {
+   "title": "Vincent van Gogh – Svefnherbergi í Arles",
+   "body": "Hollenski myndlistarmaðurinn van Gogh gerði raunar þrjú verk sem eru öll mjög svipuð og sýna herbergi listamannsins í húsinu sem er þekkt sem „Gula húsið“ í bænum Arles.",
+   "image": "images/listaverk/m31.jpg"
+  },
+  {
+   "title": "Edward Hopper – Nátthrafnar (Nighthawks)",
+   "body": "Edward Hopper málaði þetta verk árið 1942, og er það hans frægasta. Það er málað í amerískum raunsæisstíl. Það er í eigu Chicago-listasafnsins.",
+   "image": "images/listaverk/m32.jpg"
+  },
+  {
+   "title": "Hokusai – Risaaldan (við Kanagawa)",
+   "body": "Katsushika Hokusai (1760-1849) er einn frægasti listamaður í sögu Japans. Sennilega er þessi tréristumynd hans þekktust, og tilheyrir myndaseríunni 36 myndir af Fuji-fjalli. Þorpið Kanagawa er nú þar sem Yokohama er.",
+   "image": "images/listaverk/m33.jpg"
+  },
+  {
+   "title": "Giuseppe Arcimboldo – Vertumnus",
+   "body": "Vertumnus er verk eftir ítalska málarann Giuseppe Arcimboldo og var málað um 1590-91. Verkið sýnir Rúdolf II keisara hins heilaga rómverska keisaradæmis í gervi rómverska guðsins Vertumnus, sem var guð myndbreytinga í náttúrunni. Verkið er í eigu Skokloster-kastala í Svíþjóð.",
+   "image": "images/listaverk/m34.jpg"
+  },
+  {
+   "title": "Thomas Gainsborough – Blái drengurinn (The Blue Boy)",
+   "body": "Blái drengurinn er eitt þekktasta verk enska myndlistarmannsins Gainsborough, og er talið sýna Jonathan Buttall. Það var málað á 18. öld, sennilega um 1770.",
+   "image": "images/listaverk/m35.jpg"
+  },
+  {
+   "title": "Mark Rothko – Litafletir",
+   "body": "Mark Rothko (1903-1970) var rússnesk-bandarískur myndlistarmaður. Verk hans eru mjög auðþekkjanleg, jafnan sett saman af nokkrum mismunandi litum, þar sem einn litur þekur ákveðinn flöt af hverju verki. Þó hann sjálfur hafi hafnað því að tilheyra einhverri listastefnu hefur hann verið settur á bás með abstrakt expressjónismanum.",
+   "image": ""
+  },
+  {
+   "title": "Pablo Picasso – Þrír tónlistarmenn",
+   "body": "Picasso gerði tvö verk undir þessu nafni og lauk við þau bæði árið 1921. Verkið sýnir trúð, pierrot (heimskupétur) og munk. Þeir eru taldir tákna Picasso, Guillaume Apollinaire og Max Jacob, en þeir síðasttöldu voru bæði skáld og vinir Picasso. Annað verkið er í eigu MoMA í New York, hitt í Listasafni Philadelphiu.",
+   "image": ""
+  },
+  {
+   "title": "Peter Paul Rubens – Samson og Delíla",
+   "body": "Flæmski barokkmeistarinn Rubens málaði margar myndir sem sækja efnivið sinn í biblíusögur, þ.m.t. Samson og Delílu. Verkið var gert á árunum 1609-1610. Sagan segir frá kraftajötninum Samson, sem er svikinn af Delílu, kærustunni sinni, en styrkur hans fólst í hári hans sem Delíla skar.",
+   "image": "images/listaverk/m38.jpg"
+  },
+  {
+   "title": "Man Ray – Violon d'Ingres (Fiðla Ingres)",
+   "body": "Man Ray (Emmanuel Radnitzky) (1890-1976) var bandarískur sjónlistamaður sem starfaði einkum í París. Hann fylgdi dada- og súrrealismahreyfingunni. Hann fékkst við margs konar listform, en er þekktastur í dag fyrir ljósmyndir sínar. Verkið Violon d'Ingres er tilvísun í þekkt verk eftir franska málarann Jean-Auguste-Dominique Ingres.",
+   "image": "images/listaverk/m39.jpg"
+  },
+  {
+   "title": "Diego Velázquez – Portrett af Innocentíusi X",
+   "body": "Spænski málarinn Diego Velázquez málaði þekkt portrett af Innocentíusi X páfa í kringum 1650. Af mörgum talin besta portrettmynd sögunnar. Francis Bacon (1909-1992), breskur málari fæddur á Írlandi, málaði á 6. áratugnum myndaröðina Screaming Popes sem er stæling á verki Velázquez.",
+   "image": "images/listaverk/m40.jpg"
+  },
+  {
+   "title": "Vincent van Gogh – Krákur á kornakri",
+   "body": "Van Gogh málaði Krákur á kornakri árið 1890; stundum talið hans síðasta verk þó listfræðingar séu ekki allir sammála því.",
+   "image": "images/listaverk/m41.jpg"
+  },
+  {
+   "title": "Hans Holbein yngri – Sendiherrarnir",
+   "body": "Verk Hans Holbein af tveimur sendiherrum við hirð Hinriks VIII Englandskonungs var málað 1533. Sé myndin skoðuð vel taka menn eftir hauskúpu, sem er ekki í hlutföllum, fyrir miðri mynd. Sá sem virti fyrir sér myndina þurfti að stilla sér upp til hliðar til að sjá hauskúpuna í eðlilegri vídd. Á þessum tíma var vinsælt að hafa táknmyndina memento mori, sem áminningu um óumflýjanlegan dauða manna.",
+   "image": "images/listaverk/m42.jpg"
+  },
+  {
+   "title": "William Turner – The Fighting Temeraire",
+   "body": "Myndin af orrustuskipinu Temeraire er frá 1838 og er þekktasta verk enska listmálarans William Turner.",
+   "image": "images/listaverk/m43.jpg"
+  },
+  {
+   "title": "Pablo Picasso – Dora Maar með kött",
+   "body": "Dora Maar var ástkona Pablo Picasso um árabil. Verkið var málað í Frakklandi árið 1941. Það hefur verið í einkaeigu frá upphafi en árið 2006 var það boðið upp og var þá næstdýrasta málverk sögunnar. Kaupandinn er óþekktur.",
+   "image": ""
+  },
+  {
+   "title": "Jacques-Louis David – Eiður Horatíusarbræðra",
+   "body": "David er einkum þekktur fyrir verk sín tengd frönsku byltingunni og Napóleon, en hann gerði einnig mörg verk sem tengjast grískri og rómverskri sögu, s.s. Eið Horatíusarbræðra sem hann gerði 1784. Verkið kom „rómversku kveðjunni“ í tísku, sem flestir tengja við fasista- og nasistahreyfingar á 20. öld; engar heimildir eru fyrir því að slík kveðja hafi tíðkast í Róm til forna.",
+   "image": "images/listaverk/m45.jpg"
+  },
+  {
+   "title": "Titian – Bakkus og Aríadne",
+   "body": "Tiziano Vecellio eða Titian (1488/90-1576) var ítalskur endurreisnarmálari. Eitt af hans þekktari verkum er Bakkus og Aríadne (1522-23) sem var í seríu sem Titian málaði út frá grískri goðafræði.",
+   "image": "images/listaverk/m46.jpg"
+  },
+  {
+   "title": "Piet Mondrian – Broadway Boogie Woogie",
+   "body": "Piet Mondrian þróaði nýjan stíl, sem kallaður var einfaldlega Stíllinn eða De Stijl. Verkið Broadway Boogie Woogie var málað 1943 í New York, eins og nafn þess gefur til kynna. Það er nú í eigu MoMA.",
+   "image": "images/listaverk/m47.jpg"
+  },
+  {
+   "title": "Jean-François Millet – Konurnar með kornöxin",
+   "body": "Franski málarinn Jean-François Millet málaði oft myndir af bændum og fátækum. Konurnar með kornöxin var máluð 1857 og sýnir þrjár bændakonur tína kornöx upp af akri.",
+   "image": "images/listaverk/m48.jpg"
+  },
+  {
+   "title": "Diego Velázquez – Drykkjumennirnir",
+   "body": "Drykkjumennirnir eða Sigur Bakkusar er verk eftir Diego Velázquez og var málað á árunum 1628-29 fyrir Filippus IV Spánarkonung. Það er í eigu Prado-listasafnsins í Madríd og sýnir drykkjumenn umkringja Bakkus, hinn rómverska guð víns og drykkju.",
+   "image": ""
+  },
+  {
+   "title": "Rembrandt – Veisla Belsasars",
+   "body": "Veisla Belsasars er verk eftir Rembrandt, í eigu National Gallery í Lundúnum. Það sækir efnivið sinn til Daníelsbókar í Gamla testamentinu. Belsasar notar gyllta bikara sem faðir hans hafði rænt úr musterinu í Jerúsalem. Á vegg í veislu hans birtist skrift sem Daníel þýðir sem fall Belsasars. Á ensku er talað um „the writing is on the wall“ þegar eitthvað er í vændum.",
+   "image": "images/listaverk/m50.jpg"
+  },
+  {
+   "title": "Peter Paul Rubens – Gyðjurnar þrjár",
+   "body": "Rubens málaði þetta verk í kringum 1630. Það er í eigu Prado-listasafnsins í Madríd.",
+   "image": ""
+  }
+ ],
+ "hinrik": [
+  {
+   "title": "Svipmyndir af sumarólympíuleikum",
+   "body": "Gettu Betur 2014",
+   "image": ""
+  },
+  {
+   "title": "Sumarólympíuleikar – ár og staður",
+   "body": "1896 – Aþena\n1900 – París\n1904 – St. Louis\n(1906) – Aþena (Óopinberir)\n1908 – London\n1912 – Stokkhólmur\n1920 – Antwerpen\n1924 – París\n1928 – Amsterdam\n1932 – Los Angeles\n1936 – Berlín\n1948 – London\n1952 – Helsinki\n1956 – Melbourne\n1960 – Róm\n1964 – Tókýó\n1968 – Mexíkóborg\n1972 – Munchen\n1976 – Montreal\n1980 – Moskva\n1984 – Los Angeles\n1988 – Seoul\n1992 – Barcelona\n1996 – Atlanta\n2000 – Sidney\n2004 – Aþena\n2008 – Peking\n2012 – London\n2016 – Rio de Janeiro\n2020 – Tókýó",
+   "image": ""
+  },
+  {
+   "title": "Faðir ólympíuleikanna",
+   "body": "Pierre de Coubertin (Kúbertan) var franskur aðalsmaður sem hefur verið talinn faðir nútíma ólympíuleika. Víða í Evrópu höfðu farið fram “ólympíuleikar” (kunnastir í Much Wenlock á Englandi) en það var hugmynd de Coubertin að halda alvöru alþjóðlega ólympíuleika. Árið 1896 rættist draumurinn þegar fyrstu nútíma sumar ólympíuleikar voru haldnir í Aþenu. Í kjölfar þess varð de Coubertin forseti Alþjóða ólympíusambandsins (annar til þess) og gengdi því embætti til 1925.\n\nHann vann gullverðlaun í ljóðagerð á ólympíuleikunum í Stokkhólmi árið 1912. Hann á heiðurinn á kjörorðum Olympíuleikanna Hraðar, hærra, sterkar (Citius, Altius, Fortius). Á leikunum í Tókíó 2020 var svo bætt við Saman. Alþjóða ólympíusambandið veitir þeim íþróttamönnum sem þykja sína íþróttamannslega framgöngu Pierre de Coubertin verðlaunin.",
+   "image": "images/sumar-ol/4.jpg"
+  },
+  {
+   "title": "Aþena 1896",
+   "body": "Fyrstu sumarólympíuleikarnir fóru fram í Aþenu árið 1896. Á þessum fyrstu leikum hlutu sigurvegarar silfur medalíur en þeir sem lentu í öðru sæti brons medalíur.* Heimamenn, Grikkir, unnu til flestra verðlauna á leikunum; og bar þá hæst sigur Spyridon Louis í maraþonhlaupi. Á Opnunarhátíðinni var frumfluttur ólympíusálmurinn, eftir Grikkina Spyridon Samaras og Kostis Palamas.\n\nKeppt var í níu greinum: Frjálsum, hljólreiðum, skylmingum, fimleikum, skotfimi, sundi, tennis, krafttlyftingum og glímu (grísk-rómveskri). Siglingar áttu að vera ólympíugrein en þeim var aflýst. Thomas Burke, frá Bandaríkjunum, ruglaði dómnefndina í frjálsum þegar hann tók af stað í kapphlaupinu með annað hnéð á jörðinni. Hann vann fyrstu verðlaun í 100 m og 400 m hlaupinu.\n\nEngar konur fengu að taka þátt, en Stamata Revithi hljóp maraþonhlaup, daginn eftir að maraþonhlaupið fór fram. Þátttaka hennar hefur þó ekki verið viðurkennd af alþjóða ólympíusambandinu.\n\n* Alþjóða ólympíunefndin breytti þessu eftir á, svo silfur verðlaunahafar fengu gullverðlaun, o.s.frv.",
+   "image": "images/sumar-ol/5.jpg"
+  },
+  {
+   "title": "Spyridon Louis",
+   "body": "Spyridon Louis var grískur maður sem vann fyrstur maraþonhlaupið þegar ólympíuleikarnir fóru fyrst fram í Aþenu árið 1896.\n\nGrikkjum var mikið í mun um að vinna gull í frjálsum íþróttum, en það gekk treglega. Miklar vonir voru bundnar við að vinna maraþonhlaupið. Sagan segir að Spyridon hafi stoppað á leiðinni og fengið sér vínglas (sumir segja glas af koníaki). Þeir sem leiddu hlaupið féllu úr leik einn og einn og Spyridon Louis kom flestum í opna skjöldu og bjargaði stolti Grikkja með því að koma fyrstur í mark.",
+   "image": "images/sumar-ol/6.jpg"
+  },
+  {
+   "title": "París 1900",
+   "body": "Ólympíuleikarnir 1900 fóru fram samhliða heimssýningunni í París. Konur fengu í fyrsta sinn að taka þátt. Keppt var í mörgum greinum sem aldrei hefur verið keppt í síðan, s.s. Kappakstri bíla, hjólreiða kappakstri, loftbelgja-kappi, krikkett, krokkett, pelóta og 200 m kappsundaþrautum. Auk þess var í fyrsta sinn keppt í bogfimi, hestagreinum, knattspyrnu, golfi, póló, rugby og reipitogi.\n\nHéléne de Pourtáles frá Frakklandi varð fyrst kvenna ólympíumeistari þegar hún var í sigurliði í 1-2 tonna báta siglingakeppninni.",
+   "image": "images/sumar-ol/7.jpg"
+  },
+  {
+   "title": "Ray Ewry",
+   "body": "Ray Ewey var bandarískur frjásíþróttakappi sem vann alls 8 gullverðlaun á ólympíuleikum og einnig 2 gullverðlaun á „milli“ leikunum í Aþenu árið 1906; sem síðar töldust ekki opinberir ólympíuleikar. Hann tók fyrst þátt á leikunum í París árið 1900. Hann vann gull í þremur stökk greinum sem allar voru án atrennu (hástökk án atrennu, þrístökk án atrennu og langstökk án atrennu; sem eru ekki lengur keppnisgreinar). Hann vann þrjú gull á leikunum í sömu greinum í St. Louis 1904 auk þess sem hann vann tvö gull í tveimur stökk greinum án atrennu (þrístökk án atrennu var þá ekki lengur ólympíugrein) og svo aftur gull í sömu greinum í Lundúnum árið 1908. Hann hlaut alls 10 gullverðlaun ef leikarnir 1906 eru taldir með.",
+   "image": "images/sumar-ol/8.jpg"
+  },
+  {
+   "title": "St. Louis 1904",
+   "body": "Sumar ólympíuleikarnir 1904 fóru fram í St. Louis, Missouri, í Bandaríkjunum. Leikarnir voru hluti af heimssýningunni í St. Louis. Í fyrsta sinn var veitt gullverðlaun fyrir fyrsta sætið, silfur og loks brons.\n\nÍ fyrsta sinn var keppt í hnefaleikum, Lacrosse, fjölbragðaglímu og tugþraut. Auk þess var keppt í greinum á borð við roque, sem er afbrigði af krokket.\n\nEinn af þeim sem stóð upp úr á leikunum var fimleikamaðurinn George Eyser, frá Bandaríkjunum, sem vann til sex verðlauna þrátt fyrir að hafa tréfót.",
+   "image": "images/sumar-ol/9.jpg"
+  },
+  {
+   "title": "Fyrsta lyfjahneykslið",
+   "body": "Thomas Hicks var Breti sem keppti í maraþoni sem Bandaríkjamaður á sumar ólympíuleikunum í St. Louis árið 1904. Hicks kom annar í mark en sigurvegarinn Fred Lorz var dæmdur úr leik þegar það kom í ljós að Lorz hafði farið hluta af leiðinni í bíl.\n\nHinsvegar kom í ljós seinna að þjálfari Hicks hafði gefið honum korn af stryknín blönduðu saman við glas af brandí. Stryknín er örvandi efni en getur verið bannvænt. Litlu munaði að Hicks léti lífið eftir að hann kom í mark en læknum tókst að bjarga lífi hans. Hann hélt hinsvegar gullverðlaununum.",
+   "image": "images/sumar-ol/10.jpg"
+  },
+  {
+   "title": "(Aþena 1906)",
+   "body": "Þessir leikar voru skipulagðir af alþjóða ólympíunefndinni árið 1901. Til stóð að halda reglulega leika milli hinna hefðbundnu fjögra ára leika, og áttu þeir að fara fram í Aþenu. Leikarnir 1906 þóttu takast framar vonum, því ólíkt 1900, 1904 og 1908 voru þeir ekki hluti af heimssýningunni. Aldrei varð þó úr þvi að milli leikarnir yrðu að veruleika, og af því leiddi að alþjóðlega ólympíunefndinn viðurkenndi ekki tilvist þeirra.\n\nEric Lemming, var sænskur frjálsíþróttakappi sem keppti í spjótkasti á leikunum og þróaði þann kaststíl sem hefur verið ráðandi í spjótkasti síðan.",
+   "image": "images/sumar-ol/11.jpg"
+  },
+  {
+   "title": "Lundúnir 1908",
+   "body": "Ólympíuleikarnir 1908 fóru fram í Lundúnum á Englandi. Á setninga hátíðinni gengu keppendur undir þjóðfána sínum, í fyrsta sinn, þar sem löndin völdu nú fulltrúa sína. Í fyrsta sinn var keppt í dýfingum og hokkí.\n\nRay Ewry sigraði í hástökki og langstökk í þriðja sinn á jafn mörgum leikum, og varð fyrsti keppandinn til að vinna til átta gullverðlauna í einstaklingsgrein.\n\nJóhannes Jósefsson (frá Borg) keppti í grísk-rómverskri glímu á leikunum, og varð þar með fyrstur Íslendinga til að taka þátt á sumarólympíuleikum. Hann keppti þó undir dönskum fána og tilheyrðu dönsku glímusveitinni.",
+   "image": "images/sumar-ol/12.jpg"
+  },
+  {
+   "title": "Með smá hjálp í mark",
+   "body": "Dorando Pietri var ítalskur maraþonhlaupari. Hann kom fyrstur í mark á ólympíuleikunum í London árið 1908 en var dæmdur úr leik eftir að í ljós kom að hann hafði notið aðstoðar dómara við að komast í mark.\n\nPietri var sárþjáður af þreytu þegar hann kom inn á ólympíuleikvanginn og féll fjórum sinnum niður en var hjálpað á fætur af dómurum og fyrir vikið var hann dæmdur úr leik.",
+   "image": "images/sumar-ol/13.jpg"
+  },
+  {
+   "title": "Íslendingur á ólympíuleikum",
+   "body": "Jóhannes Jósefsson á Borg var íslenskur glímukappi sem var fyrstur Íslendinga til að taka þátt á ólympíuleikum. Jóhannes keppti með dönsku glímusveitinni í grísk-rómverskri glímu á ólympíuleikunum í Lundúnum árið 1908.",
+   "image": "images/sumar-ol/14.jpg"
+  },
+  {
+   "title": "Stokkhólmur 1912",
+   "body": "Ólympíuleikarnir 1912 fóru fram í Stokkhólmi, Svíþjóð. Í fyrsta sinn kepptu konur í sundgreinum og dýfingum. Hnefaleikar voru ekki leyfðir í Svíþjóð og eftir leikanna afréð Alþjóðlega ólympíunefndinn að takmarka vald gestgjafanna þegar það kæmi að dagskrá leikanna.\n\nÍ fyrsta skipti voru listir meðal keppnisgreina á ólympíuleikum, arkitektúr, bókmenntum, tónlist, málaralist og höggmyndagerð. Pierre de Coubertin, faðir nútíma ólympíuleikanna fékk gull í bókmenntum.\n\nÍ keppni í grísk-rómverskri glímu, entist undanúrslita viðureign Rússans Martin Klein og Finnans Alfreð Asikainen í heilar 11 klukkustundir!\n\nÍslenskir glímumenn sýndu glímu á leikunum. Glímukappinn Sigurjón Pétursson og spretthlauparinn Jón Halldórsson tóku þátt á leikunum fyrir Íslandshönd.",
+   "image": "images/sumar-ol/15.jpg"
+  },
+  {
+   "title": "Íslenzk glíma á ólympíuleikum",
+   "body": "Á sumar ólympíuleikunum í Stokkhólmi 1912 sýndu íslenskir glímumenn glímu en þetta er í eina skiptið sem glíma hefur verið meðal sýningagreina á ólympíuleikum.",
+   "image": "images/sumar-ol/16.jpg"
+  },
+  {
+   "title": "Antwerpen 1920",
+   "body": "Til hafi staðið að leikarnir 1916 færu fram í Berlín, en vegna heimsstyrjaldarinnar varð ekkert úr því. Leikarnir 1920 fóru fram í Antwerpen í Belgíu. Á setningahátíðinni var í fyrsta sinn kynntur fáni ólympíuleikanna, og í fyrsta sinn var svarinn íþróttamanns eiðurinn.\n\nÍ fyrsta sinn var keppt í sundpóló, listhlaupi á skautum, íshokkí og sjöþraut. Kanadíska áhugamannaliðið Winnipeg Falcons sigraði í íshokkí en það var að mestu skipað Vestur-Íslendingum.\n\nNedo Nadi frá Ítalíu skráði nafn sitt í sögubækur ólympíusögunnar þegar hann hlaut fimm gullverðlaun af sex í skylmingum, og hefur engin leikið það eftir honum síðan. Svíinn Oscar Swahn, 72 ára, vann til silfurverðlauna í skotfimi, og varð þar með elsti verðlaunahafi á ólympíuleikunum.",
+   "image": "images/sumar-ol/17.jpg"
+  },
+  {
+   "title": "Ólympíuhringirnir",
+   "body": "Ólympíuhringirnir eru tákn eða fáni Ólympíuleikanna. Pierre de Coubertin hannaði merkið en hringirnir fimm tákna hinar fimm byggðu heimsálfur heimsins (Evrópa, Afríka, Asía, N-Ameríka og S-Ameríka)",
+   "image": "images/sumar-ol/18.jpg"
+  },
+  {
+   "title": "Vestur-íslenskt gull",
+   "body": "Íshokkí var í fyrsta sinn meðal keppnisgreina á ólympíuleikunum í Antwerpen árið 1920 – vetrar ólympíuleikar hófust fjórum árum seinna, 1924.\n\nFyrir hönd Kanada keppti Winnipeg Falcons en stór hluti liðsins var af íslenskum uppruna. Winnipeg Falcons vann gullverðlaun.",
+   "image": "images/sumar-ol/19.jpg"
+  },
+  {
+   "title": "Finninn fljúgandi",
+   "body": "Paavo Nurmi var finnskur langhlaupari sem gekk undir viðurnafninu Finninn fljúgandi. Nurmi var nánast ósigrandi í meðal- og langhlaupum á 3. áratugnum. Hann vann þrenn gullverðlaun í Antwerpen 1920, fimm gullverðlaun á leikunum í París 1924 og eitt gull á leikunum í Amsterdam 1928.",
+   "image": "images/sumar-ol/20.jpg"
+  },
+  {
+   "title": "París 1924",
+   "body": "Leikarnir 1924 fóru fram í París, Frakklandi. Þetta var í annað sinn sem París hélt leikanna. Á leikunum var kynnt til sögunnar slagorð ólympíuleikanna, „Citius, Altius, Fortius” (hraðar, hærra og öflugar).\n\nÍ fyrsta sinn var keppt í skylmingum kvenna. Johnny Weismuller frá Bandaríkjunum vann til tveggja gullverðlauna í sundi, og brons í sundknattleik. Gertrude Ederle vann bronsverðlaun í 100m sundi með frjálsri aðferð, en tveim árum síðar varð hún fyrsta konan til að synda yfir Ermasundið. Finninn „fljúgandi“ Paavo Nurmi, vann fimm gullverðlaun og þar með átta alls.\n\nFyrstu vetrarólympíuleikarnir voru haldnir þetta sama ár í Chamonix í Frakklandi. Raunar voru leikarnir í Chamonix hluti af ólympíuleikunum; en voru eftir á gerðir að fyrstu vetrarólympíuleikunum.",
+   "image": "images/sumar-ol/21.jpg"
+  },
+  {
+   "title": "Chariots of Fire",
+   "body": "Bresku hlauparnir Harold Abrahams og Eric Liddell kepptu á ólympíuleikunum 1924 í París. Liddell (á neðri myndinni) var talinn sigurstranglegur í 100 m spretthlaupi en kaus að taka ekki þátt þar sem einn af undanriðlunum var haldinn á sunnudegi en Liddell, sem var sannkristinn, vildi ekki hlaupa á sunnudegi.\n\nAbrahams kom mörgum á óvart þegar hann sigraði 100 m spretthlaupið. Liddell kom mörgum á óvart þegar hann sigraði í 400 m hlaupinu, sem var annars ekki hans sterkasta grein.\n\nSaga Abrahams og Liddell varð innblástur að kvikmyndinni Chariots of Fire frá árinu 1981.",
+   "image": "images/sumar-ol/22.jpg"
+  },
+  {
+   "title": "Tarzan í sundlauginni",
+   "body": "Johnny Weismuller var ósigrandi í sundi á 3. áratugnum. Hann keppti fyrir Bandaríkin en fæddist í Evrópu, nú Rúmeníu. Johnny Weismuller vann þrenn gullverðlaun á leikunum í París 1924 og tvenn gullverðlaun á ólympíuleikunum í Amsterdam árið 1928.\n\nÞegar sundferlinum lauk gerðist hann leikari og er lang frægastur fyrir að leika Tarzan í tólf myndum. Tarzan-öskur hans er líklega það frægasta.",
+   "image": "images/sumar-ol/23.jpg"
+  },
+  {
+   "title": "Amsterdam 1928",
+   "body": "Sumar ólympíuleikarnir 1928 fóru fram í Amsterdam, Hollandi. Í fyrsta sinn gengu Grikkir fremstir inn á leikvanginn, á setningarhátíðinni, og heimamenn Hollendingar síðastir; og hefur það verið venjan síðan að Grikkir gangi fyrstir inn en heimaþjóðin síðust. Einnig var í fyrsta sinn tendraður ólympíueldurinn. Hlutfall kvenna jókst um helming, þar sem konum var í fyrsta sinn leyft að keppa í fimleikum og frjálsum.\n\nFyrsti Asíubúinn vann gullverðlaun á leikunum, Mikio Oda frá Japan vann í þrístökki, á meðan landi hans Yoshiyki Tsuruta sigraði í 200m bringusundi. Úrúgvæ varð aftur ólympíumeistarar í knattspyrnu, og það varð til þess að fyrsta heimsmeistarakeppnin í knattspyrnu fór fram í Úrugvæ árið 1930.\n\nVetrarólympíuleikarnir fóru fram í St. Moritz í Sviss, og voru óháðir sumarleikunum, í fyrsta sinn, þó að Chamonix leikarnir teljist opinberlega fyrstu vetrarólympíuleikarnir.",
+   "image": "images/sumar-ol/24.jpg"
+  },
+  {
+   "title": "Los Angeles 1932",
+   "body": "Ólympíuleikarnir 1932 fóru fram í Los Angeles í Bandaríkjunum. Þetta var í annað sinn sem leikarnir fóru fram í Bandaríkjunum. Keppendur voru helmingi færri en á leikunum 1928; einkum vegna kreppunnar miklu.\n\nÍ fyrsta sinn var reist „Ólympíuþorp“ handa keppendur, raunar þó aðeins karlkyns keppendur, konurnar voru á hótelum.\n\nFinninn fljúgandi Paavo Nurmi var dæmdur úr leik fyrir brot á reglum um atvinnumennsku á ólympíuleikum.\n\nVetrarólympíuleikarnir fóru fram í Lake Placid, í New York ríki.",
+   "image": "images/sumar-ol/25.jpg"
+  },
+  {
+   "title": "Barón Nishi",
+   "body": "Barón Takeichi Nishi var japanskur keppandi í hestaíþróttum. Hann vann gullverðlaun á ólympíuleikunum í Los Angeles árið 1932. Nishi var vinsæll í Los Angeles og vingaðist m.a. við Hollywood parið Mary Pickford og Douglas Fairbanks.\n\nÁrið 1945 tók Nishi þátt í orustunni um Iwo Jima, einnar mestu orustu seinni heimsstyrjaldar. Þar lést hann í stríði við Bandaríkjamenn.",
+   "image": "images/sumar-ol/26.jpg"
+  },
+  {
+   "title": "Berlín 1936",
+   "body": "Sumar ólympíuleikarnir 1936 fóru fram í Berlín, Þýskalandi. Leikarnir eru einkum frægir fyrir nasistaáróður sem setti mjög srekan svip á leikanna.\n\nVinsælasti þátttakandi leikanna var blökkumaðurinn Jesse Owens frá Bandaríkjunum sem sló í gegn og tók með sér heim fjögur gullverðlaun. Í fyrsta sinn á ólympíuleikum var hlaupið með logandi kyndill inn á setningarhátíð leikanna frá Olympíu. Einnig var í fyrsta sinn hægt að fylgjast með leikunum í sjónvarpinu.\n\nKörfubolti, kanósiglingar, og handbolti (utanhúss) voru í fyrsta sinn meðal keppnisgreina, en keppt var í síðasta sinn í póló á ólympíuleikum. Hinn 13 ára Marjorie Gestring frá Bandaríkjunum vann gull í dýfingum, og var þar með yngsti gullverðlaunahafi í sögu sumar ólympíuleika.\n\nVetrarólympíuleikarnir fóru fram í Garmisch-Partenkirchen í Þýskalandi.",
+   "image": "images/sumar-ol/27.jpg"
+  },
+  {
+   "title": "Jesse Owens",
+   "body": "Jesse Owens setti þrjú heimsmet og jafnaði eitt á frjásíþróttamóti árið 1935, stund sem hefur verið kölluð mögnuðustu 45 mínútur í sögu íþrótta.\n\nÁ ólympíuleikunum í Berlín 1936 sló Jesse Owens eftirminnilega í gegn þegar hann vann fjögur gullverðlaun: í 100 m spretthlaupi, 200 m hlaupi, langstökki og 4x 100 m boðhlaupi. Adolf Hitler, leiðtogi Þýskalands, var ekki sáttur en tók þó í hönd Owens.\n\nOwens mátti þola mikla fordóma í Bandaríkjunum sökum þess að hann var blökkumaður.",
+   "image": "images/sumar-ol/28.jpg"
+  },
+  {
+   "title": "Lundúnir 1948",
+   "body": "Ekkert varð af sumar ólympíuleikunum 1940 eða 1944. Fyrstu sumar ólympíuleikar eftir seinni heimsstyrjöldina voru haldnir í Lundúnum 1948. Þetta var í annað sinn sem leikarnir fóru fram í Lundúnum, borgin á metið eftir að hafa haldið þriðju ólympíuleikanna 2012.*\n\nHollenska frjálsíþróttakonan Fanny Blankers-Koen átti heimsmet í sex greinum frjálsra íþrótta, en mátti aðeins skrá sig til leiks í fjórum. Hún vann gull í þeim öllum, 100m spretthlaup, 80m grindarhlaup, 200m hlaup og boðhlaup. Hún var kölluð húsmóðurinn fljúgandi í ljósi þess að hún var komin til ára sinna í íþróttaheiminum og móðir.\n\nÍ síðasta sinn var keppt í listgreinum á ólympíuleikum.\n\nVetrarólympíuleikarnir fóru fram í St. Mortiz í Sviss, sem var í annað sinn sem þeir voru haldnir þar.\n\nParís mun halda leikanna 2024 og verður það í þriðja sinn einnig.",
+   "image": "images/sumar-ol/29.jpg"
+  },
+  {
+   "title": "Húsmóðurin fljúgandi",
+   "body": "Hollenska hlaupadrottningin Fanny Blankers-Koen sló í gegn á ólympíuleikunum í Lundúnum árið 1948. Hún vann fjögur gullverðlaun á leikunum og var kölluð Húsmóðurin fljúgandi. Hún var þrítug á þessum tíma.\n\nHún vann gull í 100 m spretthlaupi, 200 m hlaupi, 80 m grindahlaupi og 4x 100 m boðhlaupi.",
+   "image": "images/sumar-ol/30.jpg"
+  },
+  {
+   "title": "Helsinki 1952",
+   "body": "Sumar ólympíuleikarnir 1952 fóru fram í Helsinki í Finnlandi. Helsinki átti að halda leikanna 1940. Aldrei hafa sumarólympíuleikar farið fram jafn norðarlega.\n\nHelsta afrek leikanna var sigur tékkóslóvakans Emils Zatopeks í 5000 m, 10.000 m og maraþoni, og var það í eina sinn í sögunni sem slíkt hefur gerst.\n\nSovétríkin voru meðal keppenda í fyrsta sinn, þó íþróttamenn þeirra bjuggu í aðskildu þorpi frá hinum keppendunum. Ísrael sendi einnig í fyrsta sinn keppendur. Kína tók einnig þátt í fyrsta sinn, en Tawain hæti við þáttöku til að mótamæla þáttöku Kína.\n\nVetrarólympíuleikarnir fóru fram í Olsó, Noregi.",
+   "image": "images/sumar-ol/31.jpg"
+  },
+  {
+   "title": "Zátopek hjónin",
+   "body": "Emil Zátopek var tékkóslavenskur langhlaupari. Hann vann gullverðlaun í 10.000 m langhlaupi á leikunum í Lundúnum 1948 og aftur á leikunum í Helsinki árið 1952. Hann vann einnig gullverðlaun í 5000 m hlaupi í Helsinki og óvænt í maraþonhlaupi einnig.\n\nEiginkona Emil, Dana Zatopek vann einnig til gullverðlauna á ólympíuleikunum í Helsinki 1952, í spjótkasti.",
+   "image": "images/sumar-ol/32.jpg"
+  },
+  {
+   "title": "Melbourne 1956",
+   "body": "Sumarólympíuleikarnir 1956 fóru fram í Melbourne, Ástralíu, nema keppt var í hestagreinum í Stokkhólmi, Svíþjóð. Í fyrsta sinn fóru leikrnir fram á suðurhveli jarðar, og aldrei hafa leikarnir farið fram jafn sunnanrlega. Fyrir leikanna 1956 var það venjan að þjóðirnar gengu í sömu röð inn á leikvanginn á lokahátíðinni líkt og við setningarhátíðina. En hugmynd John Ian Wing, ungs Ástrala, um að allir íþróttamennirnir gengu saman óháð þjóðerni var fyrst tekinn upp á þessum leikum og hefur gilt síðan.\n\nVestur- og Austur Þýskaland sendu sameiginlegt keppnislið, sem var endurtekið 1960 og 1964. Vilhjálmur Einarsson varð fyrstur Íslendinga til að vinna til verðlauna.\n\nVetrarólympíuleikarnir fóru fram í Cortina á Ítalíu.",
+   "image": "images/sumar-ol/33.jpg"
+  },
+  {
+   "title": "Silfurmaðurinn",
+   "body": "Vilhjálmur Einarsson var fyrstur Íslendinga til að vinna til verðlauna á ólympíuleikum á leikunum í Melbourne, Ástralíu, árið 1956. Í þrístökks keppninni setti Vilhjálmur ólympíumet 16,25 m, en Brasilíumaðurinn Adhemar da Silva slær metið stuttu síðar og Vilhjálmur lenti í öðru sæti og hlaut silfurverðlaun.\n\nHann bætti metið sitt árið 1960 á Laugardalsvelli þegar hann stökk 16,70 m og er það enn Íslandsmet.",
+   "image": "images/sumar-ol/34.jpg"
+  },
+  {
+   "title": "Róm 1960",
+   "body": "Sumarólympíuleikarnir 1960 fóru fram í Róm, á Ítalíu.\n\nClement Ike Quartey frá Ghana varð fyrsti blökkumaðurinn til að vinna verðlaun á ólympíuleikum og það í hnefaleikum. Abebe Bikila, frá Eþíópíu, varð heimsfrægur fyrr að vinna maraþonhlaupið berfættur, og varð þar með fyrsti Afríkubúinn til að vinna gullverðlaun. Hnefaleikakappinn Cassius Clay kom fram á sjónarsviððið, en hann varð síðar betur þekktur sem Muhammed Ali.\n\nDaninn Paul Elvström vann sín fjórðu verðlaun í fjórum leikum í röð, í siglingum. Auk hans hafa Al Oerter, Carl Lewis og Micheal Phelps afrekað það.\n\nVetrarólympíuleikarnir fóru fram í Squaw Valley, í Kaliforníu, Bandaríkjunum.",
+   "image": "images/sumar-ol/35.jpg"
+  },
+  {
+   "title": "Berfættur sigurvegari",
+   "body": "Adebe Bikila var maraþonhlaupari frá Eþíópíu sem varð frægur fyrir að vinna maraþonhlaupið á leikunum í Róm 1960 berfættur. Á leikunum í Tókýó sigraði hann aftur í maraþoni hlaupi að þessu sinni í skóm. Bikila varð fyrsti maðurinn til að vinna gull á maraþon leikum í tveimur leikum í röð.",
+   "image": "images/sumar-ol/36.jpg"
+  },
+  {
+   "title": "Cassius Clay (Muhammed Ali)",
+   "body": "Cassius Clay er bandarískur hnefaleikakappi sem vann gullverðlaun í léttþungavigt á ólympíuleikunum 1960. Cassius Clay tók upp nafnið Muhammed Ali árið 1964 eftir að hafa gerst múslimi og eftir sigur á Sonny Liston árið 1964 varð einn frægasti hnefaleika kappi sögunnar.",
+   "image": "images/sumar-ol/37.jpg"
+  },
+  {
+   "title": "Ólympíumót fatlaðra",
+   "body": "Fyrsta opinbera ólympíumót fatlaðra fóru fram í Róm árið 1964, og hafa verið haldnir síðan. Áður höfðu breskir uppgjafahermenn skipulagt íþróttamót, sem fór fram í kjölfar ólympíuleikanna 1948.\n\nTrischa Zorn frá Bandaríkjunum er sigursælasti keppandi í sögu ólympíumóts fatlaðra, með 55 verðlaun, þar af 41 gull. Hún keppti í sundi. Íslendingar hafa hlotið 61 verðlaun á sumarmótum. Kristín Rós Hákonardóttir, sundkona er lang sigursælust Íslendinga með sex gullverðlaun, tvö silfur og fimm bronsverðlaun.\n\nÓlympíuleikar þroskaheftra (Special olympics) voru fyrst haldnir í Chicago árið 1968. Ólíkt ólympíumóti fatlaðra sem fer jafnan fram í sama landi og sumarólympíu, eða vetrarólýmpíuleikar eru haldnir þá fara ólympíuleikar þroskrahefta fram á oddaári, og hefur oftast verið haldið í Bandaríkjunum. Einn helsti stuðningsmaður leikanna var Eunice Kennedy, systir Kennedy forseta.",
+   "image": "images/sumar-ol/38.jpg"
+  },
+  {
+   "title": "Tókýó 1964",
+   "body": "Sumar ólympíuleikarnir 1964 fóru fram í Tókýó, Japan. Þetta var í fyrsta sinn sem leikarnir fóru fram í Asíu. Yoshinori Sakai bar síðastur ólympíueldinn inn á leikvanginn, en hann hafði fæðst sama dag og kjarnorkusprengjan féll á fæðingaborg hans Hiroshima.\n\nÍ fyrsta sinn var keppt í Júdó og blaki á ólympíuleikum. Adebe Bikila vann aftur maraþonhlaupið, fyrstur til þess að vinna það tvisvar í röð. Larysa Latynina frá Úkraínu vann tvö verðlaun á leikunum, sem gerði samanlagt 18 verðlaun, flest allra á ólympíuleikum, þar af níu gullverðlaun.\n\nVetrarólympíuleikarnir fóru fram í Innsbruck, Austurríki.",
+   "image": "images/sumar-ol/39.jpg"
+  },
+  {
+   "title": "Larisa Latynina",
+   "body": "Larisa Latynina er sovésk fimleikadrottning sem hefur hlotið næst flest verðlaun á ólympíuleikum, alls 18 verðlaun þar af 9 gullverðlaun. Hún hlaut fyrst verðlaun á leikunum í Melbourne 1956 og vann svo verðlaun í Róm 1960 og Tókýó 1964.",
+   "image": "images/sumar-ol/40.jpg"
+  },
+  {
+   "title": "Mexíkóborg 1968",
+   "body": "Sumar ólympíuleikarnir 1968 fóru fram í Mexíkóborg, Mexíkó. Þetta var í fyrsta sinn sem leikarnir fóru fram í rómversku Ameríku.\n\nHápunktur leikanna var heimsmet Bob Beamons í langstökki, 8, 90m sem stóð óhreyft næstu 22 ár. Bandaríski kringlukastarinn Al Oerter vann sitt fjórða gull í röð á leikunum. Í fyrsta sinn var keppandi dæmdur úr leik fyrir að falla á lyfjaprófi, Svíinn Hans-Gunnar Liljenwall reyndist of drukkinn! Svartir íþróttamenn frá Bandaríkjunum ollu hneykslan þegar þeir settu hnefa sitt á loft til stuðnings svörtu pardusunu í Bandaríkjunum.\n\nVetrarólympíuleikarnir fóru fram í Grenoble í Frakklandi.",
+   "image": "images/sumar-ol/41.jpg"
+  },
+  {
+   "title": "Heimsmet í 23 ár",
+   "body": "Bob Beamon var bandarískur langstökkvari sem setti heimsmet á ólympíuleikunum í Mexíkóborg 1968 þegar hann stökk 8,90 m.. Eldra heimsmetið var 8,35 svo bætingin var ótrúleg. Það er talið að þunnt loft í Mexíkóborg hafi hjálpað svo einnig að hann hafði hámarks leyfilegan meðvind þegar hann stökk. Heimsmetið stóð óhaggað í 23 ár þegar Mike Powell sló metið og stökk 8.95 m.",
+   "image": "images/sumar-ol/42.jpg"
+  },
+  {
+   "title": "Al Oerter",
+   "body": "Bandaríkjamaðurinn Al Oerter afrekaði að vinna gullverðlaun í kringlukasti á fernum ólympíuleikum í röð. Oerter keppti fyrst á leikunum í Melbourne 1956, Róm 1960, Tókýó 1964 og loks í Mexíkóborg 1968.",
+   "image": "images/sumar-ol/43.jpg"
+  },
+  {
+   "title": "Fosbury aðferðin",
+   "body": "Richard Fosbury var bandarískur hástökkvari sem innleiddi nýja stökk aðferð, Fosbury aðferðina í hástökki. Hún fólst í því að stökkva með bakið á undan og hefur orðið alsráðandi síðan. Hann vann gullverðlaun í Mexíkóborg árið 1968 með þessari aðferð.",
+   "image": "images/sumar-ol/44.jpg"
+  },
+  {
+   "title": "Svörtu pardusarnir",
+   "body": "Á ólympíuleikunum í Mexíkóborg árið 1968 vann Tommie Smith 200 m hlaupið og félagi hans og landi frá Bandaríkjunum, John Carlos, lenti í þriðja sæti. Til að mótmæla óréttlátri meðferð á blökkumönnum í Bandaríkjunum og S-Afríku ákvaðu þeir að rétt upp krepptan lófa í svörtum hönskum, sem var tákn sem hin róttæka réttindabaráttu hópur Svörtu pardusarnir (Black Panthers) notuðu. Smith og Carlos voru umsvifalaust reknir úr liði Bandaríkjanna.\n\nSá sem lenti í öðru sæti var ástralinn Peter Norman. Hann studdi félaganna og stakk m.a. upp á því að þeir deildu hönskum Smith eftir að í ljós kom að Carlos hafði gleymt sínu pari. Norman var útskúfaður frá frjálsum íþróttum í Ástralíu í kjölfarið.",
+   "image": "images/sumar-ol/45.jpg"
+  },
+  {
+   "title": "Munchen 1972",
+   "body": "Sumar ólympíuleikarnir 1972 fóru fram í Munchen í Þýskalandi. Leikarnir eru frægastir fyrir árás palestínsku hryðjuverkasamtakanna Svarta septembers á búðir ísrealskra íþróttamanna.\n\nÍ fyrsta sinn í 52 ár var keppt í bogfimi og handbolti var meðal keppnisgreina í fyrsta sinn í 36 ár. Mark Spitz gerði sér lítið fyrir og vann sjö gullverðlaun í sundi á leikunum. Finnski langhlauparinn Lasse Viren féll í 10.000m hlaupinu, en reis á fætur vann og setti heimsmet. Olga Korbut vann hugi og hjörtu áhorfenda þegar hún sló gegn í fimleikum á leikunum. Úrslitaleikur Sovétríkjanna og Bandaríkjanna í Körfubolta hefur þótt einhver dramatískasti leikur í sögu ólympíuleikanna. Bandaríkin töldu sig hafa unnið leikinn, en þegar í ljós kom að 3 sekúndur vantaði upp á, tókst Sovétmönnum að tryggja sér ótrúlegan sigur.\n\nVetrarólympíuleikarnir fóru fram í Sapporo Japan.",
+   "image": "images/sumar-ol/46.jpg"
+  },
+  {
+   "title": "Hryðjuverk í Munchen",
+   "body": "Á ólympíuleikunum í Munchen árið 1972 réðust hópur manna úr hryðjuverkahópnum Svarta september á búðir ísraelskra íþróttamanna og tóku 11 í gíslingu. Allir dóu þeir ásamt þýskum lögreglumanni í misheppnaðri tilraun V-þýsku lögreglunnar til að frelsa gíslanna. Fimm af átta meðlimum Svarta septembers voru skotnir en þrír voru handteknir en að lokum sleppt í skiftum fyrir farþegaflugvél sem hafði verið rænt.",
+   "image": "images/sumar-ol/47.jpg"
+  },
+  {
+   "title": "Sjö gullverðlaun Spitz",
+   "body": "Mark Spitz er bandarískur sundkappi sem vann sjö gullverðlaun á ólympíuleikunum í Munchen árið 1972. Hann hafði áður unnið tvenn gullverðlaun í Mexíkóborg 1968. Met Spitz stóð til ársins 2008 þegar Michael Phelps vann átta gullverðlaun í sundi.",
+   "image": "images/sumar-ol/48.jpg"
+  },
+  {
+   "title": "Spörfuglinn frá Minsk",
+   "body": "Olga Korbút var sovésk fimleikadrottning fædd í Hvíta-Rússlandi. Hún sló í gegn á ólympíuleikunum í Munchen 1972 og vakti heimsathygli. Hún vann þrjú gullverðlaun á þeim leikum og eitt fjórum árum síðar í Montreal, en meiðsli settu þar strik í reikninginn og hún féll í skuggan á rúmenska undrabarninu Nadiu Comeneci. Hún hlaut viðurnefnið Spörfuglinn frá Minsk.",
+   "image": "images/sumar-ol/49.jpg"
+  },
+  {
+   "title": "Montreal 1976",
+   "body": "Sumar ólympíuleikarnir 1976 fóru fram í Montreal, í Kanada. 29 þjóðir Afríku ákváðu að sitja heima eftir að Alþjóða ólympíunefndin neitaði að refsa Nýja-Sjáland fyrir að hafa stuttu áður leikið Rugby leik gegn Suður-Afríku; en vegna kynþáttstefnu hvíta minnihlutans var þeim meinuð þátttaka í íþróttaviðburðum.\n\nKonur kepptu í fyrsta sinn í Körfubolta, róðri og handbolta. Hinn 14 ára Nadia Comeneci frá Rúmeníu sló í gegn þegar hún hlaut fyrst allra 10 í einkum í fimleikum. Síðan bætti hún sjö verðlaunum öðrum við. Langhlauparinn Lasse Viren frá Finnlandi vann aftur gull í 5000 og 10.000 m hlaupi. Keppandi frá Bermuda vann til verðlauna á leikunum, en allri hefur jafn fámenn þjóð (um 53.000) unnið til verðlaun fyrr né síðar.\n\nVetrarólympíuleikarnir fóru fram í Innsbruck, Austurríki, en það var í annað skiptið sem Innsbruck hélt leikanna.",
+   "image": "images/sumar-ol/50.jpg"
+  },
+  {
+   "title": "Undrabarnið fær 10",
+   "body": "Nadia Comaneci er rúmensk fimleikadrottning sem sló í gegn á ólympíuleikunum í Montreal árið 1976. Nadia var 14 ára þegar hún tók þátt. Hún fékk 10 í einkunn fyrir æfingar á tvíslá, fyrsti fimleikamaðurinn í sögu ólympíuleikanna til að fá fullkomið skor. Í fyrstu urðu áhorfendur hissa þegar skortaflan sýndi 1,00; en það reyndist ekki pláss fyrir aukastafinn til að sýna 10,00. Alls vann hún þrenn gullverðlaun í Montreal og svo önnur tvö í Moskvu fjórum árum síðar.",
+   "image": "images/sumar-ol/51.jpg"
+  },
+  {
+   "title": "Moskva 1980",
+   "body": "Sumar ólympíuleikarnir 1980 fóru fram í Mosku, Sovétríkjunum. Það var í fyrsta og eina sinn sem leikarnir fóru fram í Sovétríkjunum. Aðeins 80 þjóðir tóku þátt, en 66 ríki sátu heima að undirlagi Bandaríkjanna til að mótmæla innrás Sovétríkjanna inn í Afganistan 1979.\n\nLeikanna er helst minnst fyrir einvígi Bretanna Steve Ovett og Sebastian Coe.\n\nVetrarólympíuleikarnir fóru fram í Lake Placid, New York í Bandaríkjunum. Þetta var í annað sinn sem leikarnir fóru fram þar.",
+   "image": "images/sumar-ol/52.jpg"
+  },
+  {
+   "title": "Einvígið",
+   "body": "Á áttunda áratug síðustu aldar voru Bretarnir Steve Ovett og Sebastian Coe fremstu millivegalengda hlauparar heims. Barátta þeirra var oft hörð og óvæginn. Steve Ovett lýsti því yfir að hann hefði 90% líkur á að vinna 1500 m hlaupið á ólympíuleikunum í Moskvu árið 1980. Hann var ósigraður í þrjú ár. Sebastian Coe átti heimsmetið í 800 m hlaupi og var talinn mjög sigurstranglegur.\n\nSteve Ovett vann óvænt 800 m hlaupið og taldi sig svo sigurstranlegan að hann boðaði nýtt heimsmet í 1500 m hlaupinu. Svo fór ekki því Sebastian Coe kom öllum á óvart og vann 1500 m og neitaði þar með Ovett um gullverðlaunin.",
+   "image": "images/sumar-ol/53.jpg"
+  },
+  {
+   "title": "Los Angeles 1984",
+   "body": "Sumar ólympíuleikarnir 1984 fóru fram í Los Angeles, Kaliforníu í Bandaríkjunum. Þetta var í annað skiptið sem Los Angeles hélt sumar ólympíuleika. Sovétríkin ákváðu að sitja heima til að mótmæla ákvörðum Bandaríkjanna að mæta ekki til Moskvu 1980. Auk Sovétríkjanna sátu mörg ríki þeim hliðholl heima.\n\nCarl Lewis jafnaði afrek Jesse Owens og vann gullverðlaun í 100m, 200m spretthlaup, langstökki og var í sigurliði boðhlaupliðsins. Sebastian Coe vann 1500m aftur, fyrstur til að afreka það. Daley Thompson vann tugþrautina, líkt og hann afrekaði fjórum árum áður. Bjarni Friðriksson varð annar Íslendingurinn til að vinna til verðlauna, í júdó, þegar hann fékk bronsverðlaun.\n\nVetrarólympíuleikar fóru fram í Saravejó, þá Júgóslavíu; nú höfuðborgar Bosníu-Hersegóvínu.",
+   "image": "images/sumar-ol/54.jpg"
+  },
+  {
+   "title": "Carl Lewis",
+   "body": "Carl Lewis er bandarískur frjálsíþróttakappi sem afrekaði að leika saman leik og Jesse Owens á ólympíuleikunum í Los Angeles og vann fjögur gullverðlaun í 100 m spretthlaupi, 200 m hlaupi, langstökki og 4x 100 m boðhlaupi.\n\nHann vann aftur gullverðlaun í 100 m spretthlaupi i Seoul eftir að Ben Johnson var sviptur gullinu í einu frægasta 100 m spretthlaupi íþróttarsögunnar. Hann vann einnig í langstökki og aftur í Barcelona 1992 auk þess að vera í sigursveit í 100 m boðhlaupi.\n\nHann lék sama leik og Al Oerter þegar hann vann sitt fjórða gull í langstökki á ólympíuleikunum í Atlanta árið 1996.",
+   "image": "images/sumar-ol/55.jpg"
+  },
+  {
+   "title": "Daley Thompson",
+   "body": "Daley Thompson var breskur tugþrautarkappi sem vann gullverðlaun á ólympíuleikunum í Moskvu 1980 og aftur í Los Angeles 1984.",
+   "image": "images/sumar-ol/56.jpg"
+  },
+  {
+   "title": "Brons í LA",
+   "body": "Bjarni Friðriksson afrekaði það annar Íslendinga að vinna verðlaun á ólympíuleikum þegar hann fékk bronsverðlaun í 95 kg gramma flokki í júdó á ólympíuleikunum í Los Angeles árið 1984. Líkt og hjá Vilhjálmi Einarssyni þá var það Brasilíumaður, Douglas Viera, sem svipti Bjarna gullinu eftir að hafa lagt hann í undanúrslitum.",
+   "image": "images/sumar-ol/57.jpg"
+  },
+  {
+   "title": "Seoul 1988",
+   "body": "Sumar ólympíuleikarnir fóru fram í Seoul, Suður-Kóreu árið 1988.\n\nBorðtennis varð keppnisgrein á ólympíuleikum. Helstu tíðindi á leikunum þóttu sigur Kanadamannsins Ben Johnson í 100 m spretthlaupi, og jafnframt fall hans á lyfjaprófi í kjölfarið. Bandaríska hlaupadrottningin Florence Griffith-Joyner sigraði í 100 m spretthlaupi kvenna og setti heimsmet, sem enn stendur. Sergei Bubka frá Úkraínu vann gullið í stangastökki og gerði það aftur 1992. Aftur var leikið í Tennis, eftir 64 ára bið, Steffi Graf sigraði og afrekaði að vinna gull alslemmmu á árinu; en hún vann einnig risamótin fjögur í Tennis.\n\nVetrarólympíuleikarnir fóru fram í Calgary, í Kanada.",
+   "image": "images/sumar-ol/58.jpg"
+  },
+  {
+   "title": "Lyfjaður sigur",
+   "body": "Ben Johnson var kanadísku spretthlaupari sem setti heimsmet í 100 m spretthlaupi árið 1987. Hann var talinn sigurstranglegur á ólympíuleikunum 1988 en fáir áttu von á því bursti sem þar varð í lokahlaupinu í 100 m spretthlaupi. Ben Johnson kom langt á undan næstu þremur keppendunum og frægt er þegar hann leit aftur fyrir sig áður en hann kom í mark. Tíminn 9,79 var heimsmet og umtalsverð bæting.\n\nTveimur dögum síðar var hann sviptur gullinu þegar í ljós kom að hann hafði neytt stera fyrir hlaupið. Carl Lewis fékk þar með gullið, Linford Christi, frá Bretlandi, silfrið og Calvin Smith frá Bandaríkjunum fékk bronsið.",
+   "image": "images/sumar-ol/59.jpg"
+  },
+  {
+   "title": "Flo-Jo",
+   "body": "Florence Griffith-Joyner var bandarísk hlaupadrottning sem enn á heimsmet kvenna í 100 m spretthlaupi og 200 m spretthlaupi. Hún vann þrenn gullverðlaun á ólympíuleikunum í Seoul árið 1988, í 100 m spretthlaupi, 200 m spretthlaupi auk þess að vera í 4x 100 m boðhlaupi. Hún hlaut silfurverðlaun í 4x 400 m boðhlaupi og náði því ekki að jafna árangur Fanny Blankers-Koen frá leikunum 1948.",
+   "image": "images/sumar-ol/60.jpg"
+  },
+  {
+   "title": "Barcelona 1992",
+   "body": "Sumarólympíuleikarnir 1992 fóru fram í Barcelona, á Spáni.\n\nHafnarbolti varð ólympíugrein, sem og badminton og júdó í kvennaflokki. Bandaríkin sendu Draumaliðið til leiks í körfuknattleik sem sigraði auðveldlega á leikunum. Jackie Joyner-Kersee sigraði í sjöþraut kvenna líkt og fjórum árum áður.\n\nVetrarólympíuleikar fóru fram í Albertville í Frakklandi. Þetta var í síðasta sinn sem vetrarólympíuleikar fóru fram á sama ári og sumarólympíuleikar. Næstu Vetrarólympíuleikar fóru fram í Lillehammer í Noregi árið 1994.",
+   "image": "images/sumar-ol/61.jpg"
+  },
+  {
+   "title": "Ólympíudraumurinn",
+   "body": "Derek Redmond er breskur spretthlaupari. Hann var talinn sigurstranglegur í 400 m spretthlaupi á ólympíuleikunum í Barcelona árið 1992, en í undanúrslitunum sleit hann hásinn. Sárkvalinn neitaði hann þiggja aðstoð og tók að haltra í mark, faðir hans sem var meðal áhorfenda braust fram hjá öryggisvörður og fylgdi syni sínum í mark, við dynjandi lófaklapp áhorfenda.",
+   "image": "images/sumar-ol/62.jpg"
+  },
+  {
+   "title": "Draumaliðið „Dream Team“",
+   "body": "Allt til ársins 1989 var atvinnumönnum meinað að taka þátt í körfubolta á ólympíuleikunum. Þrátt fyrir andstöðu Bandaríkjanna og Sovétríkjanna – sterkustu þjóðanna – var bannið aflétt. Leikmenn í NBA deildinni tóku fyrst þátt á ólympíuleikunum 1992 í Barcelona og gekk liðið undir titlinum Drauma liðið. Liðið sigraði mótið auðveldlega. Meðal kunnra kappa í liðinu var Micheal Jordan, Magic Johnson (sem nýlega hafði greinst með alnæmi), Larry Bird og fleiri þekktir kappar.\n\nFram að því höfðu leikmenn úr háskóladeildum Bandaríkjanna keppt og einn háskólanemi keppti með draumaliðinu.",
+   "image": "images/sumar-ol/63.jpg"
+  },
+  {
+   "title": "Vetrarólympíuleikar – ár og staður",
+   "body": "1924 – Chamonix, Frakklandi\n1928 – St. Moritz, Sviss\n1932 – Lake Placid, Bandaríkjunum\n1936 – Garmisch-Partenkirchen, Þýskalandi\n1948 – St. Moritz, Sviss\n1952 – Osló, Noregi\n1956 – Cortina d´Ampezzo, Ítalíu\n1960 – Squaw Valley, Bandaríkin\n1964 – Innsbruck, Austurríki\n1968 – Grenoble, Frakklandi\n1972 – Sapporo, Japan\n1976 – Innsbruck, Aústurríki\n1980 – Lake Placid, Bandaríkjunum\n1984 – Saravejó, Júgóslavíu\n1988 – Calgary, Kanada\n1992 – Albertville, Frakklandi\n1994 – Lillehammer, Noregi\n1998 – Nagano, Japan\n2002 – Salt Lake City, Bandaríkjunum\n2006 – Tórínó, Ítalía\n2010 – Vancouver, Kanada\n2014 – Sochi, Rússlandi\n2018 – Peyongchang,  Suður-Kóreu\n2022 – Peking",
+   "image": ""
+  },
+  {
+   "title": "Atlanta 1996",
+   "body": "Sumarólympíuleikarnir 1996 fóru fram í Atlanta, Georgíuríki, Bandaríkjunum. Muhammed Ali tendraði ólympíueldinn. Hryðjuverk settu þó óneitanlega ljótan blett á leikanna, en sprengja tók líf eins manns og særði 110.\n\nÍ fyrsta skipti var keppt í strandblaki, fjallahljólreiðum og softball, sem er afbrigði af hafnarbolta. Auk þess kepptu konur í fyrsta sinn í knattspyrnu. Carl Lewis varð þriðji keppandinn í sögu leikanna til að vinna gull í sömu greininni, langstökki, á fjórum leikum í röð. Donovan Bailey setti heimsmet í 100 m spretthalupi (9.84). Micheal Johnson setti heimset í 200m hlaupi, auk þess að vinna gull í 400m hlaupi. Andre Agassi lék eftir afrek eiginkonu sinnar Steffi Graf og setti gull alslemmu með því að vinna ólympíugull í tennis, auk þess að vinna risamótin fjögur.",
+   "image": "images/sumar-ol/66.jpg"
+  },
+  {
+   "title": "Sydney 2000",
+   "body": "Sumar ólympíuleikarnir 2000 fóru fram í Sydney í Ástralíu. Þetta var í annað sinn sem Ástralir héldu leikanna.\n\nTaekwondo var meðal keppnisgreina í fyrsta sinn á leikunum og konur kepptu í fyrsta sinn í stangastökki. Vala Flosadóttir varð þriðja í stangastökki og þar með þriðji Íslendingurinn til að vinna til verðlauna. Steve Redgrave afrekaði að vinna sitt fimmta gull á fimm leikum í röð; sem enginn hefur leikið eftir síðan. Marion Jones, frá Bandaríkjunum vann fimm verðlaun í frjálsum íþróttum, þar af gullið í 100 m og 200 spretthlaupi, auk þess að vera í 4x 400 m boðhlaupssveit Bandaríkjanna. Hún hlaut bronsverðlaun í þrístökki og4x 400 boðhlaupi.",
+   "image": "images/sumar-ol/67.jpg"
+  },
+  {
+   "title": "Vala Flosadóttir",
+   "body": "Vala Flosadóttir varð þriðji Íslendingurinn til að vinna til verðlauna á ólympíuleikunum. Hún hlaut bronsverðlaun í stangastökki í Sydney árið 2000. Jafnframt varð hún fyrst kvenna til að vinna til verðlauna á ólympíuleikum.\n\nKonur kepptu í fyrsta sinn í stangastökki á ólympíuleikum í Sydney. Stacey Dragila vann gullverðlaun (4,60 m), Tatiana Grigorieva, frá Ástralíu, varð önnur (4,55 m) og Vala þriðja og stökk hæst 4,50.",
+   "image": "images/sumar-ol/68.jpg"
+  },
+  {
+   "title": "Sir Steve",
+   "body": "Sir Steve Redgrave er breskur róðrarkappi sem hefur afrekað þann einn íþróttamanna að vinna fimm gullverðlaun á fimm ólympíuleikum. Hann tók fyrst þátt á ólympíuleikunum í Los Angeles 1984 og hefur síðan keppt á ólympíuleikunum í Seoul, Barcelona, Atlanta og Sydney.",
+   "image": "images/sumar-ol/69.jpg"
+  },
+  {
+   "title": "Aþena 2004",
+   "body": "Sumar ólympíuleikarnir 2004 fóru fram í Aþenu. Þetta var í annað sinn sem leikarnir fóru fram í Aþenu, og þriðja sinn ef óopinberu leikarnir 1906 væru taldir með.\n\nMichael Phelps vinnur 8 verðlaun, þar af 6 gullverðlaun í sundi. Hicham El Guerrouj vinnur gull í 1500 m og 5000 milli- og langhlaupum og jafnar árangur Paavo Nurmi frá 1924. Bandaríska körfuboltaliðið tapar óvænt fyrir Puerto Rico, en liðið hafði ekki tapað síðan 1992. Ástrálski sundmaðurinn Ian Thorpe vann tvö gullverðlaun í sundi, og vann þar með alls fimm gullverðlaun í sundi, en hann hafði unnið þrjú í Sydney árið 2000.",
+   "image": "images/sumar-ol/70.jpg"
+  },
+  {
+   "title": "Peking 2008",
+   "body": "Sumar ólympíuleikarnir 2008 voru haldnir í Peking, Kína. Í fyrsta sinn var keppt í BMX hjólreiðum.\n\nBandaríski sundkappinn Michael Phelps setti met þegar hann vann átta gullverðlaun í sundi, og setti met fyrir flestar gullmedalíur á einum leikum, og sló þar með met landa síns Mark Spitz.",
+   "image": "images/sumar-ol/71.jpg"
+  },
+  {
+   "title": "Íslenska handknattleikslandsliðið",
+   "body": "Íslenska karlalandsliðið í handbolta hlaut silfur í Peking 2008 og Ísland varð þar með minnsta ríki í heimi til að vinna til verðlauna í hópíþrótt á ólympíuleikum.\n\nÍsland sigraði í riðlinum Rússland og Þýskaland, tapaði fyrir S-Kóreu en gerði jafntefli við Dani og Egypta. Ísland vann svo Pólland í átta liða úrslitum, Spán í undanúrslitum en tapaði loks fyrir Frökkum (23-28) í úrslitum.\n\nGuðjón Valur Sigurðsson, Snorri Steinn Guðjónsson og Ólafur Stefánsson voru allir valdir í úrsvalslið ólympíuleikanna. Snorri Steinn og Guðjón Valur voru næst og þriðji markahæstu menn mótsins.",
+   "image": "images/sumar-ol/72.jpg"
+  },
+  {
+   "title": "Lundúnir 2012",
+   "body": "Sumar ólympíuleikarnir 2012 fóru fram í Lundúnum, Englandi, og var þetta í þriðja sinn sem borgin hélt leikanna, oftar en nokkur önnur.\n\nHafnarbolti og softball misstu stöðu sína sem ólympíugreinar. Konur máttu í fyrsta sinn taka þátt í hnefaleikum. Michael Phelps hélt uppteknum hætti og vann þrenn gullverðlaun í sundi.",
+   "image": "images/sumar-ol/73.jpg"
+  },
+  {
+   "title": "Ríó de Janeiro 2016",
+   "body": "Sumar ólympíuleikarnir 2016 fóru fram í Ríó de Janiero, í Brasilíu. Þetta var í fyrsta sinn sem ólympíuleikar voru haldnir í Suður-Ameríku. Keppt var í 28 greinum, þar með talið golfi og sjö manna rugby. Bandaríkin unnu flest verðlaun á leikunnu, en Bretar komu næstir. Í fyrsta sinn kepptu flóttamenn og gerðu það undir ólympíufánanum. Fjölmargir rússneskir frjálsíþróttamenn þurftu einnig að keppa undir fána ólympíunefndarinnar, eftir að rússneska frjálsíþróttasambandið var bannað að taka þátt í kjölfar þess að upp komst um lyfjanotkun.\n\nBandaríski sundkappinn Michael Phelps hlaut fimm gullverðlaun á leikunum. Enginn hefur unnið jafn mörg verðlaun, alls 28, þar af 21 gullverðlaun.",
+   "image": "images/sumar-ol/74.jpg"
+  },
+  {
+   "title": "Gullmaðurinn",
+   "body": "Michael Phelps er Bandaríkjamaður sem vann átta gullverðlaun á ólympíuleikunum í Peking. Hann er jafnframt sá íþróttamaður sem hefur hlotið flest ólympíuverðlaun í sögunni, 28 verðlaun, þar af 23 gullverðlaun; og flest verðlaun á einum leikum, átta.\n\nHann hlaut sex gullverðlaun í Aþenu árið 2004, átta gullverðlaun í Peking 2008, þrjú gullverðlaun í London 2012 og loks 5 gullverðlaun á leikunum í Ríó de Janeiro 2016.",
+   "image": "images/sumar-ol/75.jpg"
+  },
+  {
+   "title": "Alþjóða ólympíunefndin",
+   "body": "Alþjólega ólympíunefndin var stofnuð árið 1894 með það að markmiði að endurvekja hina fornu ólympíuleika. Aðal hvatamaður að stofnun nefndarinnar var Frakkinn Pierre de Coubertin. Demetrios Vikelas var fyrsti forseti nefndarinnar.\n\nHöfuðstöðvar Alþjóða ólympíunefndarinnar eru í Lusannes í Sviss. Núverandi forseti (2019) er Thomas Bach frá Þýskalandi.",
+   "image": ""
+  }
+ ]
+}

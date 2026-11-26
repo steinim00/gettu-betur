@@ -390,6 +390,7 @@ button.aðal-hnappur:active {
   color: var(--litur-texti);
   line-height: 1.6;
   margin-bottom: 0;
+  white-space: pre-line;
 }
 
 #afromISpurningar {
