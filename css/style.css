@@ -4669,6 +4669,67 @@ body.beta #minStadaSvaedi .viku-ahersla h3 {
   margin: 0;
 }
 
+/* Sérverkefni sem svartur borði með tveimur stórum tökkum (lesefni + æfingaspurningar) */
+.serverkefni-bordi {
+  margin-bottom: 18px;
+  padding: 22px 24px;
+  background: var(--litur-svart);
+  color: white;
+  border-radius: 20px;
+}
+
+.serverkefni-bordi .serverkefni-merki {
+  color: var(--litur-lime);
+}
+
+#serverkefniSvaedi .serverkefni-bordi h3 {
+  margin: 6px 0 4px;
+  font-size: 1.35rem;
+  color: white;
+}
+
+#serverkefniSvaedi .serverkefni-bordi p {
+  margin: 0 0 16px;
+  color: #c9c9c9;
+  font-size: 0.95rem;
+}
+
+.serverkefni-bordi .serverkefni-hnappar {
+  gap: 10px;
+}
+
+.serverkefni-takki {
+  flex: 1 1 200px;
+  padding: 15px 22px;
+  border: none;
+  border-radius: 999px !important;
+  background: var(--litur-lime);
+  color: #202b0a;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.serverkefni-takki.hvitur {
+  background: white;
+  color: var(--litur-texti);
+}
+
+.serverkefni-takki:hover {
+  transform: translateY(-1px);
+}
+
+.serverkefni-takki:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.serverkefni-takki:focus-visible {
+  outline: 3px solid var(--litur-lime);
+  outline-offset: 3px;
+}
+
 /* Standandi glærumyndir (plaköt): öll myndin sést */
 .glaera-kort img.glaera-standandi {
   width: auto;

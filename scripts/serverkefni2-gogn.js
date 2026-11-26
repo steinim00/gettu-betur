@@ -1,4 +1,4 @@
-// Sérverkefni 2 (fyrir prófið í des. 2026): 30 spurningar á nemanda - sjá scripts/serverkefni2.js.
+// Sérverkefni 2 (fyrir prófið í des. 2026): 20 spurningar á nemanda - sjá scripts/serverkefni2.js.
 // Glærurnar sjálfar eru í data/serverkefni2-glaerur.json (úr "51 FRÆGUSTU LISTAVERK SÖGUNNAR", "51 MINNA ÞEKKT
 // VERK Í LISTASÖGU VERALDAR" og "SVIPMYNDIR AF SUMARÓLYMPÍULEIKUM" á Drive).
 const SPURNINGAR = {
@@ -99,4 +99,12 @@ const SPURNINGAR = {
     ["Hver vann átta gullverðlaun í sundi á leikunum í Peking 2008?", ["michael phelps", "phelps"]]
   ]
 };
+// Notaðar eru 20 spurningar á nemanda (vísar í listana hér að ofan); hinar eru geymdar til vara.
+const VALDAR = {
+  julia: [0, 2, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 22, 23, 24, 25, 26, 27, 28, 29],
+  hekla: [0, 1, 2, 4, 5, 8, 11, 12, 13, 17, 19, 20, 22, 23, 24, 25, 26, 27, 28, 29],
+  hinrik: [0, 1, 2, 5, 7, 8, 10, 11, 14, 15, 16, 17, 19, 20, 22, 24, 25, 27, 28, 29]
+};
+Object.keys(VALDAR).forEach((n) => (SPURNINGAR[n] = VALDAR[n].map((i) => SPURNINGAR[n][i])));
+
 module.exports = { SPURNINGAR };

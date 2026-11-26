@@ -3059,27 +3059,28 @@ async function birtaServerkefni(verkefnaSnap, notandaGogn) {
     const verkefni = vDoc.data();
     const alls = Object.values(yfirlit).filter((vid) => vid === vDoc.id).length || 10;
     const svarad = Math.min(notandaGogn?.verkefnaStada?.[vDoc.id]?.svarad || 0, alls);
+    // Svartur borði efst á Heim með tveimur áberandi tökkum: lesefnið (glærurnar) og æfingaspurningarnar.
     const kort = document.createElement("div");
-    kort.className = "serverkefni-kort";
+    kort.className = "serverkefni-bordi";
     const merki = document.createElement("span");
     merki.className = "serverkefni-merki";
-    merki.textContent = "📌 Sérstaklega fyrir þig";
+    merki.textContent = "📌 Æfingin þín";
     const titill = document.createElement("h3");
     titill.textContent = verkefni.title;
     const lysing = document.createElement("p");
     const buid = svarad >= alls;
-    lysing.textContent = `${(verkefni.slides || []).length} glærur · ${alls} spurningar${buid ? " · Allar svaraðar ✓" : svarad ? ` · ${svarad} af ${alls} svarað` : ""}`;
+    lysing.textContent = `${(verkefni.slides || []).length} glærur · ${alls} æfingaspurningar${buid ? " · Allar svaraðar ✓" : svarad ? ` · ${svarad} af ${alls} svarað` : ""}`;
     const hnappar = document.createElement("div");
     hnappar.className = "serverkefni-hnappar";
     const glaerur = document.createElement("button");
     glaerur.type = "button";
-    glaerur.className = "smabtn";
-    glaerur.textContent = "Skoða glærurnar";
+    glaerur.className = "serverkefni-takki hvitur";
+    glaerur.textContent = "📖 Lesefni";
     glaerur.addEventListener("click", () => opnaVerkefni(vDoc.id, verkefni));
     const spurningar = document.createElement("button");
     spurningar.type = "button";
-    spurningar.className = "aðal-hnappur";
-    spurningar.textContent = buid ? "↺ Gera aftur" : svarad ? "Halda áfram í spurningum →" : "Fara í spurningarnar →";
+    spurningar.className = "serverkefni-takki";
+    spurningar.textContent = buid ? "↺ Æfingaspurningar aftur" : svarad ? "✏️ Halda áfram í æfingaspurningum" : "✏️ Æfingaspurningar";
     // Búið: "Gera aftur" opnar spurningarnar og byrjar verkefnið aftur (eins og "Byrja aftur" í öðrum verkefnum).
     spurningar.addEventListener("click", async () => {
       await opnaSpurningarBeint(vDoc.id, verkefni);

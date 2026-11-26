@@ -1,4 +1,4 @@
-// Sérverkefni 2 (fyrir prófið í des. 2026): ný glærusöfn + 30 spurningar fyrir Júlíu (listaverk), Hinrik
+// Sérverkefni 2 (fyrir prófið í des. 2026): ný glærusöfn + 20 spurningar fyrir Júlíu (listaverk), Hinrik
 // (sumarólympíuleikar) og Heklu (erlend dægurlög 5 og 6). Fyrri sérverkefni þeirra eru falin (active: false) en gögnin haldast - til að sýna þau
 // aftur: setja active: true á verkefni/serverkefni-julia, -hinrik eða -hekla. Keyra má aftur (sama skjal-ID = uppfærsla).
 // Notkun: NODE_PATH=... node serverkefni2.js  (keyrðu svo samstilla-spurningayfirlit.js)
@@ -46,6 +46,11 @@ const VERKEFNI = [
       });
       batch.set(db.doc(`answers/${qid}`), { correctAnswers: svor.map((s) => s.toLowerCase()) });
     });
+    // Spurningar umfram fjöldann (t.d. 21-30 frá fyrri keyrslu) eru gerðar óvirkar.
+    for (let i = SPURNINGAR[v.nemandi].length + 1; i <= 30; i++) {
+      const qid = `${v.id}-${String(i).padStart(2, "0")}`;
+      if ((await db.doc(`questions/${qid}`).get()).exists) batch.update(db.doc(`questions/${qid}`), { active: false });
+    }
     batch.update(db.doc(`verkefni/${v.gamla}`), { active: false });
     await batch.commit();
     console.log(`${v.title}: ${slides.length} glærur (${slides.filter((s) => s.image).length} með mynd), ${SPURNINGAR[v.nemandi].length} spurningar; ${v.gamla} falið`);
